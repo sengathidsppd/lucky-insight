@@ -3,13 +3,16 @@
 This module wires up the SQLAlchemy engine and session factory used across
 the application. It intentionally contains no business logic and does not
 create any tables; table creation is handled exclusively through Alembic
-migrations in a future task.
+migrations.
+
+The declarative ``Base`` class lives in ``app.models.base`` (not here) so
+that the models package owns the single source of truth for ORM metadata.
 """
 
 from collections.abc import Generator
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import get_settings
 
@@ -32,10 +35,6 @@ SessionLocal = sessionmaker(
     autoflush=False,
     future=True,
 )
-
-
-class Base(DeclarativeBase):
-    """Base class for all ORM models."""
 
 
 def get_db() -> Generator[Session]:
