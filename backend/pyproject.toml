@@ -41,6 +41,12 @@ target-version = "py313"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
+[tool.ruff.lint.per-file-ignores]
+# FastAPI's dependency-injection idiom requires calling Depends() in
+# argument defaults; this is intentional, not the mutable-default-argument
+# bug B008 is designed to catch.
+"app/api/**" = ["B008"]
+
 [tool.mypy]
 python_version = "3.13"
 plugins = ["pydantic.mypy"]

@@ -3,9 +3,12 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from app.api.health import router as health_router
+from app.api.v1.auth import router as auth_v1_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 
@@ -31,4 +34,27 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """Return HTTP 400 for request validation errors.
+
+    FastAPI's default is HTTP 422; the project's API contract calls for
+    400 Bad Request on validation failures instead. Only JSON-serializable
+    error fields are included, since Pydantic's raw error context can
+    hold non-serializable objects (e.g. the original exception instance).
+    """
+    errors = [
+        {"loc": list(error["loc"]), "msg": error["msg"], "type": error["type"]}
+        for error in exc.errors()
+    ]
+    return JSONResponse(
+        status_code=400,
+        content={"success": False, "message": "Validation failed.", "errors": errors},
+    )
+
+
 app.include_router(health_router)
+app.include_router(auth_v1_router, prefix="/api/v1")
