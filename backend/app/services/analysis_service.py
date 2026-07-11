@@ -188,9 +188,39 @@ class AnalysisService:
         digit_counts = Counter(all_digits)
         top_digits = [{"digit": d, "count": c} for d, c in digit_counts.most_common(10)]
 
+        # Rank the actual 6-digit numbers in the dataset by their digit frequency score
+        digit_freq_dict = {d: c for d, c in digit_counts.items()}
+        
+        def calculate_score(num_str: str) -> int:
+            return sum(digit_freq_dict.get(c, 0) for c in num_str)
+
+        unique_6d = list(set(endings_map[6]))
+        ranked_6d = sorted(unique_6d, key=calculate_score, reverse=True)
+        top_ranked_6d = [
+            {"number": num, "score": calculate_score(num)}
+            for num in ranked_6d[:5]
+        ]
+
+        # Generate recommended 6-digit combinations using top digits
+        generated_recommendations = []
+        if top_digits:
+            td = [item["digit"] for item in top_digits]
+            if len(td) >= 3:
+                generated_recommendations.append("".join(td[:3] * 2))
+            else:
+                generated_recommendations.append("".join(td * 6)[:6])
+            if len(td) >= 6:
+                generated_recommendations.append("".join(td[:6]))
+            else:
+                generated_recommendations.append("".join(td * 6)[:6])
+            if len(td) >= 2:
+                generated_recommendations.append("".join(td[:2] * 3))
+
         result_data = {
             "total_records_analyzed": len(records),
             "top_single_digits": top_digits,
+            "best_analyzed_6d": top_ranked_6d,
+            "generated_recommendations": list(set(generated_recommendations)),
         }
 
         # Add endings of length 1 to 6
