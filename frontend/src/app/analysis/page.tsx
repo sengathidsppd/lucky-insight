@@ -71,8 +71,8 @@ export default function AnalysisPage() {
         analysis_type: analysisType,
         parameters: {
           game_id: selectedGame?.id || undefined,
-          date_from: startDate ? new Date(startDate).toISOString().slice(0, 10) : undefined,
-          date_to: endDate ? new Date(endDate).toISOString().slice(0, 10) : undefined,
+          date_from: startDate ? new Date(startDate + "T00:00:00").toISOString() : undefined,
+          date_to: endDate ? new Date(endDate + "T23:59:59").toISOString() : undefined,
         },
       };
 
