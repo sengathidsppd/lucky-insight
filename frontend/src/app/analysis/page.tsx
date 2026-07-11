@@ -12,8 +12,11 @@ interface AnalysisJob {
   end_date: string | null;
   created_at: string;
   result?: {
-    summary: string;
-    details: Record<string, any>;
+    id: string;
+    job_id: string;
+    result_data: Record<string, any>;
+    explanation: string;
+    created_at: string;
   };
 }
 
@@ -228,7 +231,7 @@ export default function AnalysisPage() {
 function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
   const result = job.result;
   if (!result) return null;
-  const details = result.details;
+  const details = result.result_data;
 
   return (
     <div style={resultsBodyStyle}>
@@ -236,7 +239,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
       <div style={summaryBoxStyle}>
         <h4 style={{ fontWeight: 700, marginBottom: "0.5rem" }}>Summary Analysis</h4>
         <p style={{ fontSize: "0.95rem", lineHeight: "1.5", color: "var(--text-secondary)" }}>
-          {result.summary}
+          {result.explanation}
         </p>
       </div>
 
