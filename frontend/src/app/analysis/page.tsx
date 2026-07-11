@@ -20,6 +20,7 @@ interface AnalysisJob {
 export default function AnalysisPage() {
   const [jobs, setJobs] = useState<AnalysisJob[]>([]);
   const [selectedJob, setSelectedJob] = useState<AnalysisJob | null>(null);
+  const [games, setGames] = useState<any[]>([]);
 
   // Form states
   const [gameCode, setGameCode] = useState("THAI");
@@ -31,9 +32,18 @@ export default function AnalysisPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const fetchLookups = async () => {
+    try {
+      const resp = await apiRequest("/lotteries/games");
+      setGames(resp.data);
+    } catch (err) {
+      console.error("Failed to load games lookup:", err);
+    }
+  };
+
   const fetchJobs = async () => {
     try {
-      const resp = await apiRequest("/analysis/jobs");
+      const resp = await apiRequest("/analysis/");
       setJobs(resp.data);
     } catch (err: any) {
       setError(err.message || "Failed to load analysis history.");
@@ -43,6 +53,7 @@ export default function AnalysisPage() {
   };
 
   useEffect(() => {
+    fetchLookups();
     fetchJobs();
   }, []);
 
@@ -52,14 +63,17 @@ export default function AnalysisPage() {
     setError("");
 
     try {
+      const selectedGame = games.find((g) => g.code === gameCode);
       const payload = {
-        game_code: gameCode,
         analysis_type: analysisType,
-        start_date: startDate || null,
-        end_date: endDate || null,
+        parameters: {
+          game_id: selectedGame?.id || undefined,
+          date_from: startDate ? new Date(startDate).toISOString().slice(0, 10) : undefined,
+          date_to: endDate ? new Date(endDate).toISOString().slice(0, 10) : undefined,
+        },
       };
 
-      const resp = await apiRequest("/analysis/jobs", {
+      const resp = await apiRequest("/analysis/", {
         method: "POST",
         body: JSON.stringify(payload),
       });
@@ -81,7 +95,7 @@ export default function AnalysisPage() {
 
   const handleSelectJob = async (job: AnalysisJob) => {
     try {
-      const resp = await apiRequest(`/analysis/jobs/${job.id}`);
+      const resp = await apiRequest(`/analysis/${job.id}`);
       setSelectedJob(resp.data);
     } catch (err: any) {
       alert("Failed to load details: " + err.message);
@@ -102,6 +116,7 @@ export default function AnalysisPage() {
           {/* Form */}
           <div className="glass-panel" style={panelCardStyle}>
             <h3 style={panelTitleStyle}>Run Statistical Model</h3>
+            {error && <div style={errorStyle}>{error}</div>}
             <form onSubmit={handleStartAnalysis} style={formStyle}>
               <div style={formRowStyle}>
                 <div style={formColStyle}>
