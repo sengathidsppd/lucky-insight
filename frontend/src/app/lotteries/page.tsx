@@ -35,6 +35,7 @@ export default function LotteriesPage() {
 
   // Admin New Result form
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [modalGameId, setModalGameId] = useState("");
   const [newDrawDate, setNewDrawDate] = useState("");
   const [newDrawNumber, setNewDrawNumber] = useState("");
   const [newFirstPrize, setNewFirstPrize] = useState("");
@@ -70,11 +71,10 @@ export default function LotteriesPage() {
   const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const selectedGame = games.find((g) => g.code === selectedGameCode);
-      if (!selectedGame) return;
+      if (!modalGameId) return;
 
       const payload = {
-        game_id: selectedGame.id,
+        game_id: modalGameId,
         draw_date: new Date(newDrawDate).toISOString().slice(0, 10),
         draw_number: newDrawNumber || undefined,
         first_prize: newFirstPrize,
@@ -95,12 +95,7 @@ export default function LotteriesPage() {
       setNewTwoDigits("");
 
       // Refresh list
-      if (selectedGame) {
-        const resResp = await apiRequest("/lotteries/results", {
-          params: { game_id: selectedGame.id },
-        });
-        setResults(resResp.data);
-      }
+      fetchGamesAndResults();
     } catch (err: any) {
       alert(err.message || "Failed to submit result.");
     }
@@ -132,7 +127,7 @@ export default function LotteriesPage() {
         </div>
         
         {user?.is_admin && (
-          <button onClick={() => setIsAdminOpen(true)} className="btn btn-primary">
+          <button onClick={() => { setModalGameId(activeGame?.id || (games[0]?.id ?? "")); setIsAdminOpen(true); }} className="btn btn-primary">
             🛡️ Add Draw Result (Admin)
           </button>
         )}
@@ -231,8 +226,23 @@ export default function LotteriesPage() {
       {isAdminOpen && (
         <div style={modalBackdropStyle}>
           <div className="glass-panel" style={modalContentStyle}>
-            <h2 style={modalTitleStyle}>Add Lottery Result ({selectedGameCode})</h2>
+            <h2 style={modalTitleStyle}>Add Lottery Result</h2>
             <form onSubmit={handleAdminSubmit} style={formStyle}>
+              <div style={formColStyle}>
+                <label style={labelStyle}>Lottery Game *</label>
+                <select
+                  value={modalGameId}
+                  onChange={(e) => setModalGameId(e.target.value)}
+                  required
+                >
+                  {games.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.code === "THAI" ? "🇹🇭 Thai Government Lottery" : g.code === "LAO" ? "🇱🇦 Lao Development Lottery" : g.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div style={formColStyle}>
                 <label style={labelStyle}>Draw Date *</label>
                 <input
