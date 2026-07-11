@@ -243,80 +243,97 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
         </p>
       </div>
 
-      {/* Render model details */}
-      <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginTop: "1rem" }}>Calculated Statistics</h3>
-
-      {job.analysis_type === "FREQUENCY" && details.frequencies && (
-        <div className="chart-bar-container" style={{ marginTop: "0.5rem" }}>
-          {Object.entries(details.frequencies)
-            .sort((a: any, b: any) => b[1] - a[1])
-            .map(([digit, count]: any) => {
-              const maxCount = Math.max(...(Object.values(details.frequencies) as number[]), 1);
-              const percent = Math.round((count / maxCount) * 100);
-              return (
-                <div key={digit} className="chart-bar-row">
-                  <span className="chart-bar-label">Digit {digit}</span>
-                  <div className="chart-bar-track">
-                    <div className="chart-bar-fill" style={{ width: `${percent}%` }} />
+      {job.analysis_type === "FREQUENCY" && details.top_single_digits && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+          <div>
+            <h4 style={subPanelTitleStyle}>Top Single Digits Frequency</h4>
+            <div className="chart-bar-container" style={{ marginTop: "0.5rem" }}>
+              {details.top_single_digits.map((item: any) => {
+                const maxCount = Math.max(...details.top_single_digits.map((d: any) => d.count), 1);
+                const percent = Math.round((item.count / maxCount) * 100);
+                return (
+                  <div key={item.digit} className="chart-bar-row">
+                    <span className="chart-bar-label">Digit {item.digit}</span>
+                    <div className="chart-bar-track">
+                      <div className="chart-bar-fill" style={{ width: `${percent}%` }} />
+                    </div>
+                    <span className="chart-bar-value">{item.count}</span>
                   </div>
-                  <span className="chart-bar-value">{count}</span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+          </div>
+
+          {details.top_2digit_endings && (
+            <div>
+              <h4 style={subPanelTitleStyle}>Top 2-Digit Endings</h4>
+              <div className="chart-bar-container" style={{ marginTop: "0.5rem" }}>
+                {details.top_2digit_endings.map((item: any) => {
+                  const maxCount = Math.max(...details.top_2digit_endings.map((d: any) => d.count), 1);
+                  const percent = Math.round((item.count / maxCount) * 100);
+                  return (
+                    <div key={item.combination} className="chart-bar-row">
+                      <span className="chart-bar-label">Ending {item.combination}</span>
+                      <div className="chart-bar-track">
+                        <div className="chart-bar-fill" style={{ width: `${percent}%` }} />
+                      </div>
+                      <span className="chart-bar-value">{item.count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {job.analysis_type === "PAIR" && details.pairs && (
+      {job.analysis_type === "PAIR" && details.top_digit_pairs && (
         <div style={tableWrapperStyle}>
           <table style={tableStyle}>
             <thead>
               <tr style={tableHeaderRowStyle}>
-                <th style={thStyle}>Pair</th>
+                <th style={thStyle}>Digit Pair</th>
                 <th style={thStyle}>Occurrences</th>
               </tr>
             </thead>
             <tbody>
-              {Object.entries(details.pairs)
-                .slice(0, 10)
-                .map(([pair, count]: any) => (
-                  <tr key={pair} style={trStyle}>
-                    <td style={{ ...tdStyle, fontWeight: 700, color: "var(--accent-cyan)" }}>
-                      {pair}
-                    </td>
-                    <td style={tdStyle}>{count} draws</td>
-                  </tr>
-                ))}
+              {details.top_digit_pairs.map((item: any) => (
+                <tr key={item.pair} style={trStyle}>
+                  <td style={{ ...tdStyle, fontWeight: 700, color: "var(--accent-cyan)" }}>
+                    ({item.pair})
+                  </td>
+                  <td style={tdStyle}>{item.count} times</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       )}
 
-      {job.analysis_type === "TRIPLE" && details.triplets && (
+      {job.analysis_type === "TRIPLE" && details.top_digit_triplets && (
         <div style={tableWrapperStyle}>
           <table style={tableStyle}>
             <thead>
               <tr style={tableHeaderRowStyle}>
-                <th style={thStyle}>Triplet</th>
+                <th style={thStyle}>Digit Triplet</th>
                 <th style={thStyle}>Occurrences</th>
               </tr>
             </thead>
             <tbody>
-              {Object.entries(details.triplets)
-                .slice(0, 10)
-                .map(([triplet, count]: any) => (
-                  <tr key={triplet} style={trStyle}>
-                    <td style={{ ...tdStyle, fontWeight: 700, color: "var(--accent-cyan)" }}>
-                      {triplet}
-                    </td>
-                    <td style={tdStyle}>{count} draws</td>
-                  </tr>
-                ))}
+              {details.top_digit_triplets.map((item: any) => (
+                <tr key={item.triplet} style={trStyle}>
+                  <td style={{ ...tdStyle, fontWeight: 700, color: "var(--accent-cyan)" }}>
+                    ({item.triplet})
+                  </td>
+                  <td style={tdStyle}>{item.count} times</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       )}
 
-      {job.analysis_type === "DISTRIBUTION" && details.odd_even && (
+      {job.analysis_type === "DISTRIBUTION" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           <div>
             <h4 style={subPanelTitleStyle}>Odd / Even Ratio</h4>
@@ -324,16 +341,16 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               <div className="chart-bar-row">
                 <span className="chart-bar-label">Odd</span>
                 <div className="chart-bar-track">
-                  <div className="chart-bar-fill" style={{ width: `${details.odd_even.odd_percentage || 0}%` }} />
+                  <div className="chart-bar-fill" style={{ width: `${details.odd_percentage || 0}%` }} />
                 </div>
-                <span className="chart-bar-value">{details.odd_even.odd}</span>
+                <span className="chart-bar-value">{details.odd_percentage || 0}%</span>
               </div>
               <div className="chart-bar-row">
                 <span className="chart-bar-label">Even</span>
                 <div className="chart-bar-track">
-                  <div className="chart-bar-fill" style={{ width: `${details.odd_even.even_percentage || 0}%` }} />
+                  <div className="chart-bar-fill" style={{ width: `${details.even_percentage || 0}%` }} />
                 </div>
-                <span className="chart-bar-value">{details.odd_even.even}</span>
+                <span className="chart-bar-value">{details.even_percentage || 0}%</span>
               </div>
             </div>
           </div>
@@ -342,18 +359,18 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
             <h4 style={subPanelTitleStyle}>High / Low Ratio</h4>
             <div className="chart-bar-container" style={{ marginTop: "0.5rem" }}>
               <div className="chart-bar-row">
-                <span className="chart-bar-label">High (50-99)</span>
+                <span className="chart-bar-label">High (5-9)</span>
                 <div className="chart-bar-track">
-                  <div className="chart-bar-fill" style={{ width: `${details.high_low.high_percentage || 0}%` }} />
+                  <div className="chart-bar-fill" style={{ width: `${details.high_percentage || 0}%` }} />
                 </div>
-                <span className="chart-bar-value">{details.high_low.high}</span>
+                <span className="chart-bar-value">{details.high_percentage || 0}%</span>
               </div>
               <div className="chart-bar-row">
-                <span className="chart-bar-label">Low (00-49)</span>
+                <span className="chart-bar-label">Low (0-4)</span>
                 <div className="chart-bar-track">
-                  <div className="chart-bar-fill" style={{ width: `${details.high_low.low_percentage || 0}%` }} />
+                  <div className="chart-bar-fill" style={{ width: `${details.low_percentage || 0}%` }} />
                 </div>
-                <span className="chart-bar-value">{details.high_low.low}</span>
+                <span className="chart-bar-value">{details.low_percentage || 0}%</span>
               </div>
             </div>
           </div>
