@@ -77,15 +77,6 @@ def seed():
                 front3="000",
                 back3="277"
             ),
-            LotteryResult(
-                game_id=lao_game.id,
-                draw_date=date(2026, 7, 8),
-                draw_number="Lao Draw 51",
-                first_prize="492813",
-                last2="13",
-                front3="492",
-                back3="813"
-            ),
         ]
         db.add_all(lao_results)
         
