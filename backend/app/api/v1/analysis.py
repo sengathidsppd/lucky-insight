@@ -138,3 +138,32 @@ def get_job(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Analysis job not found",
         ) from exc
+
+
+from app.schemas.record import DeleteResponse
+
+
+@router.delete(
+    "/{job_id}",
+    response_model=DeleteResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Delete an analysis job",
+)
+def delete_job(
+    job_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    service: AnalysisService = Depends(get_analysis_service),
+) -> DeleteResponse:
+    """Soft-delete an analysis job from the user's history."""
+    try:
+        # Check ownership first
+        job = service.get_job(current_user.id, job_id)
+        service._analysis_repository.soft_delete(job.id)
+        db.commit()
+        return DeleteResponse(message="Analysis job deleted successfully.")
+    except EntityNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Analysis job not found",
+        ) from exc

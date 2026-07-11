@@ -105,6 +105,23 @@ export default function AnalysisPage() {
     }
   };
 
+  const handleDeleteJob = async (jobId: string) => {
+    if (!confirm("ต้องการลบประวัติการวิเคราะห์นี้ใช่หรือไม่?")) {
+      return;
+    }
+    try {
+      await apiRequest(`/analysis/${jobId}`, {
+        method: "DELETE",
+      });
+      if (selectedJob?.id === jobId) {
+        setSelectedJob(null);
+      }
+      fetchJobs();
+    } catch (err: any) {
+      alert("Failed to delete history item: " + err.message);
+    }
+  };
+
   return (
     <div style={containerStyle}>
       {/* Header */}
@@ -179,7 +196,28 @@ export default function AnalysisPage() {
                         <span style={historyItemTitleStyle}>
                           {job.analysis_type} ({job.game_code})
                         </span>
-                        <span style={getStatusBadgeStyle(job.status)}>{job.status}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                          <span style={getStatusBadgeStyle(job.status)}>{job.status}</span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteJob(job.id);
+                            }}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              color: "rgba(255, 255, 255, 0.4)",
+                              cursor: "pointer",
+                              fontSize: "1rem",
+                              padding: "0.2rem",
+                              transition: "color 0.2s",
+                            }}
+                            title="Delete this analysis run"
+                          >
+                            🗑️
+                          </button>
+                        </div>
                       </div>
                       <div style={historyItemDateStyle}>
                         Run on: {new Date(job.created_at).toLocaleString()}
