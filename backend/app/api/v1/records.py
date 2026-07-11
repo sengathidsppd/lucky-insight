@@ -7,7 +7,7 @@ records. All endpoints require a valid active user session.
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies.auth import get_current_active_user
@@ -19,6 +19,7 @@ from app.repositories.exceptions import EntityNotFoundError
 from app.repositories.lookup_repository import LookupRepository
 from app.repositories.number_record_repository import NumberRecordRepository
 from app.repositories.number_tag_repository import NumberTagRepository
+from app.schemas.import_export import ImportSummaryResponse
 from app.schemas.record import (
     CategoryResponse,
     CreateRecordRequest,
@@ -32,6 +33,7 @@ from app.schemas.record import (
     UpdateRecordRequest,
 )
 from app.services.exceptions import InvalidRecordDataError, RecordOwnershipError
+from app.services.import_export_service import ImportExportService
 from app.services.number_record_service import NumberRecordService
 
 logger = get_logger(__name__)
@@ -385,3 +387,53 @@ def set_record_tags(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
+
+
+def get_import_export_service(db: Session = Depends(get_db)) -> ImportExportService:
+    """Provide a request-scoped ``ImportExportService``."""
+    return ImportExportService(db, NumberRecordRepository(db))
+
+
+@router.get(
+    "/export/csv",
+    summary="Export all records to CSV",
+)
+def export_csv(
+    current_user: User = Depends(get_current_active_user),
+    service: ImportExportService = Depends(get_import_export_service),
+) -> Response:
+    """Export all user's number records as a CSV download."""
+    csv_data = service.export_records_to_csv(current_user.id)
+    return Response(
+        content=csv_data,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": (
+                f"attachment; filename=records_export_"
+                f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+            )
+        },
+    )
+
+
+@router.post(
+    "/import/csv",
+    response_model=ImportSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Import records from a CSV file",
+)
+def import_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    service: ImportExportService = Depends(get_import_export_service),
+) -> ImportSummaryResponse:
+    """Upload and import number records from a CSV file."""
+    content = file.file.read()
+    result = service.import_records_from_csv(current_user.id, content)
+    db.commit()
+    return ImportSummaryResponse(
+        imported_count=result["imported_count"],
+        failed_count=result["failed_count"],
+        errors=result["errors"],
+    )
