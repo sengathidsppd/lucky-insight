@@ -152,9 +152,9 @@ class AnalysisService:
         self,
         records: Sequence[NumberRecord],
     ) -> tuple[dict[str, Any], str]:
-        """Calculate frequency of single digits and 2-digit ending combinations."""
+        """Calculate frequency of single digits and endings of length 1 to 6."""
         all_digits = []
-        endings = []
+        endings_map = {length: [] for length in range(1, 7)}
 
         for r in records:
             num_str = r.number.strip()
@@ -162,32 +162,39 @@ class AnalysisService:
             for char in num_str:
                 if char.isdigit():
                     all_digits.append(char)
-            # 2-digit ending
-            if len(num_str) >= 2:
-                endings.append(num_str[-2:])
+            # Endings of lengths 1 to 6
+            cleaned_num = "".join([c for c in num_str if c.isdigit()])
+            for length in range(1, 7):
+                if len(cleaned_num) >= length:
+                    endings_map[length].append(cleaned_num[-length:])
 
         digit_counts = Counter(all_digits)
-        ending_counts = Counter(endings)
-
         top_digits = [{"digit": d, "count": c} for d, c in digit_counts.most_common(10)]
-        top_endings = [
-            {"combination": comb, "count": c} for comb, c in ending_counts.most_common(10)
-        ]
 
         result_data = {
             "total_records_analyzed": len(records),
             "top_single_digits": top_digits,
-            "top_2digit_endings": top_endings,
         }
+
+        # Add endings of length 1 to 6
+        for length in range(1, 7):
+            ending_counts = Counter(endings_map[length])
+            result_data[f"top_{length}digit_endings"] = [
+                {"combination": comb, "count": c} for comb, c in ending_counts.most_common(10)
+            ]
 
         most_freq_digit = top_digits[0]["digit"] if top_digits else "N/A"
         most_freq_digit_cnt = top_digits[0]["count"] if top_digits else 0
-        most_freq_ending = top_endings[0]["combination"] if top_endings else "N/A"
+        most_freq_2d = (
+            result_data["top_2digit_endings"][0]["combination"]
+            if result_data["top_2digit_endings"]
+            else "N/A"
+        )
 
         explanation = (
             f"Analyzed {len(records)} records. The most frequent single digit is "
             f"'{most_freq_digit}' appearing {most_freq_digit_cnt} times. "
-            f"The most common 2-digit ending is '{most_freq_ending}'."
+            f"The most common 2-digit ending is '{most_freq_2d}'."
         )
 
         return result_data, explanation

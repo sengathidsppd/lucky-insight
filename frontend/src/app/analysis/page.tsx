@@ -230,6 +230,8 @@ export default function AnalysisPage() {
 
 function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
   const result = job.result;
+  const [endingLength, setEndingLength] = useState(2); // default to 2-digit endings
+
   if (!result) return null;
   const details = result.result_data;
 
@@ -264,26 +266,61 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
             </div>
           </div>
 
-          {details.top_2digit_endings && (
-            <div>
-              <h4 style={subPanelTitleStyle}>Top 2-Digit Endings</h4>
-              <div className="chart-bar-container" style={{ marginTop: "0.5rem" }}>
-                {details.top_2digit_endings.map((item: any) => {
-                  const maxCount = Math.max(...details.top_2digit_endings.map((d: any) => d.count), 1);
-                  const percent = Math.round((item.count / maxCount) * 100);
-                  return (
-                    <div key={item.combination} className="chart-bar-row">
-                      <span className="chart-bar-label">Ending {item.combination}</span>
-                      <div className="chart-bar-track">
-                        <div className="chart-bar-fill" style={{ width: `${percent}%` }} />
-                      </div>
-                      <span className="chart-bar-value">{item.count}</span>
-                    </div>
-                  );
-                })}
-              </div>
+          <div>
+            <h4 style={subPanelTitleStyle}>Analyze Digit Endings</h4>
+            {/* Tab Buttons for Ending Lengths 1 to 6 */}
+            <div style={{ display: "flex", gap: "0.4rem", marginBottom: "1rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
+              {[6, 5, 4, 3, 2, 1].map((len) => {
+                const hasData = !!details[`top_${len}digit_endings`]?.length;
+                const isActive = endingLength === len;
+                return (
+                  <button
+                    key={len}
+                    type="button"
+                    onClick={() => setEndingLength(len)}
+                    disabled={!hasData}
+                    className={`btn ${isActive ? "btn-primary" : "btn-secondary"}`}
+                    style={{
+                      padding: "0.4rem 0.8rem",
+                      fontSize: "0.8rem",
+                      borderRadius: "6px",
+                      opacity: hasData ? 1 : 0.4,
+                      cursor: hasData ? "pointer" : "not-allowed",
+                      border: isActive ? "1px solid var(--accent-cyan)" : "1px solid transparent",
+                      background: isActive ? "var(--gradient-cyan-purple)" : "rgba(255, 255, 255, 0.05)",
+                      color: "#fff",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    เลข {len} ตัว
+                  </button>
+                );
+              })}
             </div>
-          )}
+
+            {/* Render selected ending length bar charts */}
+            <div className="chart-bar-container" style={{ marginTop: "0.5rem" }}>
+              {(details[`top_${endingLength}digit_endings`] || []).map((item: any) => {
+                const endingsList = details[`top_${endingLength}digit_endings`] || [];
+                const maxCount = Math.max(...endingsList.map((d: any) => d.count), 1);
+                const percent = Math.round((item.count / maxCount) * 100);
+                return (
+                  <div key={item.combination} className="chart-bar-row">
+                    <span className="chart-bar-label">Ending {item.combination}</span>
+                    <div className="chart-bar-track">
+                      <div className="chart-bar-fill" style={{ width: `${percent}%` }} />
+                    </div>
+                    <span className="chart-bar-value">{item.count}</span>
+                  </div>
+                );
+              })}
+              {(!details[`top_${endingLength}digit_endings`] || details[`top_${endingLength}digit_endings`].length === 0) && (
+                <div style={{ color: "var(--text-secondary)", fontSize: "0.9rem", textAlign: "center", padding: "1rem" }}>
+                  ไม่มีข้อมูลเลขท้าย {endingLength} ตัวสำหรับเงื่อนไขนี้
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
