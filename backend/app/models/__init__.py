@@ -6,6 +6,20 @@ created.
 """
 
 from app.models.base import Base, BaseEntity
+from app.models.number_category import NumberCategory
+from app.models.number_record import NumberRecord
+from app.models.number_source import NumberSource
+from app.models.number_tag import NumberTag
+from app.models.record_tag import record_tags
 from app.models.user import User
 
-__all__ = ["Base", "BaseEntity", "User"]
+__all__ = [
+    "Base",
+    "BaseEntity",
+    "NumberCategory",
+    "NumberRecord",
+    "NumberSource",
+    "NumberTag",
+    "User",
+    "record_tags",
+]

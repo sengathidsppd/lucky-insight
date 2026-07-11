@@ -28,3 +28,17 @@ class InactiveUserException(ServiceError):
 
     def __init__(self, message: str = "User account is inactive") -> None:
         super().__init__(message)
+
+
+class RecordOwnershipError(ServiceError):
+    """Raised when a user attempts to access or modify a record they do not own."""
+
+    def __init__(self, message: str = "You do not own this record") -> None:
+        super().__init__(message)
+
+
+class InvalidRecordDataError(ServiceError):
+    """Raised when record creation or modification payload contains invalid data."""
+
+    def __init__(self, message: str = "Invalid record data") -> None:
+        super().__init__(message)
