@@ -62,8 +62,17 @@ class AnalysisService:
 
             src_uuid = uuid.UUID(source_id) if source_id else None
             cat_uuid = uuid.UUID(category_id) if category_id else None
-            dt_from = datetime.fromisoformat(date_from_str) if date_from_str else None
-            dt_to = datetime.fromisoformat(date_to_str) if date_to_str else None
+            
+            if date_from_str:
+                dt_from = datetime.fromisoformat(date_from_str.replace("Z", "+00:00")).replace(hour=0, minute=0, second=0, microsecond=0)
+            else:
+                dt_from = None
+
+            if date_to_str:
+                dt_to = datetime.fromisoformat(date_to_str.replace("Z", "+00:00")).replace(hour=23, minute=59, second=59, microsecond=999999)
+            else:
+                dt_to = None
+
             game_id = uuid.UUID(game_id_str) if game_id_str else None
 
             # Retrieve user's records (up to 50,000 for safety)
