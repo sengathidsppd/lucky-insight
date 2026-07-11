@@ -431,7 +431,7 @@ const statsRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumn
 const statCardStyle: React.CSSProperties = { padding: "1.2rem 1.5rem" };
 const statLabelStyle: React.CSSProperties = { color: "var(--text-muted)", fontSize: "0.85rem", fontWeight: 500, margin: 0 };
 const statValueStyle: React.CSSProperties = { fontSize: "1.8rem", fontWeight: 800, color: "#fff", margin: "0.3rem 0 0 0" };
-const statIconBoxStyle: React.CSSProperties = { width: "42px", height: "42px", borderRadius: "10px", display: "flex", alignItems: "center", justify_content: "center", flexShrink: 0 };
+const statIconBoxStyle: React.CSSProperties = { width: "42px", height: "42px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 };
 
 const bannerRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1.2rem", minHeight: "220px" };
 const welcomeBannerStyle: React.CSSProperties = { borderRadius: "16px", background: "linear-gradient(135deg, rgba(102,126,234,0.3), rgba(118,75,162,0.3))", overflow: "hidden", position: "relative", border: "1px solid rgba(102,126,234,0.2)" };
