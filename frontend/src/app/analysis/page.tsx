@@ -24,6 +24,7 @@ export default function AnalysisPage() {
   const [jobs, setJobs] = useState<AnalysisJob[]>([]);
   const [selectedJob, setSelectedJob] = useState<AnalysisJob | null>(null);
   const [games, setGames] = useState<any[]>([]);
+  const [selectedJobIds, setSelectedJobIds] = useState<string[]>([]);
 
   // Form states
   const [gameCode, setGameCode] = useState("THAI");
@@ -48,6 +49,7 @@ export default function AnalysisPage() {
     try {
       const resp = await apiRequest("/analysis/");
       setJobs(resp.data);
+      setSelectedJobIds([]); // reset selection
     } catch (err: any) {
       setError(err.message || "Failed to load analysis history.");
     } finally {
@@ -122,6 +124,29 @@ export default function AnalysisPage() {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedJobIds.length === 0) return;
+    if (!confirm(`ต้องการลบประวัติการวิเคราะห์ที่เลือกทั้งหมด ${selectedJobIds.length} รายการใช่หรือไม่?`)) {
+      return;
+    }
+    try {
+      await Promise.all(
+        selectedJobIds.map((id) =>
+          apiRequest(`/analysis/${id}`, {
+            method: "DELETE",
+          })
+        )
+      );
+      if (selectedJob && selectedJobIds.includes(selectedJob.id)) {
+        setSelectedJob(null);
+      }
+      setSelectedJobIds([]);
+      fetchJobs();
+    } catch (err: any) {
+      alert("Failed to delete selected items: " + err.message);
+    }
+  };
+
   return (
     <div style={containerStyle}>
       {/* Header */}
@@ -183,48 +208,108 @@ export default function AnalysisPage() {
             ) : jobs.length === 0 ? (
               <div style={emptyTextStyle}>No previous runs.</div>
             ) : (
-              <div style={historyListStyle}>
-                {jobs.map((job) => {
-                  const isSelected = selectedJob?.id === job.id;
-                  return (
-                    <div
-                      key={job.id}
-                      onClick={() => handleSelectJob(job)}
-                      style={isSelected ? selectedHistoryItemStyle : historyItemStyle}
+              <div>
+                {/* Bulk actions row */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", padding: "0 0.2rem" }}>
+                  <label style={{ display: "flex", alignItems: "center", fontSize: "0.85rem", cursor: "pointer", color: "var(--text-secondary)" }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedJobIds.length === jobs.length && jobs.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedJobIds(jobs.map((j) => j.id));
+                        } else {
+                          setSelectedJobIds([]);
+                        }
+                      }}
+                      style={{ marginRight: "0.5rem", cursor: "pointer" }}
+                    />
+                    Select All
+                  </label>
+                  {selectedJobIds.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleBulkDelete}
+                      className="btn"
+                      style={{
+                        padding: "0.3rem 0.6rem",
+                        fontSize: "0.8rem",
+                        borderRadius: "6px",
+                        background: "rgba(224, 80, 80, 0.2)",
+                        color: "hsl(0, 80%, 75%)",
+                        border: "1px solid rgba(224, 80, 80, 0.4)",
+                        cursor: "pointer",
+                      }}
                     >
-                      <div style={historyItemHeaderStyle}>
-                        <span style={historyItemTitleStyle}>
-                          {job.analysis_type} ({job.game_code})
-                        </span>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                          <span style={getStatusBadgeStyle(job.status)}>{job.status}</span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteJob(job.id);
-                            }}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              color: "rgba(255, 255, 255, 0.4)",
-                              cursor: "pointer",
-                              fontSize: "1rem",
-                              padding: "0.2rem",
-                              transition: "color 0.2s",
-                            }}
-                            title="Delete this analysis run"
-                          >
-                            🗑️
-                          </button>
+                      🗑️ Delete Selected ({selectedJobIds.length})
+                    </button>
+                  )}
+                </div>
+
+                <div style={historyListStyle}>
+                  {jobs.map((job) => {
+                    const isSelected = selectedJob?.id === job.id;
+                    const isChecked = selectedJobIds.includes(job.id);
+                    return (
+                      <div
+                        key={job.id}
+                        onClick={() => handleSelectJob(job)}
+                        style={{
+                          ...(isSelected ? selectedHistoryItemStyle : historyItemStyle),
+                          display: "flex",
+                          alignItems: "center",
+                          padding: "0.8rem",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedJobIds([...selectedJobIds, job.id]);
+                            } else {
+                              setSelectedJobIds(selectedJobIds.filter((id) => id !== job.id));
+                            }
+                          }}
+                          style={{ marginRight: "0.8rem", cursor: "pointer" }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <div style={historyItemHeaderStyle}>
+                            <span style={historyItemTitleStyle}>
+                              {job.analysis_type} ({job.game_code})
+                            </span>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                              <span style={getStatusBadgeStyle(job.status)}>{job.status}</span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteJob(job.id);
+                                }}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  color: "rgba(255, 255, 255, 0.4)",
+                                  cursor: "pointer",
+                                  fontSize: "1rem",
+                                  padding: "0.2rem",
+                                  transition: "color 0.2s",
+                                }}
+                                title="Delete this analysis run"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                          <div style={historyItemDateStyle}>
+                            Run on: {new Date(job.created_at).toLocaleString()}
+                          </div>
                         </div>
                       </div>
-                      <div style={historyItemDateStyle}>
-                        Run on: {new Date(job.created_at).toLocaleString()}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
