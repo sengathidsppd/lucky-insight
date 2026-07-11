@@ -560,42 +560,32 @@ export default function RecordsPage() {
               <div style={formRowStyle}>
                 <div style={formColStyle}>
                   <label style={labelStyle}>Category</label>
-                  <input
-                    type="text"
-                    list="categories-list"
-                    value={categories.find((c) => c.id === formCategory)?.name || formCategory}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const match = categories.find((c) => c.name.toLowerCase() === val.toLowerCase());
-                      setFormCategory(match ? match.id : val);
-                    }}
-                    placeholder="General, Dream, etc."
-                  />
-                  <datalist id="categories-list">
+                  <select
+                    value={formCategory}
+                    onChange={(e) => setFormCategory(e.target.value)}
+                  >
+                    <option value="">-- Select Category --</option>
                     {categories.map((c) => (
-                      <option key={c.id} value={c.name} />
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
                     ))}
-                  </datalist>
+                  </select>
                 </div>
 
                 <div style={formColStyle}>
                   <label style={labelStyle}>Source</label>
-                  <input
-                    type="text"
-                    list="sources-list"
-                    value={sources.find((s) => s.id === formSource)?.name || formSource}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const match = sources.find((s) => s.name.toLowerCase() === val.toLowerCase());
-                      setFormSource(match ? match.id : val);
-                    }}
-                    placeholder="Calculator, Social, etc."
-                  />
-                  <datalist id="sources-list">
+                  <select
+                    value={formSource}
+                    onChange={(e) => setFormSource(e.target.value)}
+                  >
+                    <option value="">-- Select Source --</option>
                     {sources.map((s) => (
-                      <option key={s.id} value={s.name} />
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
                     ))}
-                  </datalist>
+                  </select>
                 </div>
               </div>
 
