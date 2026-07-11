@@ -96,7 +96,7 @@ export default function RecordsPage() {
       if (selectedTag) params.tag_id = selectedTag;
       if (isFavoriteFilter !== null) params.is_favorite = isFavoriteFilter;
 
-      const resp = await apiRequest("/records", { params });
+      const resp = await apiRequest("/records/", { params });
       setRecords(resp.data);
     } catch (err: any) {
       setError(err.message || "Failed to load records.");
@@ -165,7 +165,7 @@ export default function RecordsPage() {
         savedRecord = resp.data;
       } else {
         // Create record
-        const resp = await apiRequest("/records", {
+        const resp = await apiRequest("/records/", {
           method: "POST",
           body: JSON.stringify(payload),
         });
