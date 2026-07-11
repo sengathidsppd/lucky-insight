@@ -94,10 +94,6 @@ class AnalysisService:
                 from app.models.lottery_result import LotteryResult
 
                 stmt = select(LotteryResult).where(LotteryResult.game_id == game_id).where(LotteryResult.deleted_at.is_(None))
-                if dt_from:
-                    stmt = stmt.where(LotteryResult.draw_date >= dt_from.date())
-                if dt_to:
-                    stmt = stmt.where(LotteryResult.draw_date <= dt_to.date())
                 stmt = stmt.order_by(LotteryResult.draw_date.desc()).limit(50000)
 
                 results = self._lottery_result_repository._session.execute(stmt).scalars().all()
