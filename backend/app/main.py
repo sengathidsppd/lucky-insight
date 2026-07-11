@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from app.api.health import router as health_router
 from app.api.v1.auth import router as auth_v1_router
 from app.api.v1.lookups import router as lookups_v1_router
+from app.api.v1.lotteries import router as lotteries_v1_router
 from app.api.v1.records import router as records_v1_router
 from app.api.v1.tags import router as tags_v1_router
 from app.api.v1.users import router as users_v1_router
@@ -66,3 +67,4 @@ app.include_router(users_v1_router, prefix="/api/v1")
 app.include_router(lookups_v1_router, prefix="/api/v1")
 app.include_router(tags_v1_router, prefix="/api/v1")
 app.include_router(records_v1_router, prefix="/api/v1")
+app.include_router(lotteries_v1_router, prefix="/api/v1")

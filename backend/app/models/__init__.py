@@ -6,6 +6,8 @@ created.
 """
 
 from app.models.base import Base, BaseEntity
+from app.models.lottery_game import LotteryGame
+from app.models.lottery_result import LotteryResult
 from app.models.number_category import NumberCategory
 from app.models.number_record import NumberRecord
 from app.models.number_source import NumberSource
@@ -16,6 +18,8 @@ from app.models.user import User
 __all__ = [
     "Base",
     "BaseEntity",
+    "LotteryGame",
+    "LotteryResult",
     "NumberCategory",
     "NumberRecord",
     "NumberSource",

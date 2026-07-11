@@ -30,6 +30,7 @@ class UserResponse(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
     is_active: bool
+    is_admin: bool
     created_at: datetime
     updated_at: datetime
 

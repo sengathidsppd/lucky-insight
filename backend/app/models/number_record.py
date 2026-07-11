@@ -2,7 +2,6 @@
 
 import uuid
 from datetime import datetime
-
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, func
@@ -13,11 +12,10 @@ from app.models.base import BaseEntity
 from app.models.mixins import _utcnow
 
 if TYPE_CHECKING:
-    from app.models.user import User
-    from app.models.number_source import NumberSource
     from app.models.number_category import NumberCategory
+    from app.models.number_source import NumberSource
     from app.models.number_tag import NumberTag
-
+    from app.models.user import User
 
 
 class NumberRecord(BaseEntity):

@@ -94,6 +94,7 @@ def register(
             first_name=payload.first_name,
             last_name=payload.last_name,
             is_active=user.is_active,
+            is_admin=user.is_admin,
         )
     )
 
