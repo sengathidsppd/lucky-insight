@@ -14,10 +14,14 @@ interface LotteryGame {
 
 interface LotteryResult {
   id: string;
+  game_id: string;
   draw_date: string;
   draw_number: string | null;
-  prizes: Record<string, string>;
-  game: LotteryGame;
+  first_prize: string;
+  last2: string | null;
+  front3: string | null;
+  back3: string | null;
+  created_at: string;
 }
 
 export default function LotteriesPage() {
@@ -39,13 +43,17 @@ export default function LotteriesPage() {
 
   const fetchGamesAndResults = async () => {
     setIsLoading(true);
+    setError("");
     try {
       const gamesResp = await apiRequest("/lotteries/games");
       setGames(gamesResp.data);
 
-      if (gamesResp.data.length > 0) {
-        // Fetch results for selected game code
-        const resResp = await apiRequest(`/lotteries/games/${selectedGameCode}/results`);
+      const selectedGame = gamesResp.data.find((g: any) => g.code === selectedGameCode);
+      if (selectedGame) {
+        // Fetch results for selected game code using its UUID
+        const resResp = await apiRequest("/lotteries/results", {
+          params: { game_id: selectedGame.id },
+        });
         setResults(resResp.data);
       }
     } catch (err: any) {
@@ -69,11 +77,9 @@ export default function LotteriesPage() {
         game_id: selectedGame.id,
         draw_date: new Date(newDrawDate).toISOString().slice(0, 10),
         draw_number: newDrawNumber || undefined,
-        prizes: {
-          first_prize: newFirstPrize,
-          three_digits: newThreeDigits,
-          two_digits: newTwoDigits,
-        },
+        first_prize: newFirstPrize,
+        last2: newTwoDigits || undefined,
+        back3: newThreeDigits || undefined,
       };
 
       await apiRequest("/lotteries/results", {
@@ -141,38 +147,42 @@ export default function LotteriesPage() {
         </div>
       ) : (
         <div style={resultsGridStyle}>
-          {results.map((res) => (
-            <div key={res.id} className="glass-panel" style={cardStyle}>
-              <div style={cardHeaderStyle}>
-                <span style={cardDateStyle}>
-                  📅 Draw Date: {new Date(res.draw_date).toLocaleDateString()}
-                </span>
-                <span style={cardBadgeStyle}>{res.game.code}</span>
-              </div>
+          {results.map((res) => {
+            const game = games.find((g) => g.id === res.game_id);
+            const threeDigits = [res.front3, res.back3].filter(Boolean).join(" / ") || "—";
+            return (
+              <div key={res.id} className="glass-panel" style={cardStyle}>
+                <div style={cardHeaderStyle}>
+                  <span style={cardDateStyle}>
+                    📅 Draw Date: {new Date(res.draw_date).toLocaleDateString()}
+                  </span>
+                  <span style={cardBadgeStyle}>{game?.code || selectedGameCode}</span>
+                </div>
 
-              {res.draw_number && (
-                <div style={winningNumberContainerStyle}>
-                  <div style={winningNumberLabelStyle}>Winning Number</div>
-                  <div style={winningNumberValueStyle}>{res.draw_number}</div>
-                </div>
-              )}
+                {res.draw_number && (
+                  <div style={winningNumberContainerStyle}>
+                    <div style={winningNumberLabelStyle}>Winning Number</div>
+                    <div style={winningNumberValueStyle}>{res.draw_number}</div>
+                  </div>
+                )}
 
-              <div style={prizesGridStyle}>
-                <div style={prizeRowStyle}>
-                  <span style={prizeLabelStyle}>1st Prize</span>
-                  <span style={prizeValueStyle}>{res.prizes.first_prize || "—"}</span>
-                </div>
-                <div style={prizeRowStyle}>
-                  <span style={prizeLabelStyle}>3-Digit Prefix/Suffix</span>
-                  <span style={prizeValueStyle}>{res.prizes.three_digits || "—"}</span>
-                </div>
-                <div style={prizeRowStyle}>
-                  <span style={prizeLabelStyle}>2-Digit Suffix</span>
-                  <span style={prizeValueStyle}>{res.prizes.two_digits || "—"}</span>
+                <div style={prizesGridStyle}>
+                  <div style={prizeRowStyle}>
+                    <span style={prizeLabelStyle}>1st Prize</span>
+                    <span style={prizeValueStyle}>{res.first_prize || "—"}</span>
+                  </div>
+                  <div style={prizeRowStyle}>
+                    <span style={prizeLabelStyle}>3-Digit Prefix/Suffix</span>
+                    <span style={prizeValueStyle}>{threeDigits}</span>
+                  </div>
+                  <div style={prizeRowStyle}>
+                    <span style={prizeLabelStyle}>2-Digit Suffix</span>
+                    <span style={prizeValueStyle}>{res.last2 || "—"}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
