@@ -70,6 +70,17 @@ body {
   min-height: 100vh;
 }
 
+.app-sidebar {
+  background: var(--bg-dark);
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.5rem;
+  width: 280px;
+  min-height: 100vh;
+  flex-shrink: 0;
+}
+
 .main-content {
   flex: 1;
   padding: 2.5rem;
@@ -82,8 +93,45 @@ body {
   .app-container {
     flex-direction: column;
   }
+  .app-sidebar {
+    width: 100%;
+    min-height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border-light);
+    padding: 1rem 1.2rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .app-sidebar .logo-container {
+    margin-bottom: 0 !important;
+    padding-left: 0 !important;
+  }
+  .app-sidebar .user-profile {
+    display: none !important;
+  }
+  .app-sidebar .app-nav {
+    flex-direction: row !important;
+    gap: 0.25rem !important;
+  }
+  .app-sidebar .app-nav a {
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.8rem !important;
+    gap: 0.4rem !important;
+  }
+  .app-sidebar .app-nav a span:last-child {
+    display: none; /* Hide link labels on mobile nav to fit icons */
+  }
+  .app-sidebar .logout-btn {
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.8rem !important;
+    gap: 0.4rem !important;
+  }
+  .app-sidebar .logout-btn span:last-child {
+    display: none; /* Hide sign out text label */
+  }
   .main-content {
-    padding: 1.5rem;
+    padding: 1.2rem 1rem;
   }
 }
 

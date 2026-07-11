@@ -58,14 +58,14 @@ export default function NavigationShell({ children }: { children: React.ReactNod
   return (
     <div className="app-container">
       {/* Sidebar Nav */}
-      <aside style={sidebarStyle}>
-        <div style={logoContainerStyle}>
+      <aside className="app-sidebar">
+        <div className="logo-container" style={logoContainerStyle}>
           <span style={logoEmojiStyle}>✨</span>
           <h2 style={logoTextStyle}>Lucky Insight</h2>
         </div>
 
         {user && (
-          <div style={userProfileStyle}>
+          <div className="user-profile" style={userProfileStyle}>
             <div style={avatarStyle}>
               {user.email[0].toUpperCase()}
             </div>
@@ -77,7 +77,7 @@ export default function NavigationShell({ children }: { children: React.ReactNod
           </div>
         )}
 
-        <nav style={navStyle}>
+        <nav className="app-nav" style={navStyle}>
           {navItems.map((item) => {
             const isActive = pathname === item.path;
             return (
@@ -89,7 +89,7 @@ export default function NavigationShell({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <button onClick={logout} style={logoutButtonStyle}>
+        <button onClick={logout} className="logout-btn" style={logoutButtonStyle}>
           <span>🚪</span>
           <span>Sign Out</span>
         </button>

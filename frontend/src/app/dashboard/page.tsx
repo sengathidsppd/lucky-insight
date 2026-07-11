@@ -426,14 +426,14 @@ function StatCard({ icon, label, value, accent }: { icon: string; label: string;
 // ========= STYLES =========
 
 const containerStyle: React.CSSProperties = { display: "flex", flexDirection: "column", gap: "1.5rem" };
-const statsRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1.2rem" };
+const statsRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem" };
 
 const statCardStyle: React.CSSProperties = { padding: "1.2rem 1.5rem" };
 const statLabelStyle: React.CSSProperties = { color: "var(--text-muted)", fontSize: "0.85rem", fontWeight: 500, margin: 0 };
 const statValueStyle: React.CSSProperties = { fontSize: "1.8rem", fontWeight: 800, color: "#fff", margin: "0.3rem 0 0 0" };
-const statIconBoxStyle: React.CSSProperties = { width: "42px", height: "42px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 };
+const statIconBoxStyle: React.CSSProperties = { width: "42px", height: "42px", borderRadius: "10px", display: "flex", alignItems: "center", justify_content: "center", flexShrink: 0 };
 
-const bannerRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: "1.2rem", minHeight: "220px" };
+const bannerRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1.2rem", minHeight: "220px" };
 const welcomeBannerStyle: React.CSSProperties = { borderRadius: "16px", background: "linear-gradient(135deg, rgba(102,126,234,0.3), rgba(118,75,162,0.3))", overflow: "hidden", position: "relative", border: "1px solid rgba(102,126,234,0.2)" };
 const welcomeOverlayStyle: React.CSSProperties = { padding: "2rem", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "radial-gradient(ellipse at 80% 50%, rgba(102,126,234,0.15), transparent 60%)" };
 const bannerButtonStyle: React.CSSProperties = { display: "inline-block", padding: "0.5rem 1.2rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "8px", color: "#fff", textDecoration: "none", fontSize: "0.85rem", fontWeight: 600 };
@@ -462,11 +462,11 @@ const subPrizeBoxStyle: React.CSSProperties = { textAlign: "center", padding: "0
 const subPrizeLabelStyle: React.CSSProperties = { fontSize: "0.65rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "0.2rem" };
 const subPrizeValueStyle: React.CSSProperties = { fontSize: "1.1rem", fontWeight: 700, fontFamily: "monospace", color: "#fff", letterSpacing: "2px" };
 
-const chartsRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.2rem" };
+const chartsRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.2rem" };
 const chartPanelStyle: React.CSSProperties = { padding: "1.5rem" };
 const chartPanelSmallStyle: React.CSSProperties = { padding: "1.5rem", display: "flex", flexDirection: "column" };
 const chartHeaderStyle: React.CSSProperties = { display: "flex", justifyContent: "space-between", alignItems: "flex-start" };
-const bottomRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.2rem" };
+const bottomRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.2rem" };
 const recentPanelStyle: React.CSSProperties = { padding: "1.5rem" };
 const sourcePanelStyle: React.CSSProperties = { padding: "1.5rem" };
 
