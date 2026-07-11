@@ -172,15 +172,34 @@ export default function RecordsPage() {
         savedRecord = resp.data;
       }
 
-      // Update tags
+      // Map tag names to tag IDs, creating them if necessary
       const cleanTags = formTags
         .split(",")
         .map((t) => t.trim())
         .filter((t) => t !== "");
-      
+
+      const tagIds: string[] = [];
+      for (const tagName of cleanTags) {
+        const existing = tags.find((t) => t.name.toLowerCase() === tagName.toLowerCase());
+        if (existing) {
+          tagIds.push(existing.id);
+        } else {
+          try {
+            const createResp = await apiRequest("/tags/", {
+              method: "POST",
+              body: JSON.stringify({ name: tagName }),
+            });
+            tagIds.push(createResp.data.id);
+          } catch (createErr) {
+            console.error("Failed to create tag:", tagName, createErr);
+          }
+        }
+      }
+
+      // Update the record's tags
       await apiRequest(`/records/${savedRecord.id}/tags`, {
-        method: "POST",
-        body: JSON.stringify({ tag_names: cleanTags }),
+        method: "PUT",
+        body: JSON.stringify({ tag_ids: tagIds }),
       });
 
       setIsCreateOpen(false);
