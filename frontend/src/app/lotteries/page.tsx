@@ -95,10 +95,28 @@ export default function LotteriesPage() {
       setNewTwoDigits("");
 
       // Refresh list
-      const resResp = await apiRequest(`/lotteries/games/${selectedGameCode}/results`);
-      setResults(resResp.data);
+      if (selectedGame) {
+        const resResp = await apiRequest("/lotteries/results", {
+          params: { game_id: selectedGame.id },
+        });
+        setResults(resResp.data);
+      }
     } catch (err: any) {
       alert(err.message || "Failed to submit result.");
+    }
+  };
+
+  const handleDeleteResult = async (resultId: string) => {
+    if (!confirm("ต้องการลบผลรางวัลนี้ใช่หรือไม่?")) {
+      return;
+    }
+    try {
+      await apiRequest(`/lotteries/results/${resultId}`, {
+        method: "DELETE",
+      });
+      fetchGamesAndResults();
+    } catch (err: any) {
+      alert("Failed to delete draw result: " + err.message);
     }
   };
 
@@ -156,7 +174,30 @@ export default function LotteriesPage() {
                   <span style={cardDateStyle}>
                     📅 Draw Date: {new Date(res.draw_date).toLocaleDateString()}
                   </span>
-                  <span style={cardBadgeStyle}>{game?.code || selectedGameCode}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <span style={cardBadgeStyle}>{game?.code || selectedGameCode}</span>
+                    {user?.is_admin && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteResult(res.id);
+                        }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "rgba(255, 255, 255, 0.4)",
+                          cursor: "pointer",
+                          fontSize: "1rem",
+                          padding: "0.2rem",
+                          transition: "color 0.2s",
+                        }}
+                        title="Delete this draw result"
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {res.draw_number && (

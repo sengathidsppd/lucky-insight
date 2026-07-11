@@ -32,6 +32,7 @@ interface NumberRecord {
 export default function RecordsPage() {
   // Lists
   const [records, setRecords] = useState<NumberRecord[]>([]);
+  const [selectedRecordIds, setSelectedRecordIds] = useState<string[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -98,10 +99,31 @@ export default function RecordsPage() {
 
       const resp = await apiRequest("/records/", { params });
       setRecords(resp.data);
+      setSelectedRecordIds([]); // clear selection
     } catch (err: any) {
       setError(err.message || "Failed to load records.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleBulkDeleteRecords = async () => {
+    if (selectedRecordIds.length === 0) return;
+    if (!confirm(`Are you sure you want to delete all ${selectedRecordIds.length} selected records?`)) {
+      return;
+    }
+    try {
+      await Promise.all(
+        selectedRecordIds.map((id) =>
+          apiRequest(`/records/${id}`, {
+            method: "DELETE",
+          })
+        )
+      );
+      setSelectedRecordIds([]);
+      fetchRecords();
+    } catch (err: any) {
+      alert("Failed to delete selected records: " + err.message);
     }
   };
 
@@ -393,10 +415,44 @@ export default function RecordsPage() {
         </div>
       ) : (
         <div className="glass-panel" style={tablePanelStyle}>
+          {selectedRecordIds.length > 0 && (
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.8rem", paddingRight: "0.5rem" }}>
+              <button
+                type="button"
+                onClick={handleBulkDeleteRecords}
+                className="btn"
+                style={{
+                  padding: "0.4rem 0.8rem",
+                  fontSize: "0.85rem",
+                  borderRadius: "6px",
+                  background: "rgba(224, 80, 80, 0.2)",
+                  color: "hsl(0, 80%, 75%)",
+                  border: "1px solid rgba(224, 80, 80, 0.4)",
+                  cursor: "pointer",
+                }}
+              >
+                🗑️ Delete Selected ({selectedRecordIds.length})
+              </button>
+            </div>
+          )}
           <div style={{ overflowX: "auto" }}>
             <table style={tableStyle}>
               <thead>
                 <tr style={tableHeaderRowStyle}>
+                  <th style={{ ...thStyle, width: "40px", textAlign: "center" }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedRecordIds.length === records.length && records.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedRecordIds(records.map((r) => r.id));
+                        } else {
+                          setSelectedRecordIds([]);
+                        }
+                      }}
+                      style={{ cursor: "pointer" }}
+                    />
+                  </th>
                   <th style={thStyle}>Number</th>
                   <th style={thStyle}>Category</th>
                   <th style={thStyle}>Source</th>
@@ -409,6 +465,20 @@ export default function RecordsPage() {
               <tbody>
                 {records.map((rec) => (
                   <tr key={rec.id} style={trStyle}>
+                    <td style={{ ...tdStyle, textAlign: "center" }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedRecordIds.includes(rec.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedRecordIds([...selectedRecordIds, rec.id]);
+                          } else {
+                            setSelectedRecordIds(selectedRecordIds.filter((id) => id !== rec.id));
+                          }
+                        }}
+                        style={{ cursor: "pointer" }}
+                      />
+                    </td>
                     <td style={{ ...tdStyle, fontWeight: 700, color: "var(--accent-cyan)", fontSize: "1.1rem" }}>
                       {rec.number}
                     </td>
