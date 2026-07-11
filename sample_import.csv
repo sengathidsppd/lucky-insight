@@ -1,0 +1,10 @@
+number,source,category,note,is_favorite,recorded_at,tags
+000277,Lao Government,Government Draw,รางวัลที่ 1 หวยลาวพัฒนา,true,2026-07-11T20:30:00,lao,win
+00277,Lao Government,Government Draw,รางวัล 5 ตัว หวยลาว,false,2026-07-11T20:30:00,lao
+0277,Lao Government,Government Draw,รางวัล 4 ตัว หวยลาว,false,2026-07-11T20:30:00,lao
+277,Lao Government,Government Draw,รางวัล 3 ตัว หวยลาว,true,2026-07-11T20:30:00,lao,three-digit
+77,Lao Government,Government Draw,รางวัลเลขท้าย 2 ตัว หวยลาว,true,2026-07-11T20:30:00,lao,two-digit
+7,Lao Government,Government Draw,รางวัลเลขท้าย 1 ตัว หวยลาว,false,2026-07-11T20:30:00,lao,one-digit
+554988,Thai Government,Government Draw,รางวัลที่ 1 หวยรัฐบาลไทย,true,2026-07-01T16:00:00,thai,win
+88,Thai Government,Government Draw,รางวัลเลขท้าย 2 ตัวไทย,true,2026-07-01T16:00:00,thai,two-digit
+123456,Dream,Personal,เลขจากความฝัน,false,2026-07-11T08:00:00,dream,personal
