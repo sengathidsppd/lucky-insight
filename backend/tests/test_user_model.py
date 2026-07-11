@@ -21,10 +21,10 @@ _users_table_obj = Base.metadata.tables[User.__tablename__]
 
 @pytest.fixture(scope="module", autouse=True)
 def _users_table() -> Generator[None]:
-    """Create the users table for this test module, then drop it."""
-    Base.metadata.create_all(bind=engine, tables=[_users_table_obj])
+    """Create all tables for this test module, then drop them."""
+    Base.metadata.create_all(bind=engine)
     yield
-    Base.metadata.drop_all(bind=engine, tables=[_users_table_obj])
+    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture

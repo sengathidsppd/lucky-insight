@@ -5,6 +5,8 @@ Alembic's autogenerate support relies on. Add new models here as they are
 created.
 """
 
+from app.models.analysis_job import AnalysisJob
+from app.models.analysis_result import AnalysisResult
 from app.models.base import Base, BaseEntity
 from app.models.lottery_game import LotteryGame
 from app.models.lottery_result import LotteryResult
@@ -16,6 +18,8 @@ from app.models.record_tag import record_tags
 from app.models.user import User
 
 __all__ = [
+    "AnalysisJob",
+    "AnalysisResult",
     "Base",
     "BaseEntity",
     "LotteryGame",
