@@ -39,11 +39,7 @@ def seed():
             db.flush()
             print("Created Lao Development Lottery game.")
 
-        # 3. Clear existing results for clean seed
-        db.query(LotteryResult).filter(LotteryResult.game_id.in_([thai_game.id, lao_game.id])).delete(synchronize_session=False)
-        db.flush()
-
-        # 4. Insert Thai results
+        # 3. Insert Thai results if not exist
         thai_results = [
             LotteryResult(
                 game_id=thai_game.id,
@@ -64,9 +60,16 @@ def seed():
                 back3="824,930"
             ),
         ]
-        db.add_all(thai_results)
+        for r in thai_results:
+            exists = db.query(LotteryResult).filter(
+                LotteryResult.game_id == r.game_id,
+                LotteryResult.draw_date == r.draw_date
+            ).first()
+            if not exists:
+                db.add(r)
+                print(f"Added Thai draw result for {r.draw_date}")
 
-        # 5. Insert Lao results
+        # 4. Insert Lao results if not exist
         lao_results = [
             LotteryResult(
                 game_id=lao_game.id,
@@ -78,7 +81,14 @@ def seed():
                 back3="277"
             ),
         ]
-        db.add_all(lao_results)
+        for r in lao_results:
+            exists = db.query(LotteryResult).filter(
+                LotteryResult.game_id == r.game_id,
+                LotteryResult.draw_date == r.draw_date
+            ).first()
+            if not exists:
+                db.add(r)
+                print(f"Added Lao draw result for {r.draw_date}")
         
         db.commit()
         print("Successfully seeded lottery results for Thai and Lao!")
