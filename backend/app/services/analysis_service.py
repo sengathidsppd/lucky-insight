@@ -53,7 +53,6 @@ class AnalysisService:
         self._analysis_repository.create(job)
 
         try:
-            # 1. Fetch matching user records
             params = parameters or {}
             source_id = params.get("source_id")
             category_id = params.get("category_id")
@@ -61,15 +60,14 @@ class AnalysisService:
             date_to_str = params.get("date_to")
             game_id_str = params.get("game_id")
 
-            # Parse UUIDs and dates if present
             src_uuid = uuid.UUID(source_id) if source_id else None
             cat_uuid = uuid.UUID(category_id) if category_id else None
             dt_from = datetime.fromisoformat(date_from_str) if date_from_str else None
             dt_to = datetime.fromisoformat(date_to_str) if date_to_str else None
             game_id = uuid.UUID(game_id_str) if game_id_str else None
 
-            # Retrieve records (up to 50,000 for safety)
-            records, _ = self._record_repository.search(
+            # Retrieve user's records (up to 50,000 for safety)
+            user_records, _ = self._record_repository.search(
                 user_id,
                 source_id=src_uuid,
                 category_id=cat_uuid,
@@ -78,27 +76,46 @@ class AnalysisService:
                 limit=50000,
             )
 
-            if not records:
-                raise ValueError("No records found matching the specified filters.")
+            from types import SimpleNamespace
+            combined_records = [SimpleNamespace(number=r.number) for r in user_records]
+
+            # If game_id is provided, also fetch official draw results and merge them!
+            if game_id:
+                from sqlalchemy import select
+                from app.models.lottery_result import LotteryResult
+
+                stmt = select(LotteryResult).where(LotteryResult.game_id == game_id).where(LotteryResult.deleted_at.is_(None))
+                if dt_from:
+                    stmt = stmt.where(LotteryResult.draw_date >= dt_from.date())
+                if dt_to:
+                    stmt = stmt.where(LotteryResult.draw_date <= dt_to.date())
+                stmt = stmt.order_by(LotteryResult.draw_date.desc()).limit(50000)
+
+                results = self._lottery_result_repository._session.execute(stmt).scalars().all()
+                combined_records.extend([SimpleNamespace(number=r.first_prize) for r in results])
+
+            if not combined_records:
+                raise ValueError("No records or official draw results found matching the specified filters.")
 
             # 2. Perform calculation based on type
             result_data: dict[str, Any] = {}
             explanation = ""
 
             if job.analysis_type == "FREQUENCY":
-                result_data, explanation = self._calculate_frequency(records)
+                result_data, explanation = self._calculate_frequency(combined_records)
             elif job.analysis_type == "PAIR":
-                result_data, explanation = self._calculate_pairs(records)
+                result_data, explanation = self._calculate_pairs(combined_records)
             elif job.analysis_type == "TRIPLE":
-                result_data, explanation = self._calculate_triplets(records)
+                result_data, explanation = self._calculate_triplets(combined_records)
             elif job.analysis_type == "DISTRIBUTION":
-                result_data, explanation = self._calculate_distribution(records)
+                result_data, explanation = self._calculate_distribution(combined_records)
             else:
                 raise ValueError(f"Unsupported analysis type: {analysis_type}")
 
             # 3. Optional comparison with official lottery draw results
-            if game_id:
-                compare_data = self._compare_with_lottery(records, game_id)
+            # Only run comparison if we have user records to check against official draws
+            if game_id and user_records:
+                compare_data = self._compare_with_lottery(user_records, game_id)
                 result_data["lottery_comparison"] = compare_data
                 explanation += (
                     f" Additionally, compared against the lottery draws, "
