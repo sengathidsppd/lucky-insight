@@ -37,6 +37,7 @@ target-version = ["py313"]
 [tool.ruff]
 line-length = 100
 target-version = "py313"
+exclude = ["pgsql", "pg_data"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
@@ -58,3 +59,8 @@ disallow_untyped_defs = true
 init_forbid_extra = true
 init_typed = true
 warn_required_dynamic_aliases = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["pgsql", "pg_data"]
+

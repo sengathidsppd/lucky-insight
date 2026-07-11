@@ -76,3 +76,17 @@ class LoginResponse(BaseModel):
     success: bool = True
     message: str = "Login successful."
     data: TokenData
+
+
+class RefreshRequest(BaseModel):
+    """Request body for ``POST /api/v1/auth/refresh``."""
+
+    refresh_token: str = Field(min_length=1)
+
+
+class RefreshResponse(BaseModel):
+    """Response body for a successful token refresh."""
+
+    success: bool = True
+    message: str = "Token refreshed successfully."
+    data: TokenData

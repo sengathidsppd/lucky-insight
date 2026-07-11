@@ -42,3 +42,9 @@ Thumbs.db
 
 # Alembic
 # (migration versions ARE tracked; only local artifacts ignored)
+
+# Local PostgreSQL
+pg_data/
+pgsql/
+pg_log.txt
+

@@ -15,12 +15,18 @@ from app.repositories.user_repository import UserRepository
 from app.schemas.auth import (
     LoginRequest,
     LoginResponse,
+    RefreshRequest,
+    RefreshResponse,
     RegisterRequest,
     RegisterResponse,
     TokenData,
     UserPublic,
 )
-from app.security.exceptions import InvalidCredentialsException
+from app.security.exceptions import (
+    ExpiredTokenException,
+    InvalidCredentialsException,
+    InvalidTokenException,
+)
 from app.services.auth_service import AuthService
 from app.services.exceptions import InactiveUserException, InvalidEmailFormatException
 
@@ -127,6 +133,59 @@ def login(
     tokens = auth_service.generate_tokens(user)
 
     return LoginResponse(
+        data=TokenData(
+            access_token=tokens.access_token,
+            refresh_token=tokens.refresh_token,
+            token_type="Bearer",
+        )
+    )
+
+
+@router.post(
+    "/refresh",
+    response_model=RefreshResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Refresh an access token",
+)
+def refresh(
+    payload: RefreshRequest,
+    auth_service: AuthService = Depends(get_auth_service),
+) -> RefreshResponse:
+    """Exchange a valid refresh token for a new access/refresh token pair.
+
+    Args:
+        payload: The validated token refresh request body.
+        auth_service: The injected authentication service.
+
+    Returns:
+        The newly issued tokens, wrapped in the standard success envelope.
+
+    Raises:
+        HTTPException: With status 400 if the token is invalid/malformed,
+            401 if the token is expired, or 403 if the user is inactive.
+    """
+    try:
+        tokens = auth_service.refresh_tokens(payload.refresh_token)
+    except ExpiredTokenException as exc:
+        logger.info("Refresh rejected: expired token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Expired refresh token",
+        ) from exc
+    except InvalidTokenException as exc:
+        logger.info("Refresh rejected: invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid refresh token",
+        ) from exc
+    except InactiveUserException as exc:
+        logger.info("Refresh rejected: inactive user")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is inactive",
+        ) from exc
+
+    return RefreshResponse(
         data=TokenData(
             access_token=tokens.access_token,
             refresh_token=tokens.refresh_token,
