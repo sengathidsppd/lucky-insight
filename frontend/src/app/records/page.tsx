@@ -181,7 +181,7 @@ export default function RecordsPage() {
       if (editingRecord) {
         // Update record
         const resp = await apiRequest(`/records/${editingRecord.id}`, {
-          method: "PUT",
+          method: "PATCH",
           body: JSON.stringify(payload),
         });
         savedRecord = resp.data;
@@ -236,7 +236,7 @@ export default function RecordsPage() {
   const handleToggleFavorite = async (rec: NumberRecord) => {
     try {
       await apiRequest(`/records/${rec.id}`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify({ is_favorite: !rec.is_favorite }),
       });
       fetchRecords();
