@@ -62,6 +62,7 @@ class CreateRecordRequest(BaseModel):
     tag_ids: list[uuid.UUID] = Field(default_factory=list)
     note: str | None = Field(default=None, max_length=2000)
     recorded_at: datetime | None = None
+    is_favorite: bool = False
 
 
 class UpdateRecordRequest(BaseModel):

@@ -106,6 +106,7 @@ def create_record(
             tag_ids=payload.tag_ids,
             note=payload.note,
             recorded_at=payload.recorded_at,
+            is_favorite=payload.is_favorite,
         )
         db.commit()
         return RecordDetailResponse(

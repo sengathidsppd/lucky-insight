@@ -55,6 +55,7 @@ class NumberRecordService:
         tag_ids: list[uuid.UUID] | None = None,
         note: str | None = None,
         recorded_at: datetime | None = None,
+        is_favorite: bool = False,
     ) -> NumberRecord:
         """Create a new number record for a user.
 
@@ -66,6 +67,7 @@ class NumberRecordService:
             tag_ids: Optional list of tag UUIDs.
             note: Optional description or note.
             recorded_at: Optional timestamp of the observation.
+            is_favorite: Whether this record is marked as favorite.
 
         Returns:
             The created NumberRecord.
@@ -104,6 +106,7 @@ class NumberRecordService:
             "source_id": source_id,
             "category_id": category_id,
             "note": note,
+            "is_favorite": is_favorite,
         }
         if recorded_at is not None:
             record_params["recorded_at"] = recorded_at
