@@ -448,25 +448,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
             </div>
           )}
 
-          <div>
-            <h4 style={subPanelTitleStyle}>Top Single Digits Frequency</h4>
-            <div className="chart-bar-container" style={{ marginTop: "0.5rem" }}>
-              {details.top_single_digits.map((item: any) => {
-                const maxCount = Math.max(...details.top_single_digits.map((d: any) => d.count), 1);
-                const percent = Math.round((item.count / maxCount) * 100);
-                return (
-                  <div key={item.digit} className="chart-bar-row">
-                    <span className="chart-bar-label">Digit {item.digit}</span>
-                    <div className="chart-bar-track">
-                      <div className="chart-bar-fill" style={{ width: `${percent}%` }} />
-                    </div>
-                    <span className="chart-bar-value">{item.count}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
+          
           <div>
             <h4 style={subPanelTitleStyle}>Analyze Digit Endings</h4>
             {/* Tab Buttons for Ending Lengths 1 to 6 */}
