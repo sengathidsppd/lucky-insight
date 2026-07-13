@@ -95,7 +95,7 @@ class AnalysisService:
                 from app.models.lottery_result import LotteryResult
 
                 stmt = select(LotteryResult).where(LotteryResult.game_id == game_id).where(LotteryResult.deleted_at.is_(None))
-                stmt = stmt.order_by(LotteryResult.draw_date.desc()).limit(50000)
+                stmt = stmt.order_by(LotteryResult.draw_date.desc()).limit(100)
 
                 results = self._lottery_result_repository._session.execute(stmt).scalars().all()
                 combined_records.extend([SimpleNamespace(number=r.first_prize) for r in results])

@@ -169,7 +169,6 @@ export default function AnalysisPage() {
                   <select value={gameCode} onChange={(e) => setGameCode(e.target.value)}>
                     <option value="THAI">Thai Government Lottery</option>
                     <option value="LAO">Lao Government Lottery</option>
-                    <option value="USER_ONLY">My Records Only (เฉพาะบันทึกของฉัน)</option>
                   </select>
                 </div>
 
