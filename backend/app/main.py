@@ -29,6 +29,24 @@ settings = get_settings()
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     """Handle application startup and shutdown events."""
     logger.info("Starting %s (env=%s)", settings.APP_NAME, settings.APP_ENV)
+    
+    # Run migrations programmatically on startup
+    import os
+    from alembic import command
+    from alembic.config import Config
+    try:
+        app_dir = os.path.dirname(os.path.abspath(__file__))
+        backend_dir = os.path.dirname(app_dir)
+        alembic_ini_path = os.path.join(backend_dir, "alembic.ini")
+        
+        logger.info("Running database migrations programmatically on startup...")
+        alembic_cfg = Config(alembic_ini_path)
+        alembic_cfg.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+        command.upgrade(alembic_cfg, "head")
+        logger.info("Database migrations completed successfully.")
+    except Exception as exc:
+        logger.error("Failed to run database migrations on startup: %s", exc)
+        
     yield
     logger.info("Shutting down %s", settings.APP_NAME)
 
