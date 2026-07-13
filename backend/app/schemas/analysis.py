@@ -38,6 +38,7 @@ class AnalysisJobResponse(BaseModel):
     id: uuid.UUID
     analysis_type: str
     status: str
+    game_code: str | None = None
     parameters: dict[str, Any] | None = None
     error_message: str | None = None
     created_at: datetime

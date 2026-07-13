@@ -36,8 +36,21 @@ def get_analysis_service(db: Session = Depends(get_db)) -> AnalysisService:
     )
 
 
-def map_job_to_response(job: AnalysisJob) -> AnalysisJobResponse:
+def map_job_to_response(job: AnalysisJob, db: Session) -> AnalysisJobResponse:
     """Map AnalysisJob ORM model to Pydantic schema."""
+    game_code = "My Records"
+    if job.parameters and "game_id" in job.parameters:
+        g_id_str = job.parameters["game_id"]
+        if g_id_str:
+            from app.models.lottery_game import LotteryGame
+            try:
+                g_id = uuid.UUID(g_id_str)
+                game = db.query(LotteryGame).filter(LotteryGame.id == g_id).first()
+                if game:
+                    game_code = game.code
+            except Exception:
+                pass
+
     result_data = None
     if job.result:
         result_data = AnalysisResultResponse(
@@ -51,6 +64,7 @@ def map_job_to_response(job: AnalysisJob) -> AnalysisJobResponse:
         id=job.id,
         analysis_type=job.analysis_type,
         status=job.status,
+        game_code=game_code,
         parameters=job.parameters,
         error_message=job.error_message,
         created_at=job.created_at,
@@ -91,7 +105,7 @@ def create_analysis(
 
         return AnalysisJobDetailResponse(
             message="Analysis job completed successfully.",
-            data=map_job_to_response(reloaded),
+            data=map_job_to_response(reloaded, db),
         )
     except ValueError as exc:
         raise HTTPException(
@@ -109,12 +123,13 @@ def create_analysis(
 def list_jobs(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
     service: AnalysisService = Depends(get_analysis_service),
 ) -> AnalysisJobListResponse:
     """Return all historical analysis jobs requested by the current user."""
     jobs = service.list_jobs(current_user.id, limit=limit, offset=offset)
-    data = [map_job_to_response(j) for j in jobs]
+    data = [map_job_to_response(j, db) for j in jobs]
     return AnalysisJobListResponse(data=data)
 
 
@@ -126,13 +141,14 @@ def list_jobs(
 )
 def get_job(
     job_id: uuid.UUID,
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
     service: AnalysisService = Depends(get_analysis_service),
 ) -> AnalysisJobDetailResponse:
     """Return the details and statistics of a specific analysis request."""
     try:
         job = service.get_job(current_user.id, job_id)
-        return AnalysisJobDetailResponse(data=map_job_to_response(job))
+        return AnalysisJobDetailResponse(data=map_job_to_response(job, db))
     except EntityNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
