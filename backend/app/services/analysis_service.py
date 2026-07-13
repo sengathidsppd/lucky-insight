@@ -291,18 +291,42 @@ class AnalysisService:
         
         scored_6d.sort(key=lambda x: x["score"], reverse=True)
 
-        # Generate smart recommendations based on top position frequencies
-        smart_picks = []
-        for _ in range(5):
-            pick = []
-            for pos in range(6):
-                # Pick top frequency digit for this position (with small randomness)
-                candidates = position_counts[pos].most_common(3)
-                if candidates:
-                    pick.append(candidates[0][0])
+        # Generate exactly 2 distinct smart recommendations:
+        # Pick 1 (Hot Pick): Absolute top frequency digit for each position slot
+        pick_1 = []
+        for pos in range(6):
+            candidates = position_counts[pos].most_common(1)
+            if candidates:
+                pick_1.append(candidates[0][0])
+            else:
+                pick_1.append("0")
+        pick_1_str = "".join(pick_1)
+
+        # Pick 2 (Overdue Pick): From top 3 candidates, pick the one with highest recovery index (or fallback)
+        pick_2 = []
+        for pos in range(6):
+            candidates = position_counts[pos].most_common(3)
+            if len(candidates) >= 2:
+                # Sort candidates by recovery index of the digit
+                sorted_candidates = sorted(candidates, key=lambda x: recovery_indices.get(x[0], 1.0), reverse=True)
+                # If the top overdue is different from the absolute top frequency, use it to ensure diversity
+                if sorted_candidates[0][0] != pick_1[pos]:
+                    pick_2.append(sorted_candidates[0][0])
                 else:
-                    pick.append(str(pos))
-            smart_picks.append("".join(pick))
+                    pick_2.append(sorted_candidates[1][0])
+            elif candidates:
+                pick_2.append(candidates[0][0])
+            else:
+                pick_2.append("1")
+        pick_2_str = "".join(pick_2)
+
+        smart_picks = [pick_1_str]
+        if pick_2_str != pick_1_str:
+            smart_picks.append(pick_2_str)
+        else:
+            # Fallback to offset digits if they are identical
+            fallback_pick = "".join(str((int(c) + 1) % 10) for c in pick_1)
+            smart_picks.append(fallback_pick)
 
         result_data = {
             "total_records_analyzed": total_records,
