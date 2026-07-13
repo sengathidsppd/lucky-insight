@@ -171,8 +171,16 @@ export default function DashboardPage() {
               <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
               <circle cx="60" cy="60" r="50" fill="none" stroke="url(#scoreGrad)" strokeWidth="10" strokeLinecap="round"
                 strokeDasharray={`${Math.min(data.total_records, 100) * 3.14} 314`} transform="rotate(-90 60 60)"
+                filter="url(#ringGlow)"
                 style={{ transition: "stroke-dasharray 1s ease" }} />
               <defs>
+                <filter id="ringGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
                 <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#00f2fe" />
                   <stop offset="100%" stopColor="#667eea" />
@@ -425,50 +433,297 @@ function StatCard({ icon, label, value, accent }: { icon: string; label: string;
 
 // ========= STYLES =========
 
-const containerStyle: React.CSSProperties = { display: "flex", flexDirection: "column", gap: "1.5rem" };
-const statsRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1.2rem" };
+const containerStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "1.5rem",
+  color: "var(--text-primary)"
+};
 
-const statCardStyle: React.CSSProperties = { padding: "1.2rem 1.5rem" };
-const statLabelStyle: React.CSSProperties = { color: "var(--text-muted)", fontSize: "0.85rem", fontWeight: 500, margin: 0 };
-const statValueStyle: React.CSSProperties = { fontSize: "1.8rem", fontWeight: 800, color: "#fff", margin: "0.3rem 0 0 0" };
-const statIconBoxStyle: React.CSSProperties = { width: "42px", height: "42px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 };
+const statsRowStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(4, 1fr)",
+  gap: "1.2rem"
+};
 
-const bannerRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: "1.2rem", minHeight: "220px" };
-const welcomeBannerStyle: React.CSSProperties = { borderRadius: "16px", background: "linear-gradient(135deg, rgba(102,126,234,0.3), rgba(118,75,162,0.3))", overflow: "hidden", position: "relative", border: "1px solid rgba(102,126,234,0.2)" };
-const welcomeOverlayStyle: React.CSSProperties = { padding: "2rem", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "radial-gradient(ellipse at 80% 50%, rgba(102,126,234,0.15), transparent 60%)" };
-const bannerButtonStyle: React.CSSProperties = { display: "inline-block", padding: "0.5rem 1.2rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "8px", color: "#fff", textDecoration: "none", fontSize: "0.85rem", fontWeight: 600 };
+const statCardStyle: React.CSSProperties = {
+  padding: "1.2rem 1.5rem",
+  background: "rgba(6, 11, 40, 0.6)",
+  backdropFilter: "blur(20px)",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  borderRadius: "20px",
+  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)"
+};
 
-const ringPanelStyle: React.CSSProperties = { padding: "1.5rem", display: "flex", flexDirection: "column", alignItems: "center" };
-const ringContainerStyle: React.CSSProperties = { position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginTop: "1rem" };
-const ringTextStyle: React.CSSProperties = { position: "absolute", display: "flex", flexDirection: "column", alignItems: "center" };
+const statLabelStyle: React.CSSProperties = {
+  color: "var(--text-muted)",
+  fontSize: "0.75rem",
+  fontWeight: 600,
+  textTransform: "uppercase",
+  letterSpacing: "0.5px",
+  margin: 0
+};
 
-const quickActionsStyle: React.CSSProperties = { padding: "1.5rem" };
-const quickActionBtnStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: "0.8rem", padding: "0.7rem 0.8rem", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "10px", textDecoration: "none", color: "inherit", transition: "all 0.2s" };
-const qaBtnIconStyle: React.CSSProperties = { fontSize: "1.3rem" };
-const qaBtnTitleStyle: React.CSSProperties = { fontSize: "0.85rem", fontWeight: 600, color: "#fff" };
-const qaBtnSubStyle: React.CSSProperties = { fontSize: "0.72rem", color: "var(--text-muted)" };
+const statValueStyle: React.CSSProperties = {
+  fontSize: "1.5rem",
+  fontWeight: 700,
+  color: "#fff",
+  margin: "0.2rem 0 0 0"
+};
+
+const statIconBoxStyle: React.CSSProperties = {
+  width: "45px",
+  height: "45px",
+  borderRadius: "12px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexShrink: 0,
+  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.25)"
+};
+
+const bannerRowStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "2fr 1fr 1fr",
+  gap: "1.2rem",
+  minHeight: "240px"
+};
+
+const welcomeBannerStyle: React.CSSProperties = {
+  borderRadius: "20px",
+  background: "radial-gradient(circle at 10% 20%, rgba(0, 117, 255, 0.3) 0%, transparent 50%), radial-gradient(circle at 90% 80%, rgba(184, 100%, 48, 0.15) 0%, transparent 50%), linear-gradient(135deg, rgba(6, 11, 40, 0.7) 0%, rgba(10, 5, 27, 0.85) 100%)",
+  overflow: "hidden",
+  position: "relative",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)"
+};
+
+const welcomeOverlayStyle: React.CSSProperties = {
+  padding: "2rem",
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between"
+};
+
+const bannerButtonStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "0.5rem",
+  padding: "0.6rem 1.2rem",
+  background: "rgba(255, 255, 255, 0.06)",
+  border: "1px solid rgba(255, 255, 255, 0.12)",
+  borderRadius: "12px",
+  color: "#fff",
+  textDecoration: "none",
+  fontSize: "0.85rem",
+  fontWeight: 600,
+  transition: "all 0.2s ease"
+};
+
+const ringPanelStyle: React.CSSProperties = {
+  padding: "1.5rem",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  background: "rgba(6, 11, 40, 0.6)",
+  backdropFilter: "blur(20px)",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  borderRadius: "20px",
+  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)"
+};
+
+const ringContainerStyle: React.CSSProperties = {
+  position: "relative",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  marginTop: "1.2rem"
+};
+
+const ringTextStyle: React.CSSProperties = {
+  position: "absolute",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center"
+};
+
+const quickActionsStyle: React.CSSProperties = {
+  padding: "1.5rem",
+  background: "rgba(6, 11, 40, 0.6)",
+  backdropFilter: "blur(20px)",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  borderRadius: "20px",
+  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)"
+};
+
+const quickActionBtnStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "0.8rem",
+  padding: "0.75rem 0.9rem",
+  background: "rgba(255, 255, 255, 0.03)",
+  border: "1px solid rgba(255, 255, 255, 0.06)",
+  borderRadius: "12px",
+  textDecoration: "none",
+  color: "inherit",
+  transition: "all 0.2s ease"
+};
+
+const qaBtnIconStyle: React.CSSProperties = {
+  fontSize: "1.3rem",
+  filter: "drop-shadow(0 0 4px rgba(255,255,255,0.1))"
+};
+
+const qaBtnTitleStyle: React.CSSProperties = {
+  fontSize: "0.85rem",
+  fontWeight: 600,
+  color: "#fff"
+};
+
+const qaBtnSubStyle: React.CSSProperties = {
+  fontSize: "0.72rem",
+  color: "var(--text-muted)",
+  marginTop: "0.1rem"
+};
 
 // Lottery Results Section
-const lotteryResultsRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem" };
-const lotteryCardStyle: React.CSSProperties = { padding: "1.5rem", borderRadius: "16px" };
-const lotteryCardHeaderStyle: React.CSSProperties = { display: "flex", justifyContent: "space-between", alignItems: "center" };
-const drawDateBadgeStyle: React.CSSProperties = { background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "0.3rem 0.7rem", fontSize: "0.75rem", color: "var(--text-secondary)", fontWeight: 600 };
+const lotteryResultsRowStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "1.2rem"
+};
 
-const firstPrizeContainerStyle: React.CSSProperties = { textAlign: "center", padding: "1rem 0", background: "rgba(255,255,255,0.03)", borderRadius: "12px", marginTop: "0.5rem" };
-const firstPrizeValueStyle: React.CSSProperties = { fontSize: "2.4rem", fontWeight: 900, fontFamily: "monospace", letterSpacing: "6px", background: "linear-gradient(135deg, #ffd700, #ff9500)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" };
+const lotteryCardStyle: React.CSSProperties = {
+  padding: "1.5rem",
+  borderRadius: "20px",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)",
+  backdropFilter: "blur(20px)"
+};
 
-const subPrizesGridStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.6rem", marginTop: "0.8rem" };
-const subPrizeBoxStyle: React.CSSProperties = { textAlign: "center", padding: "0.6rem", background: "rgba(255,255,255,0.03)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)" };
-const subPrizeLabelStyle: React.CSSProperties = { fontSize: "0.65rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "0.2rem" };
-const subPrizeValueStyle: React.CSSProperties = { fontSize: "1.1rem", fontWeight: 700, fontFamily: "monospace", color: "#fff", letterSpacing: "2px" };
+const lotteryCardHeaderStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center"
+};
 
-const chartsRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.2rem" };
-const chartPanelStyle: React.CSSProperties = { padding: "1.5rem" };
-const chartPanelSmallStyle: React.CSSProperties = { padding: "1.5rem", display: "flex", flexDirection: "column" };
-const chartHeaderStyle: React.CSSProperties = { display: "flex", justifyContent: "space-between", alignItems: "flex-start" };
-const bottomRowStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.2rem" };
-const recentPanelStyle: React.CSSProperties = { padding: "1.5rem" };
-const sourcePanelStyle: React.CSSProperties = { padding: "1.5rem" };
+const drawDateBadgeStyle: React.CSSProperties = {
+  background: "rgba(255, 255, 255, 0.08)",
+  border: "1px solid rgba(255, 255, 255, 0.12)",
+  borderRadius: "10px",
+  padding: "0.35rem 0.75rem",
+  fontSize: "0.75rem",
+  color: "var(--text-secondary)",
+  fontWeight: 600
+};
+
+const firstPrizeContainerStyle: React.CSSProperties = {
+  textAlign: "center",
+  padding: "1.2rem 0",
+  background: "rgba(255, 255, 255, 0.02)",
+  border: "1px solid rgba(255, 255, 255, 0.04)",
+  borderRadius: "14px",
+  marginTop: "0.8rem"
+};
+
+const firstPrizeValueStyle: React.CSSProperties = {
+  fontSize: "2.4rem",
+  fontWeight: 900,
+  fontFamily: "monospace",
+  letterSpacing: "6px",
+  background: "linear-gradient(135deg, #ffd700, #ff9500)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  filter: "drop-shadow(0 0 10px rgba(255,215,0,0.2))"
+};
+
+const subPrizesGridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr 1fr",
+  gap: "0.6rem",
+  marginTop: "0.8rem"
+};
+
+const subPrizeBoxStyle: React.CSSProperties = {
+  textAlign: "center",
+  padding: "0.7rem",
+  background: "rgba(255, 255, 255, 0.03)",
+  borderRadius: "10px",
+  border: "1px solid rgba(255, 255, 255, 0.05)"
+};
+
+const subPrizeLabelStyle: React.CSSProperties = {
+  fontSize: "0.65rem",
+  color: "var(--text-muted)",
+  textTransform: "uppercase",
+  letterSpacing: "0.5px",
+  marginBottom: "0.2rem"
+};
+
+const subPrizeValueStyle: React.CSSProperties = {
+  fontSize: "1.1rem",
+  fontWeight: 700,
+  fontFamily: "monospace",
+  color: "#fff",
+  letterSpacing: "2px"
+};
+
+const chartsRowStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "1.5fr 1fr",
+  gap: "1.2rem"
+};
+
+const chartPanelStyle: React.CSSProperties = {
+  padding: "1.5rem",
+  background: "rgba(6, 11, 40, 0.6)",
+  backdropFilter: "blur(20px)",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  borderRadius: "20px",
+  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)"
+};
+
+const chartPanelSmallStyle: React.CSSProperties = {
+  padding: "1.5rem",
+  display: "flex",
+  flexDirection: "column",
+  background: "rgba(6, 11, 40, 0.6)",
+  backdropFilter: "blur(20px)",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  borderRadius: "20px",
+  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)"
+};
+
+const chartHeaderStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start"
+};
+
+const bottomRowStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "1.5fr 1fr",
+  gap: "1.2rem"
+};
+
+const recentPanelStyle: React.CSSProperties = {
+  padding: "1.5rem",
+  background: "rgba(6, 11, 40, 0.6)",
+  backdropFilter: "blur(20px)",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  borderRadius: "20px",
+  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)"
+};
+
+const sourcePanelStyle: React.CSSProperties = {
+  padding: "1.5rem",
+  background: "rgba(6, 11, 40, 0.6)",
+  backdropFilter: "blur(20px)",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  borderRadius: "20px",
+  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)"
+};
 
 // Bar chart styles
 const barRowStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: "0.6rem" };
