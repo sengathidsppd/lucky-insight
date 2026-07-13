@@ -134,9 +134,9 @@ export default function DashboardPage() {
   };
 
   return (
-    <div style={containerStyle}>
+    <div className="db-container">
       {/* Top Stats Row */}
-      <div style={statsRowStyle}>
+      <div className="db-stats-row">
         <StatCard icon="🔢" label="Total Records" value={data.total_records} accent="linear-gradient(135deg, #667eea, #764ba2)" />
         <StatCard icon="💖" label="Favorites" value={data.total_favorites} accent="linear-gradient(135deg, #f093fb, #f5576c)" />
         <StatCard icon="📂" label="Categories" value={totalCategories} accent="linear-gradient(135deg, #4facfe, #00f2fe)" />
@@ -144,8 +144,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Welcome Banner + Records Score + Quick Actions */}
-      <div style={bannerRowStyle}>
-        <div style={welcomeBannerStyle}>
+      <div className="db-banner-row">
+        <div className="db-welcome-banner" style={welcomeBannerStyle}>
           <div style={welcomeOverlayStyle}>
             <div>
               <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.9rem", margin: 0 }}>Welcome back,</p>
@@ -227,7 +227,7 @@ export default function DashboardPage() {
       {latestDraws.length > 0 && (
         <div>
           <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", margin: "0 0 1rem 0" }}>🏆 Latest Lottery Results</h3>
-          <div style={lotteryResultsRowStyle}>
+          <div className="db-lottery-row">
             {latestDraws.map(({ game, draw }) => (
               <div key={game.id} className="glass-panel" style={{ ...lotteryCardStyle, background: getGameGradient(game.code) }}>
                 {/* Card Header */}
@@ -285,7 +285,7 @@ export default function DashboardPage() {
       )}
 
       {/* Charts Row */}
-      <div style={chartsRowStyle}>
+      <div className="db-charts-row">
         <div className="glass-panel" style={chartPanelStyle}>
           <div style={chartHeaderStyle}>
             <div>
@@ -339,7 +339,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Records + Source Distribution */}
-      <div style={bottomRowStyle}>
+      <div className="db-bottom-row">
         <div className="glass-panel" style={recentPanelStyle}>
           <div style={chartHeaderStyle}>
             <h4 style={panelTitleStyle}>Recent Recorded Numbers</h4>
