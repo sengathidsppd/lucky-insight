@@ -53,6 +53,7 @@ export default function NavigationShell({ children }: { children: React.ReactNod
     { name: "Number Records", path: "/records", icon: "🔢" },
     { name: "Lottery History", path: "/lotteries", icon: "🏆" },
     { name: "Stat Analysis", path: "/analysis", icon: "🔮" },
+    { name: "Lucky Spin", path: "/lucky-spin", icon: "🎰" },
   ];
 
   return (
