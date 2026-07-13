@@ -33,6 +33,7 @@ def get_dashboard_service(db: Session = Depends(get_db)) -> DashboardService:
 )
 def get_summary(
     current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
     service: DashboardService = Depends(get_dashboard_service),
 ) -> DashboardSummaryResponse:
     """Return total records, favorites, category and source distributions.
@@ -47,6 +48,6 @@ def get_summary(
             records_by_category=summary_data.records_by_category,
             records_by_source=summary_data.records_by_source,
             recent_records=[map_record_to_response(r) for r in summary_data.recent_records],
-            recent_analysis_jobs=[map_job_to_response(j) for j in summary_data.recent_analysis_jobs],
+            recent_analysis_jobs=[map_job_to_response(j, db) for j in summary_data.recent_analysis_jobs],
         )
     )
