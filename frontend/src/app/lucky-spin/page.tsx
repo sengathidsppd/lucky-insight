@@ -442,16 +442,18 @@ const spinWrapperStyle: React.CSSProperties = {
 };
 
 const slotsGridStyle: React.CSSProperties = {
-  display: "flex",
-  gap: "1rem",
+  display: "grid",
+  gridTemplateColumns: "repeat(6, 1fr)",
+  gap: "0.5rem",
   justifyContent: "center",
   width: "100%",
-  flexWrap: "wrap",
+  maxWidth: "500px",
+  margin: "0 auto",
 };
 
 const slotCardStyle: React.CSSProperties = {
-  width: "75px",
-  height: "105px",
+  width: "100%",
+  aspectRatio: "3 / 4",
   background: "rgba(255, 255, 255, 0.02)",
   borderRadius: "14px",
   display: "flex",
@@ -463,7 +465,7 @@ const slotCardStyle: React.CSSProperties = {
 };
 
 const slotNumberStyle: React.CSSProperties = {
-  fontSize: "3.5rem",
+  fontSize: "clamp(1.8rem, 8vw, 3.5rem)",
   fontWeight: "900",
   fontFamily: "monospace",
   color: "#fff",
