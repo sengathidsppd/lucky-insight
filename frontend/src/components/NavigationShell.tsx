@@ -61,7 +61,7 @@ export default function NavigationShell({ children }: { children: React.ReactNod
       {/* Sidebar Nav */}
       <aside className="app-sidebar">
         <div className="logo-container" style={logoContainerStyle}>
-          <span style={logoEmojiStyle}>✨</span>
+          <span style={logoEmojiStyle}>🍀</span>
           <h2 style={logoTextStyle}>Lucky Insight</h2>
         </div>
 

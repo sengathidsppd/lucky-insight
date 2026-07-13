@@ -29,7 +29,7 @@ export default function LoginPage() {
     <div style={containerStyle}>
       <div className="glass-panel" style={cardStyle}>
         <div style={headerStyle}>
-          <span style={emojiStyle}>✨</span>
+          <span style={emojiStyle}>🍀</span>
           <h1 style={titleStyle}>Lucky Insight</h1>
           <p style={subtitleStyle}>Sign in to access your dashboard</p>
         </div>

@@ -19,7 +19,7 @@ export default function LandingPage() {
     <div style={containerStyle}>
       <header style={headerStyle}>
         <div style={logoStyle}>
-          <span style={logoEmojiStyle}>✨</span>
+          <span style={logoEmojiStyle}>🍀</span>
           <span style={logoTextStyle}>Lucky Insight</span>
         </div>
         <div>
@@ -31,15 +31,9 @@ export default function LandingPage() {
 
       <main style={mainStyle}>
         <section style={heroSectionStyle}>
-          <div className="glass-panel pulse-glow" style={heroBadgeStyle}>
-            🔮 Powered by Mathematical Statistical Models
-          </div>
           <h1 style={heroTitleStyle}>
             Unlock Deeper Insights From Your <span style={highlightStyle}>Lucky Numbers</span>
           </h1>
-          <p style={heroSubtitleStyle}>
-            Record, organize, and analyze your numbers. Apply advanced statistical metrics to compare them against official Thai and Lao government lottery results.
-          </p>
 
           <div style={ctaRowStyle}>
             <Link href="/register" className="btn btn-primary" style={{ padding: "1rem 2rem", fontSize: "1.05rem" }}>

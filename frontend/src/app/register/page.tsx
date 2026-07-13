@@ -53,7 +53,7 @@ export default function RegisterPage() {
     <div style={containerStyle}>
       <div className="glass-panel" style={cardStyle}>
         <div style={headerStyle}>
-          <span style={emojiStyle}>✨</span>
+          <span style={emojiStyle}>🍀</span>
           <h1 style={titleStyle}>Create Account</h1>
           <p style={subtitleStyle}>Join Lucky Insight to analyze numbers</p>
         </div>
