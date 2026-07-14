@@ -193,3 +193,95 @@ def refresh(
             token_type="Bearer",
         )
     )
+
+
+import secrets
+from datetime import datetime, timedelta, UTC
+from app.core.config import get_settings
+from app.core.email import send_password_reset_email
+from app.models.user import User
+from app.models.password_reset_token import PasswordResetToken
+from app.schemas.password_reset import ForgotPasswordRequest, ResetPasswordRequest
+from app.security.password import hash_password
+
+settings = get_settings()
+
+@router.post(
+    "/forgot-password",
+    status_code=status.HTTP_200_OK,
+    summary="Request a password reset link",
+)
+def forgot_password(
+    payload: ForgotPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    """Initiates password reset process, generating a secure token and sending email."""
+    user = db.query(User).filter(User.email == payload.email).filter(User.deleted_at.is_(None)).first()
+    
+    reset_url = None
+    if user:
+        token = secrets.token_urlsafe(32)
+        expires_at = datetime.now(UTC) + timedelta(minutes=30)
+        
+        reset_token = PasswordResetToken(
+            user_id=user.id,
+            token=token,
+            expires_at=expires_at,
+            is_used=False
+        )
+        db.add(reset_token)
+        db.commit()
+        
+        reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+        send_password_reset_email(user.email, reset_url)
+        
+    return {
+        "success": True,
+        "message": "If the email is registered, a password reset link has been sent.",
+        "data": {
+            "reset_url": reset_url if settings.APP_ENV == "development" else None
+        }
+    }
+
+
+@router.post(
+    "/reset-password",
+    status_code=status.HTTP_200_OK,
+    summary="Reset password using token",
+)
+def reset_password(
+    payload: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    """Verify reset token and update user's password."""
+    reset_token = db.query(PasswordResetToken).filter(PasswordResetToken.token == payload.token).filter(PasswordResetToken.deleted_at.is_(None)).first()
+    
+    if not reset_token or reset_token.is_used:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or already used password reset token."
+        )
+        
+    now = datetime.now(UTC)
+    if reset_token.expires_at < now:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password reset token has expired."
+        )
+        
+    user = db.query(User).filter(User.id == reset_token.user_id).filter(User.deleted_at.is_(None)).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+        
+    hashed_pwd = hash_password(payload.new_password)
+    user.password_hash = hashed_pwd
+    reset_token.is_used = True
+    db.commit()
+    
+    return {
+        "success": True,
+        "message": "Password has been reset successfully."
+    }

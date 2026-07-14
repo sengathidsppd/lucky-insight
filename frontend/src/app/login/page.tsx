@@ -49,7 +49,12 @@ export default function LoginPage() {
           </div>
 
           <div style={fieldStyle}>
-            <label style={labelStyle}>Password</label>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <label style={labelStyle}>Password</label>
+              <Link href="/forgot-password" style={{ ...linkStyle, fontSize: "0.85rem", marginBottom: "0.5rem" }}>
+                Forgot Password?
+              </Link>
+            </div>
             <input
               type="password"
               placeholder="••••••••"

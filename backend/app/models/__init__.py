@@ -14,6 +14,7 @@ from app.models.number_category import NumberCategory
 from app.models.number_record import NumberRecord
 from app.models.number_source import NumberSource
 from app.models.number_tag import NumberTag
+from app.models.password_reset_token import PasswordResetToken
 from app.models.record_tag import record_tags
 from app.models.user import User
 
@@ -28,6 +29,7 @@ __all__ = [
     "NumberRecord",
     "NumberSource",
     "NumberTag",
+    "PasswordResetToken",
     "User",
     "record_tags",
 ]
