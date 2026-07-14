@@ -29,6 +29,9 @@ export default function LotteriesPage() {
   const [games, setGames] = useState<LotteryGame[]>([]);
   const [selectedGameCode, setSelectedGameCode] = useState("THAI");
   const [results, setResults] = useState<LotteryResult[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageSize = 20;
+  const [total, setTotal] = useState(0);
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -53,9 +56,14 @@ export default function LotteriesPage() {
       if (selectedGame) {
         // Fetch results for selected game code using its UUID
         const resResp = await apiRequest("/lotteries/results", {
-          params: { game_id: selectedGame.id },
+          params: { 
+            game_id: selectedGame.id,
+            limit: pageSize,
+            offset: currentPage * pageSize,
+          },
         });
         setResults(resResp.data);
+        setTotal(resResp.total);
       }
     } catch (err: any) {
       setError(err.message || "Failed to load lottery data.");
@@ -66,7 +74,7 @@ export default function LotteriesPage() {
 
   useEffect(() => {
     fetchGamesAndResults();
-  }, [selectedGameCode]);
+  }, [selectedGameCode, currentPage]);
 
   const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,7 +146,7 @@ export default function LotteriesPage() {
         {games.map((g) => (
           <button
             key={g.id}
-            onClick={() => setSelectedGameCode(g.code)}
+            onClick={() => { setSelectedGameCode(g.code); setCurrentPage(0); }}
             style={selectedGameCode === g.code ? activeTabStyle : tabStyle}
           >
             {g.name} ({g.country})
@@ -159,67 +167,92 @@ export default function LotteriesPage() {
           No results recorded yet for {activeGame?.name}.
         </div>
       ) : (
-        <div style={resultsGridStyle}>
-          {results.map((res) => {
-            const game = games.find((g) => g.id === res.game_id);
-            const threeDigits = [res.front3, res.back3].filter(Boolean).join(" / ") || "—";
-            return (
-              <div key={res.id} className="glass-panel" style={cardStyle}>
-                <div style={cardHeaderStyle}>
-                  <span style={cardDateStyle}>
-                    📅 Draw Date: {new Date(res.draw_date).toLocaleDateString()}
-                  </span>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <span style={cardBadgeStyle}>{game?.code || selectedGameCode}</span>
-                    {user?.is_admin && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteResult(res.id);
-                        }}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "rgba(255, 255, 255, 0.4)",
-                          cursor: "pointer",
-                          fontSize: "1rem",
-                          padding: "0.2rem",
-                          transition: "color 0.2s",
-                        }}
-                        title="Delete this draw result"
-                      >
-                        🗑️
-                      </button>
-                    )}
+        <>
+          <div style={resultsGridStyle}>
+            {results.map((res) => {
+              const game = games.find((g) => g.id === res.game_id);
+              const threeDigits = [res.front3, res.back3].filter(Boolean).join(" / ") || "—";
+              return (
+                <div key={res.id} className="glass-panel" style={cardStyle}>
+                  <div style={cardHeaderStyle}>
+                    <span style={cardDateStyle}>
+                      📅 Draw Date: {new Date(res.draw_date).toLocaleDateString()}
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <span style={cardBadgeStyle}>{game?.code || selectedGameCode}</span>
+                      {user?.is_admin && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteResult(res.id);
+                          }}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "rgba(255, 255, 255, 0.4)",
+                            cursor: "pointer",
+                            fontSize: "1rem",
+                            padding: "0.2rem",
+                            transition: "color 0.2s",
+                          }}
+                          title="Delete this draw result"
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {res.draw_number && (
+                    <div style={winningNumberContainerStyle}>
+                      <div style={winningNumberLabelStyle}>Winning Number</div>
+                      <div style={winningNumberValueStyle}>{res.draw_number}</div>
+                    </div>
+                  )}
+
+                  <div style={prizesGridStyle}>
+                    <div style={prizeRowStyle}>
+                      <span style={prizeLabelStyle}>1st Prize</span>
+                      <span style={prizeValueStyle}>{res.first_prize || "—"}</span>
+                    </div>
+                    <div style={prizeRowStyle}>
+                      <span style={prizeLabelStyle}>3-Digit Prefix/Suffix</span>
+                      <span style={prizeValueStyle}>{threeDigits}</span>
+                    </div>
+                    <div style={prizeRowStyle}>
+                      <span style={prizeLabelStyle}>2-Digit Suffix</span>
+                      <span style={prizeValueStyle}>{res.last2 || "—"}</span>
+                    </div>
                   </div>
                 </div>
-
-                {res.draw_number && (
-                  <div style={winningNumberContainerStyle}>
-                    <div style={winningNumberLabelStyle}>Winning Number</div>
-                    <div style={winningNumberValueStyle}>{res.draw_number}</div>
-                  </div>
-                )}
-
-                <div style={prizesGridStyle}>
-                  <div style={prizeRowStyle}>
-                    <span style={prizeLabelStyle}>1st Prize</span>
-                    <span style={prizeValueStyle}>{res.first_prize || "—"}</span>
-                  </div>
-                  <div style={prizeRowStyle}>
-                    <span style={prizeLabelStyle}>3-Digit Prefix/Suffix</span>
-                    <span style={prizeValueStyle}>{threeDigits}</span>
-                  </div>
-                  <div style={prizeRowStyle}>
-                    <span style={prizeLabelStyle}>2-Digit Suffix</span>
-                    <span style={prizeValueStyle}>{res.last2 || "—"}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+          {total > pageSize && (
+            <div style={paginationContainerStyle}>
+              <button
+                disabled={currentPage === 0}
+                onClick={() => setCurrentPage((prev) => prev - 1)}
+                style={currentPage === 0 ? disabledPageButtonStyle : pageButtonStyle}
+              >
+                ◀ Prev
+              </button>
+              
+              <span style={pageInfoStyle}>
+                Page {currentPage + 1} of {Math.ceil(total / pageSize)} (Total {total} draws)
+              </span>
+              
+              <button
+                disabled={(currentPage + 1) * pageSize >= total}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+                style={(currentPage + 1) * pageSize >= total ? disabledPageButtonStyle : pageButtonStyle}
+              >
+                Next ▶
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* ADMIN SUBMIT RESULT MODAL */}
@@ -549,4 +582,44 @@ const modalButtonsContainerStyle: React.CSSProperties = {
   justifyContent: "flex-end",
   gap: "0.75rem",
   marginTop: "1rem",
+};
+
+const paginationContainerStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "1.5rem",
+  marginTop: "2.5rem",
+  padding: "1rem",
+  background: "rgba(255, 255, 255, 0.02)",
+  border: "1px solid rgba(255, 255, 255, 0.05)",
+  borderRadius: "var(--radius-md)",
+  backdropFilter: "blur(10px)",
+};
+
+const pageButtonStyle: React.CSSProperties = {
+  background: "rgba(255, 255, 255, 0.05)",
+  border: "1px solid rgba(255, 255, 255, 0.1)",
+  color: "var(--text-primary)",
+  padding: "0.5rem 1rem",
+  borderRadius: "var(--radius-sm)",
+  cursor: "pointer",
+  fontWeight: 600,
+  fontSize: "0.9rem",
+  transition: "all 0.2s ease",
+};
+
+const disabledPageButtonStyle: React.CSSProperties = {
+  ...pageButtonStyle,
+  opacity: 0.3,
+  cursor: "not-allowed",
+  background: "transparent",
+  border: "1px solid rgba(255, 255, 255, 0.03)",
+  color: "var(--text-muted)",
+};
+
+const pageInfoStyle: React.CSSProperties = {
+  fontSize: "0.9rem",
+  fontWeight: 500,
+  color: "var(--text-secondary)",
 };
