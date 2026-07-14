@@ -291,8 +291,8 @@ class AnalysisService:
         
         scored_6d.sort(key=lambda x: x["score"], reverse=True)
 
-        # Generate exactly 2 distinct smart recommendations:
-        # Pick 1 (Hot Pick): Absolute top frequency digit for each position slot
+        # Generate exactly 1 smart recommendation (Hot Pick):
+        # The absolute top frequency/probability digit for each position slot.
         pick_1 = []
         for pos in range(6):
             candidates = position_counts[pos].most_common(1)
@@ -302,38 +302,12 @@ class AnalysisService:
                 pick_1.append("0")
         pick_1_str = "".join(pick_1)
 
-        # Pick 2 (Overdue Pick): From top 3 candidates, pick the one with highest recovery index (or fallback)
-        pick_2 = []
-        for pos in range(6):
-            candidates = position_counts[pos].most_common(3)
-            if len(candidates) >= 2:
-                # Sort candidates by recovery index of the digit
-                sorted_candidates = sorted(candidates, key=lambda x: recovery_indices.get(x[0], 1.0), reverse=True)
-                # If the top overdue is different from the absolute top frequency, use it to ensure diversity
-                if sorted_candidates[0][0] != pick_1[pos]:
-                    pick_2.append(sorted_candidates[0][0])
-                else:
-                    pick_2.append(sorted_candidates[1][0])
-            elif candidates:
-                pick_2.append(candidates[0][0])
-            else:
-                pick_2.append("1")
-        pick_2_str = "".join(pick_2)
-
-        smart_picks = [pick_1_str]
-        if pick_2_str != pick_1_str:
-            smart_picks.append(pick_2_str)
-        else:
-            # Fallback to offset digits if they are identical
-            fallback_pick = "".join(str((int(c) + 1) % 10) for c in pick_1)
-            smart_picks.append(fallback_pick)
-
         result_data = {
             "total_records_analyzed": total_records,
             "top_single_digits": top_digits,
             "position_frequencies": pos_freq_data,
             "best_analyzed_6d": scored_6d[:5],
-            "generated_recommendations": list(set(smart_picks)),
+            "generated_recommendations": [pick_1_str],
         }
 
         # Add endings of length 1 to 6
