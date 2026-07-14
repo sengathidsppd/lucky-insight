@@ -49,6 +49,14 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
     LOG_LEVEL: str = "INFO"
 
+    # SMTP Settings for Password Reset
+    SMTP_HOST: str | None = None
+    SMTP_PORT: int | None = 587
+    SMTP_USERNAME: str | None = None
+    SMTP_PASSWORD: str | None = None
+    SMTP_SENDER: str | None = "noreply@lucky-insight.com"
+    FRONTEND_URL: str = "http://localhost:3000"
+
 
 @lru_cache
 def get_settings() -> Settings:
