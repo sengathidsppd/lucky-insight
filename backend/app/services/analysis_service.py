@@ -302,12 +302,65 @@ class AnalysisService:
                 pick_1.append("0")
         pick_1_str = "".join(pick_1)
 
+        # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
+        def score_3d(num_str: str) -> float:
+            pos_score = (
+                pos_freq_data[3].get(num_str[0], 0) +
+                pos_freq_data[4].get(num_str[1], 0) +
+                pos_freq_data[5].get(num_str[2], 0)
+            ) / 3
+            pos_score_norm = min(100.0, pos_score * 300.0)
+
+            gap_score = sum(recovery_indices.get(char, 1.0) for char in num_str) / 3
+            gap_score_norm = min(100.0, gap_score * 50.0)
+
+            odds = sum(1 for c in num_str if int(c) % 2 != 0)
+            highs = sum(1 for c in num_str if int(c) >= 5)
+            dist_score = 100.0 - (abs(odds - 1.5) * 20.0) - (abs(highs - 1.5) * 20.0)
+
+            weighted_total = (0.4 * pos_score_norm) + (0.3 * gap_score_norm) + (0.3 * dist_score)
+            return round(weighted_total, 2)
+
+        # Score 2-digit combinations (positions 4 and 5 of a 6-digit draw)
+        def score_2d(num_str: str) -> float:
+            pos_score = (
+                pos_freq_data[4].get(num_str[0], 0) +
+                pos_freq_data[5].get(num_str[1], 0)
+            ) / 2
+            pos_score_norm = min(100.0, pos_score * 300.0)
+
+            gap_score = sum(recovery_indices.get(char, 1.0) for char in num_str) / 2
+            gap_score_norm = min(100.0, gap_score * 50.0)
+
+            odds = sum(1 for c in num_str if int(c) % 2 != 0)
+            highs = sum(1 for c in num_str if int(c) >= 5)
+            dist_score = 100.0 - (abs(odds - 1) * 30.0) - (abs(highs - 1) * 30.0)
+
+            weighted_total = (0.4 * pos_score_norm) + (0.3 * gap_score_norm) + (0.3 * dist_score)
+            return round(weighted_total, 2)
+
+        scored_3d_all = []
+        for x in range(1000):
+            num_3d = f"{x:03d}"
+            scored_3d_all.append({"number": num_3d, "score": score_3d(num_3d)})
+        scored_3d_all.sort(key=lambda x: x["score"], reverse=True)
+        top_5_3d = scored_3d_all[:5]
+
+        scored_2d_all = []
+        for x in range(100):
+            num_2d = f"{x:02d}"
+            scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
+        scored_2d_all.sort(key=lambda x: x["score"], reverse=True)
+        top_5_2d = scored_2d_all[:5]
+
         result_data = {
             "total_records_analyzed": total_records,
             "top_single_digits": top_digits,
             "position_frequencies": pos_freq_data,
             "best_analyzed_6d": scored_6d[:5],
             "generated_recommendations": [pick_1_str],
+            "generated_3d_recommendations": top_5_3d,
+            "generated_2d_recommendations": top_5_2d,
         }
 
         # Add endings of length 1 to 6

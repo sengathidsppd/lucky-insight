@@ -448,6 +448,85 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
             </div>
           )}
 
+          {/* Recommended 3-Digit & 2-Digit Sets */}
+          {(details.generated_3d_recommendations?.length > 0 || details.generated_2d_recommendations?.length > 0) && (
+            <div
+              className="glass-panel"
+              style={{
+                background: "rgba(102, 126, 234, 0.05)",
+                border: "1px solid rgba(102, 126, 234, 0.15)",
+                padding: "1.2rem",
+                borderRadius: "10px",
+              }}
+            >
+              <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
+                🔮 Recommended 3-Digit & 2-Digit Sets (เลขเด่นแนะนำ 3 ตัว และ 2 ตัว)
+              </h4>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem", marginTop: "1rem" }}>
+                {details.generated_3d_recommendations?.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.6rem", fontWeight: "bold" }}>
+                      Top 5 Synthesized 3-Digit Picks (เลขท้าย 3 ตัววิเคราะห์สังเคราะห์):
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                      {details.generated_3d_recommendations.map((item: any) => (
+                        <div
+                          key={item.number}
+                          style={{
+                            background: "rgba(0, 242, 254, 0.04)",
+                            border: "1px dashed rgba(0, 242, 254, 0.15)",
+                            padding: "0.5rem 0.8rem",
+                            borderRadius: "6px",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            fontFamily: "monospace",
+                            fontSize: "1.1rem",
+                            letterSpacing: "2px",
+                          }}
+                        >
+                          <span style={{ color: "var(--accent-cyan)", fontWeight: "bold" }}>{item.number}</span>
+                          <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Score: {item.score}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {details.generated_2d_recommendations?.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.6rem", fontWeight: "bold" }}>
+                      Top 5 Synthesized 2-Digit Picks (เลขท้าย 2 ตัววิเคราะห์สังเคราะห์):
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                      {details.generated_2d_recommendations.map((item: any) => (
+                        <div
+                          key={item.number}
+                          style={{
+                            background: "rgba(102, 126, 234, 0.04)",
+                            border: "1px dashed rgba(102, 126, 234, 0.15)",
+                            padding: "0.5rem 0.8rem",
+                            borderRadius: "6px",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            fontFamily: "monospace",
+                            fontSize: "1.1rem",
+                            letterSpacing: "2px",
+                          }}
+                        >
+                          <span style={{ color: "var(--accent-purple)", fontWeight: "bold" }}>{item.number}</span>
+                          <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Score: {item.score}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           
           <div>
             <h4 style={subPanelTitleStyle}>Analyze Digit Endings</h4>
