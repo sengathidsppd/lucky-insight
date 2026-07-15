@@ -414,36 +414,6 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                     </div>
                   </div>
                 )}
-
-                {details.generated_recommendations?.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.5rem", fontWeight: "bold" }}>
-                      Generated Smart Picks (เลขเด่นแนะนำที่วิเคราะห์สังเคราะห์ขึ้น):
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                      {details.generated_recommendations.map((num: string) => (
-                        <div
-                          key={num}
-                          style={{
-                            background: "rgba(0, 242, 254, 0.05)",
-                            border: "1px dashed rgba(0, 242, 254, 0.2)",
-                            padding: "0.5rem 0.8rem",
-                            borderRadius: "6px",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            fontFamily: "monospace",
-                            fontSize: "1.1rem",
-                            letterSpacing: "1px",
-                          }}
-                        >
-                          <span style={{ color: "var(--accent-cyan)", fontWeight: "bold" }}>{num}</span>
-                          <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>⭐ Recommended</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           )}
