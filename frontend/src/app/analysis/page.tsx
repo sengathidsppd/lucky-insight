@@ -354,6 +354,11 @@ export default function AnalysisPage() {
 function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
   const result = job.result;
   const [endingLength, setEndingLength] = useState(2); // default to 2-digit endings
+  const [isSet1Visible, setIsSet1Visible] = useState(false);
+
+  useEffect(() => {
+    setIsSet1Visible(false);
+  }, [job.id]);
 
   if (!result) return null;
   const details = result.result_data;
@@ -403,8 +408,45 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                         letterSpacing: "2px",
                       }}
                     >
-                      <span style={{ color: "var(--accent-cyan)", fontWeight: "bold" }}>
-                        ชุดที่ {idx + 1}: {item.number}
+                      <span style={{ color: "var(--accent-cyan)", fontWeight: "bold", display: "flex", alignItems: "center" }}>
+                        ชุดที่ {idx + 1}:{" "}
+                        {idx === 0 ? (
+                          <>
+                            <span
+                              style={{
+                                filter: isSet1Visible ? "none" : "blur(6px)",
+                                transition: "filter 0.2s ease",
+                                userSelect: isSet1Visible ? "auto" : "none",
+                                marginLeft: "0.5rem",
+                              }}
+                            >
+                              {item.number}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setIsSet1Visible(!isSet1Visible)}
+                              style={{
+                                background: "rgba(255, 255, 255, 0.08)",
+                                border: "1px solid rgba(255, 255, 255, 0.15)",
+                                cursor: "pointer",
+                                fontSize: "1rem",
+                                padding: "0.2rem 0.5rem",
+                                borderRadius: "6px",
+                                marginLeft: "0.8rem",
+                                color: isSet1Visible ? "var(--accent-cyan)" : "rgba(255, 255, 255, 0.6)",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                transition: "all 0.2s",
+                              }}
+                              title={isSet1Visible ? "คลิกเพื่อซ่อนตัวเลข" : "คลิกเพื่อดูตัวเลข"}
+                            >
+                              {isSet1Visible ? "👁️" : "🔒"}
+                            </button>
+                          </>
+                        ) : (
+                          <span style={{ marginLeft: "0.5rem" }}>{item.number}</span>
+                        )}
                       </span>
                       <span style={{ fontSize: "0.95rem", color: "var(--text-secondary)" }}>
                         คะแนนความถ่วงน้ำหนัก: {item.score}
