@@ -371,49 +371,47 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
       {job.analysis_type === "FREQUENCY" && details.top_single_digits && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
           {/* Recommended 6-Digit Numbers */}
-          {(details.best_analyzed_6d?.length > 0 || details.generated_recommendations?.length > 0) && (
+          {details.best_analyzed_6d?.length > 0 && (
             <div
               className="glass-panel"
               style={{
                 background: "rgba(102, 126, 234, 0.08)",
                 border: "1px solid rgba(102, 126, 234, 0.2)",
-                padding: "1.2rem",
+                padding: "1.5rem",
                 borderRadius: "10px",
               }}
             >
-              <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
-                🏆 Recommended 6-Digit Numbers (เลขแนะนำ 6 หลักที่ดีที่สุด)
+              <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0, fontSize: "1.1rem" }}>
+                🔮 เลขที่งวดนี้จะออกได้แก่... (เลขวิเคราะห์ทางสถิติที่ดีที่สุด 2 ชุด)
               </h4>
               
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem", marginTop: "1rem" }}>
-                {details.best_analyzed_6d?.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.5rem", fontWeight: "bold" }}>
-                      Top Analyzed Numbers (เลขจากประวัติที่คะแนนความถี่สูงสุด):
+              <div style={{ marginTop: "1.2rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                  {details.best_analyzed_6d.slice(0, 2).map((item: any, idx: number) => (
+                    <div
+                      key={item.number}
+                      style={{
+                        background: "rgba(255, 255, 255, 0.04)",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
+                        padding: "0.8rem 1.2rem",
+                        borderRadius: "8px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        fontFamily: "monospace",
+                        fontSize: "1.3rem",
+                        letterSpacing: "2px",
+                      }}
+                    >
+                      <span style={{ color: "var(--accent-cyan)", fontWeight: "bold" }}>
+                        ชุดที่ {idx + 1}: {item.number}
+                      </span>
+                      <span style={{ fontSize: "0.95rem", color: "var(--text-secondary)" }}>
+                        คะแนนความถ่วงน้ำหนัก: {item.score}
+                      </span>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                      {details.best_analyzed_6d.map((item: any) => (
-                        <div
-                          key={item.number}
-                          style={{
-                            background: "rgba(255,255,255,0.03)",
-                            padding: "0.5rem 0.8rem",
-                            borderRadius: "6px",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            fontFamily: "monospace",
-                            fontSize: "1.1rem",
-                            letterSpacing: "1px",
-                          }}
-                        >
-                          <span style={{ color: "#fff", fontWeight: "bold" }}>{item.number}</span>
-                          <span style={{ fontSize: "0.8rem", color: "var(--accent-purple)" }}>Score: {item.score}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
             </div>
           )}
