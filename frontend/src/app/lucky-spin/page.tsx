@@ -257,7 +257,7 @@ export default function LuckySpinPage() {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h1 style={titleStyle}>🎰 Lucky Spin Generator</h1>
+        <h1 style={titleStyle}> Random Generator Generator</h1>
         <p style={subtitleStyle}>Roll custom 6-digit lucky numbers for fun without affecting your stats unless saved.</p>
       </div>
 
@@ -296,7 +296,7 @@ export default function LuckySpinPage() {
           }}
           className={!isSpinning ? "pulse-glow" : ""}
         >
-          {isSpinning ? "🔮 ROLLING..." : "🎰 SPIN NOW"}
+          {isSpinning ? " GENERATING..." : " GENERATE"}
         </button>
       </div>
 

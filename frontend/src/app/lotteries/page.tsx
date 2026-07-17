@@ -27,7 +27,7 @@ interface LotteryResult {
 export default function LotteriesPage() {
   const { user } = useAuth();
   const [games, setGames] = useState<LotteryGame[]>([]);
-  const [selectedGameCode, setSelectedGameCode] = useState("THAI");
+  const [selectedGameCode, setSelectedGameCode] = useState("THAI_NATIONAL");
   const [results, setResults] = useState<LotteryResult[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const pageSize = 20;
@@ -110,7 +110,7 @@ export default function LotteriesPage() {
   };
 
   const handleDeleteResult = async (resultId: string) => {
-    if (!confirm("ต้องการลบผลรางวัลนี้ใช่หรือไม่?")) {
+    if (!confirm("Are you sure you want to delete this lottery result?")) {
       return;
     }
     try {
@@ -136,7 +136,7 @@ export default function LotteriesPage() {
         
         {user?.is_admin && (
           <button onClick={() => { setModalGameId(activeGame?.id || (games[0]?.id ?? "")); setIsAdminOpen(true); }} className="btn btn-primary">
-            🛡️ Add Draw Result (Admin)
+            Add Draw Result (Admin)
           </button>
         )}
       </div>
@@ -270,7 +270,7 @@ export default function LotteriesPage() {
                 >
                   {games.map((g) => (
                     <option key={g.id} value={g.id}>
-                      {g.code === "THAI" ? "🇹🇭 Thai Government Lottery" : g.code === "LAO" ? "🇱🇦 Lao Development Lottery" : g.name}
+                      {g.code === "THAI_NATIONAL" ? "Thai National Lottery" : g.code === "LAO" ? "Lao Development Lottery" : g.name}
                     </option>
                   ))}
                 </select>

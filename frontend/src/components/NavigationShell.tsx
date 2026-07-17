@@ -9,7 +9,6 @@ export default function NavigationShell({ children }: { children: React.ReactNod
   const { isAuthenticated, isLoading, logout, user } = useAuth();
   const pathname = usePathname();
 
-  // Hide nav on login, register, and index landing pages
   const isAuthPage = pathname === "/login" || pathname === "/register" || pathname === "/";
 
   if (isLoading) {
@@ -43,198 +42,194 @@ export default function NavigationShell({ children }: { children: React.ReactNod
     );
   }
 
-  // If not authenticated or on auth pages, don't show the dashboard sidebar layout
   if (!isAuthenticated || isAuthPage) {
     return <>{children}</>;
   }
 
   const navItems = [
-    { name: "Dashboard", path: "/dashboard", icon: "📊" },
-    { name: "Number Records", path: "/records", icon: "🔢" },
-    { name: "Lottery History", path: "/lotteries", icon: "🏆" },
-    { name: "Stat Analysis", path: "/analysis", icon: "🔮" },
-    { name: "Lucky Spin", path: "/lucky-spin", icon: "🎰" },
+    { name: "Dashboard", path: "/dashboard", image: "/images/nav_dashboard.jpg" },
+    { name: "Records", path: "/records", image: "/images/nav_records.jpg" },
+    { name: "Lotteries", path: "/lotteries", image: "/images/nav_lotteries.jpg" },
+    { name: "Analysis", path: "/analysis", image: "/images/nav_analysis.jpg" },
+    { name: "Lucky Spin", path: "/lucky-spin", image: "/images/nav_spin.jpg" },
   ];
 
+  if (user?.is_admin) {
+    navItems.push({ name: "Users", path: "/users", image: "/images/nav_users.jpg" });
+  }
+
   return (
-    <div className="app-container">
-      {/* Sidebar Nav */}
-      <aside className="app-sidebar">
-        <div className="logo-container" style={logoContainerStyle}>
-          <span style={logoEmojiStyle}>🍀</span>
-          <h2 style={logoTextStyle}>Lucky Insight</h2>
-        </div>
-
-        {user && (
-          <div className="user-profile" style={userProfileStyle}>
-            <div style={avatarStyle}>
-              {user.email[0].toUpperCase()}
-            </div>
-            <div style={userInfoStyle}>
-              <div style={userNameStyle}>{user.first_name || "User"}</div>
-              <div style={userEmailStyle}>{user.email}</div>
-              {user.is_admin && <span style={adminBadgeStyle}>ADMIN</span>}
-            </div>
-          </div>
-        )}
-
-        <nav className="app-nav" style={navStyle}>
-          {navItems.map((item) => {
-            const isActive = pathname === item.path;
-            return (
-              <Link key={item.path} href={item.path} style={isActive ? activeLinkStyle : linkStyle}>
-                <span>{item.icon}</span>
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <button onClick={logout} className="logout-btn" style={logoutButtonStyle}>
-          <span>🚪</span>
-          <span>Sign Out</span>
-        </button>
-      </aside>
-
-      {/* Main Panel */}
-      <main className="main-content">
+    <div className="app-wrapper" style={appWrapperStyle}>
+      <main className="main-area" style={mainAreaStyle}>
         {children}
       </main>
+      
+      <nav className="floating-nav" style={floatingNavStyle}>
+        {navItems.map((item) => {
+          const isActive = pathname === item.path;
+          return (
+            <Link key={item.path} href={item.path} style={getLinkStyle(isActive, item.image)}>
+              <div style={getOverlayStyle(isActive)}>
+                <span style={textStyle}>{item.name}</span>
+              </div>
+            </Link>
+          );
+        })}
+        
+        <button onClick={logout} style={logoutBtnStyle}>
+           <div style={logoutOverlayStyle}>
+              <span>🚪 Sign Out</span>
+           </div>
+        </button>
+      </nav>
+
+      {/* Global CSS for this specific layout */}
+      <style>{`
+        @media (max-width: 1024px) {
+          .floating-nav {
+            flex-direction: row !important;
+            top: auto !important;
+            bottom: 0 !important;
+            right: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            justify-content: flex-start !important;
+            padding: 0.75rem 1rem !important;
+            background: rgba(10, 2, 15, 0.95) !important;
+            backdrop-filter: blur(10px) !important;
+            border-left: none !important;
+            border-top: 1px solid var(--border-light) !important;
+            overflow-x: auto !important;
+            z-index: 1000 !important;
+            /* Hide scrollbar for cleaner look */
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+          }
+          .floating-nav::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+          }
+          
+          .floating-nav > a, .floating-nav > button {
+             width: 90px !important;
+             height: 60px !important;
+             flex-shrink: 0 !important;
+             margin-top: 0 !important;
+          }
+          .floating-nav > a span, .floating-nav > button span {
+             font-size: 0.6rem !important;
+             padding: 0 4px !important;
+          }
+          .main-area {
+            padding: 1.5rem !important;
+            padding-bottom: 7rem !important; /* Space for the bottom nav */
+          }
+        }
+        
+        /* Apply hover effect only on desktop */
+        @media (min-width: 1025px) {
+           .floating-nav > a:hover {
+              transform: scale(1.05) translateX(-10px) !important;
+              border-color: var(--accent-cyan) !important;
+              box-shadow: 0 0 15px rgba(6, 182, 212, 0.4) !important;
+           }
+        }
+      `}</style>
     </div>
   );
 }
 
 // Styling Objects
 
-const sidebarStyle: React.CSSProperties = {
-  background: "var(--bg-dark)",
-  borderRight: "1px solid var(--border-light)",
+const appWrapperStyle: React.CSSProperties = {
+  display: "flex",
+  minHeight: "100vh",
+  width: "100%",
+  position: "relative",
+};
+
+const mainAreaStyle: React.CSSProperties = {
+  flex: 1,
+  padding: "2.5rem",
+  paddingRight: "180px", /* Leave space for the right sidebar on desktop */
+  maxWidth: "1400px",
+  margin: "0 auto",
+  width: "100%",
+};
+
+const floatingNavStyle: React.CSSProperties = {
+  position: "fixed",
+  right: "2rem",
+  top: "50%",
+  transform: "translateY(-50%)",
   display: "flex",
   flexDirection: "column",
-  padding: "2rem 1.5rem",
-  width: "280px",
-  minHeight: "100vh",
+  gap: "1rem",
+  zIndex: 100,
 };
 
-const logoContainerStyle: React.CSSProperties = {
+const getLinkStyle = (isActive: boolean, imagePath: string): React.CSSProperties => ({
+  position: "relative",
+  width: "140px",
+  height: "80px",
+  borderRadius: "16px",
+  overflow: "hidden",
+  textDecoration: "none",
+  backgroundImage: `url('${imagePath}')`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  boxShadow: isActive ? "0 0 20px rgba(6, 182, 212, 0.6)" : "0 8px 16px rgba(0,0,0,0.5)",
+  border: isActive ? "2px solid var(--accent-cyan)" : "2px solid rgba(255, 255, 255, 0.1)",
+  transition: "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
+  transform: isActive ? "scale(1.05) translateX(-10px)" : "scale(1) translateX(0)",
+  display: "block",
+});
+
+const getOverlayStyle = (isActive: boolean): React.CSSProperties => ({
+  position: "absolute",
+  inset: 0,
+  background: isActive 
+    ? "linear-gradient(to top, rgba(10, 2, 15, 0.95) 0%, rgba(10, 2, 15, 0.2) 100%)" 
+    : "linear-gradient(to top, rgba(10, 2, 15, 0.85) 0%, rgba(10, 2, 15, 0.4) 100%)",
   display: "flex",
-  alignItems: "center",
-  gap: "0.75rem",
-  marginBottom: "2.5rem",
-  paddingLeft: "0.5rem",
+  alignItems: "flex-end",
+  justifyContent: "center",
+  paddingBottom: "0.5rem",
+  transition: "all 0.3s",
+});
+
+const textStyle: React.CSSProperties = {
+  color: "#fff",
+  fontSize: "0.8rem",
+  fontWeight: 700,
+  textTransform: "uppercase",
+  letterSpacing: "1px",
+  textShadow: "0 2px 4px rgba(0,0,0,0.8)",
+  textAlign: "center",
 };
 
-const logoEmojiStyle: React.CSSProperties = {
-  fontSize: "1.8rem",
-  textShadow: "0 0 12px hsla(184, 100%, 48%, 0.5)",
+const logoutBtnStyle: React.CSSProperties = {
+  position: "relative",
+  width: "140px",
+  height: "40px",
+  borderRadius: "12px",
+  overflow: "hidden",
+  border: "1px solid rgba(217, 70, 239, 0.4)",
+  background: "var(--bg-deep)",
+  cursor: "pointer",
+  marginTop: "1rem",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+  transition: "all 0.3s",
 };
 
-const logoTextStyle: React.CSSProperties = {
-  fontSize: "1.4rem",
-  fontWeight: 800,
-  letterSpacing: "-0.5px",
-  background: "linear-gradient(135deg, #fff, var(--text-secondary))",
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-};
-
-const userProfileStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.75rem",
-  background: "rgba(255, 255, 255, 0.03)",
-  border: "1px solid var(--border-light)",
-  borderRadius: "var(--radius-md)",
-  padding: "0.75rem",
-  marginBottom: "2rem",
-};
-
-const avatarStyle: React.CSSProperties = {
+const logoutOverlayStyle: React.CSSProperties = {
+  width: "100%",
+  height: "100%",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  width: "40px",
-  height: "40px",
-  background: "var(--accent-gradient)",
-  color: "#050409",
-  fontWeight: "700",
-  fontSize: "1.1rem",
-  borderRadius: "50%",
-  boxShadow: "var(--shadow-glow)",
-};
-
-const userInfoStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  overflow: "hidden",
-};
-
-const userNameStyle: React.CSSProperties = {
-  fontSize: "0.95rem",
-  fontWeight: "600",
-  color: "var(--text-primary)",
-};
-
-const userEmailStyle: React.CSSProperties = {
-  fontSize: "0.8rem",
-  color: "var(--text-muted)",
-  textOverflow: "ellipsis",
-  overflow: "hidden",
-  whiteSpace: "nowrap",
-};
-
-const adminBadgeStyle: React.CSSProperties = {
-  alignSelf: "flex-start",
-  background: "rgba(184, 100%, 48%, 0.15)",
-  border: "1px solid var(--accent-cyan)",
-  color: "var(--accent-cyan)",
-  fontSize: "0.65rem",
+  background: "rgba(255,0,0,0.1)",
+  color: "hsl(0, 80%, 75%)",
+  fontSize: "0.75rem",
   fontWeight: 700,
-  padding: "1px 6px",
-  borderRadius: "4px",
-  marginTop: "4px",
-};
-
-const navStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "0.5rem",
-  flex: 1,
-};
-
-const linkStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.75rem",
-  color: "var(--text-secondary)",
-  fontSize: "0.95rem",
-  fontWeight: 500,
-  padding: "0.85rem 1rem",
-  borderRadius: "var(--radius-md)",
-  textDecoration: "none",
-  transition: "var(--transition-smooth)",
-};
-
-const activeLinkStyle: React.CSSProperties = {
-  ...linkStyle,
-  color: "var(--text-primary)",
-  background: "rgba(255, 255, 255, 0.05)",
-  border: "1px solid var(--border-light)",
-  boxShadow: "inset 0 0 12px rgba(255,255,255,0.02)",
-};
-
-const logoutButtonStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.75rem",
-  background: "transparent",
-  border: "none",
-  color: "hsl(0, 80%, 65%)",
-  cursor: "pointer",
-  fontSize: "0.95rem",
-  fontWeight: 600,
-  padding: "0.85rem 1rem",
-  borderRadius: "var(--radius-md)",
-  textAlign: "left",
-  transition: "var(--transition-smooth)",
 };

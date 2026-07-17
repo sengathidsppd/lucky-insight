@@ -41,3 +41,20 @@ class CurrentUserResponse(BaseModel):
     success: bool = True
     message: str = "Current user retrieved successfully."
     data: UserResponse
+
+class UserListResponse(BaseModel):
+    """Response body for ``GET /api/v1/users``."""
+
+    success: bool = True
+    message: str = "Users retrieved successfully."
+    data: list[UserResponse]
+
+class AdminStatusUpdate(BaseModel):
+    is_admin: bool
+
+class UserAdminUpdateResponse(BaseModel):
+    """Response body for ``PATCH /api/v1/users/{id}/admin``."""
+
+    success: bool = True
+    message: str = "User admin status updated successfully."
+    data: UserResponse

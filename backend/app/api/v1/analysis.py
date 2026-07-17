@@ -74,7 +74,7 @@ def map_job_to_response(job: AnalysisJob, db: Session) -> AnalysisJobResponse:
 
 
 @router.post(
-    "/",
+    "",
     response_model=AnalysisJobDetailResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create and run statistical analysis",
@@ -115,7 +115,7 @@ def create_analysis(
 
 
 @router.get(
-    "/",
+    "",
     response_model=AnalysisJobListResponse,
     status_code=status.HTTP_200_OK,
     summary="Get analysis history",

@@ -123,24 +123,24 @@ export default function DashboardPage() {
     const c = code.toLowerCase();
     if (c.includes("thai") || c.includes("th")) return "🇹🇭";
     if (c.includes("lao") || c.includes("la")) return "🇱🇦";
-    return "🎰";
+    return "";
   };
 
   const getGameGradient = (code: string) => {
     const c = code.toLowerCase();
-    if (c.includes("thai") || c.includes("th")) return "linear-gradient(135deg, rgba(0,82,165,0.3), rgba(237,28,36,0.15))";
-    if (c.includes("lao") || c.includes("la")) return "linear-gradient(135deg, rgba(206,17,38,0.25), rgba(0,56,168,0.2))";
-    return "linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2))";
+    if (c.includes("thai") || c.includes("th")) return "linear-gradient(135deg, rgba(217, 70, 239, 0.2), rgba(6, 182, 212, 0.2))";
+    if (c.includes("lao") || c.includes("la")) return "linear-gradient(135deg, rgba(217, 70, 239, 0.2), rgba(6, 182, 212, 0.2))";
+    return "var(--bg-panel)";
   };
 
   return (
     <div className="db-container">
       {/* Top Stats Row */}
       <div className="db-stats-row">
-        <StatCard icon="🔢" label="Total Records" value={data.total_records} accent="linear-gradient(135deg, #667eea, #764ba2)" />
-        <StatCard icon="💖" label="Favorites" value={data.total_favorites} accent="linear-gradient(135deg, #f093fb, #f5576c)" />
-        <StatCard icon="📂" label="Categories" value={totalCategories} accent="linear-gradient(135deg, #4facfe, #00f2fe)" />
-        <StatCard icon="📊" label="Analysis Runs" value={totalAnalysisRuns} accent="linear-gradient(135deg, #43e97b, #38f9d7)" />
+        <StatCard icon="#" label="Total Records" value={data.total_records} accent="var(--gradient-btn)" />
+        <StatCard icon="★" label="Favorites" value={data.total_favorites} accent="var(--gradient-border)" />
+        <StatCard icon="/" label="Categories" value={totalCategories} accent="linear-gradient(135deg, #06b6d4, #3b82f6)" />
+        <StatCard icon="" label="Analysis Runs" value={totalAnalysisRuns} accent="linear-gradient(135deg, #d946ef, #8b5cf6)" />
       </div>
 
       {/* Welcome Banner + Records Score + Quick Actions */}
@@ -154,7 +154,7 @@ export default function DashboardPage() {
               </h2>
               <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.9rem", margin: 0, lineHeight: 1.5 }}>
                 Glad to see you again!<br />
-                Analyze your numbers and find your fortune. 🔮
+                Analyze data patterns and generate statistical projections. 
               </p>
             </div>
             <div style={{ marginTop: "1.5rem" }}>
@@ -182,8 +182,8 @@ export default function DashboardPage() {
                   </feMerge>
                 </filter>
                 <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#00f2fe" />
-                  <stop offset="100%" stopColor="#667eea" />
+                  <stop offset="0%" stopColor="#06b6d4" />
+                  <stop offset="100%" stopColor="#d946ef" />
                 </linearGradient>
               </defs>
             </svg>
@@ -199,21 +199,21 @@ export default function DashboardPage() {
           <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: "0 0 1rem 0" }}>Jump to features</p>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
             <Link href="/records" style={quickActionBtnStyle}>
-              <span style={qaBtnIconStyle}>📝</span>
+              <span style={qaBtnIconStyle}>-</span>
               <div>
                 <div style={qaBtnTitleStyle}>Number Records</div>
                 <div style={qaBtnSubStyle}>Add & manage numbers</div>
               </div>
             </Link>
             <Link href="/analysis" style={quickActionBtnStyle}>
-              <span style={qaBtnIconStyle}>🔮</span>
+              <span style={qaBtnIconStyle}></span>
               <div>
                 <div style={qaBtnTitleStyle}>Stat Analysis</div>
                 <div style={qaBtnSubStyle}>Run frequency models</div>
               </div>
             </Link>
             <Link href="/lotteries" style={quickActionBtnStyle}>
-              <span style={qaBtnIconStyle}>🏆</span>
+              <span style={qaBtnIconStyle}>-</span>
               <div>
                 <div style={qaBtnTitleStyle}>Lottery History</div>
                 <div style={qaBtnSubStyle}>View official results</div>
@@ -226,7 +226,7 @@ export default function DashboardPage() {
       {/* Latest Lottery Results Row */}
       {latestDraws.length > 0 && (
         <div>
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", margin: "0 0 1rem 0" }}>🏆 Latest Lottery Results</h3>
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", margin: "0 0 1rem 0" }}>Latest Lottery Results</h3>
           <div className="db-lottery-row">
             {latestDraws.map(({ game, draw }) => (
               <div key={game.id} className="glass-panel" style={{ ...lotteryCardStyle, background: getGameGradient(game.code) }}>
@@ -303,7 +303,7 @@ export default function DashboardPage() {
                   <div key={cat.category_name} style={barRowStyle}>
                     <span style={barLabelStyle}>{cat.category_name}</span>
                     <div style={barTrackStyle}>
-                      <div style={{ ...barFillStyle, width: `${percent}%`, background: "linear-gradient(90deg, #4facfe, #00f2fe)" }} />
+                      <div style={{ ...barFillStyle, width: `${percent}%`, background: "linear-gradient(90deg, #4facfe, #06b6d4)" }} />
                     </div>
                     <span style={barValueStyle}>{cat.count}</span>
                   </div>
@@ -323,7 +323,7 @@ export default function DashboardPage() {
                 <div key={digit} style={miniBarColStyle}>
                   <div style={{
                     width: "100%", height: `${heightPct}%`, borderRadius: "4px 4px 0 0",
-                    background: "linear-gradient(180deg, #667eea, #764ba2)", transition: "height 0.6s ease",
+                    background: "linear-gradient(180deg, #d946ef, #764ba2)", transition: "height 0.6s ease",
                   }} />
                   <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "0.3rem" }}>{digit}</span>
                 </div>
@@ -331,7 +331,7 @@ export default function DashboardPage() {
             })}
           </div>
           <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", flexWrap: "wrap" }}>
-            <MiniStat label="Total Records" value={data.total_records.toString()} color="#667eea" />
+            <MiniStat label="Total Records" value={data.total_records.toString()} color="#d946ef" />
             <MiniStat label="Favorites" value={data.total_favorites.toString()} color="#f5576c" />
             <MiniStat label="Sources" value={totalSources.toString()} color="#43e97b" />
           </div>
@@ -362,7 +362,7 @@ export default function DashboardPage() {
                   {data.recent_records.slice(0, 6).map((rec) => (
                     <tr key={rec.id} style={trStyle}>
                       <td style={{ ...tdStyle, fontWeight: 700, color: "var(--accent-cyan)", fontSize: "1.05rem", fontFamily: "monospace", letterSpacing: "1px" }}>
-                        {rec.number}{rec.is_favorite && <span style={{ marginLeft: "0.4rem" }}>💖</span>}
+                        {rec.number}{rec.is_favorite && <span style={{ marginLeft: "0.4rem", color: "#f5576c" }}>★</span>}
                       </td>
                       <td style={tdStyle}>{rec.category?.name || "General"}</td>
                       <td style={tdStyle}>{rec.source?.name || "—"}</td>
@@ -387,7 +387,7 @@ export default function DashboardPage() {
                   <div key={src.source_name} style={barRowStyle}>
                     <span style={barLabelStyle}>{src.source_name}</span>
                     <div style={barTrackStyle}>
-                      <div style={{ ...barFillStyle, width: `${percent}%`, background: "linear-gradient(90deg, #43e97b, #38f9d7)" }} />
+                      <div style={{ ...barFillStyle, width: `${percent}%`, background: "var(--gradient-border)" }} />
                     </div>
                     <span style={barValueStyle}>{src.count}</span>
                   </div>
@@ -448,7 +448,7 @@ const statsRowStyle: React.CSSProperties = {
 
 const statCardStyle: React.CSSProperties = {
   padding: "1.2rem 1.5rem",
-  background: "rgba(6, 11, 40, 0.6)",
+  background: "var(--bg-panel)",
   backdropFilter: "blur(20px)",
   border: "1px solid rgba(255, 255, 255, 0.08)",
   borderRadius: "20px",
@@ -491,7 +491,7 @@ const bannerRowStyle: React.CSSProperties = {
 
 const welcomeBannerStyle: React.CSSProperties = {
   borderRadius: "20px",
-  background: "radial-gradient(circle at 10% 20%, rgba(0, 117, 255, 0.3) 0%, transparent 50%), radial-gradient(circle at 90% 80%, rgba(184, 100%, 48, 0.15) 0%, transparent 50%), linear-gradient(135deg, rgba(6, 11, 40, 0.7) 0%, rgba(10, 5, 27, 0.85) 100%)",
+  background: "radial-gradient(circle at 10% 20%, rgba(0, 117, 255, 0.3) 0%, transparent 50%), radial-gradient(circle at 90% 80%, rgba(184, 100%, 48, 0.15) 0%, transparent 50%), linear-gradient(135deg, rgba(20, 5, 30, 0.8) 0%, rgba(15, 5, 24, 0.9) 100%)",
   overflow: "hidden",
   position: "relative",
   border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -526,7 +526,7 @@ const ringPanelStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  background: "rgba(6, 11, 40, 0.6)",
+  background: "var(--bg-panel)",
   backdropFilter: "blur(20px)",
   border: "1px solid rgba(255, 255, 255, 0.08)",
   borderRadius: "20px",
@@ -550,7 +550,7 @@ const ringTextStyle: React.CSSProperties = {
 
 const quickActionsStyle: React.CSSProperties = {
   padding: "1.5rem",
-  background: "rgba(6, 11, 40, 0.6)",
+  background: "var(--bg-panel)",
   backdropFilter: "blur(20px)",
   border: "1px solid rgba(255, 255, 255, 0.08)",
   borderRadius: "20px",
@@ -677,7 +677,7 @@ const chartsRowStyle: React.CSSProperties = {
 
 const chartPanelStyle: React.CSSProperties = {
   padding: "1.5rem",
-  background: "rgba(6, 11, 40, 0.6)",
+  background: "var(--bg-panel)",
   backdropFilter: "blur(20px)",
   border: "1px solid rgba(255, 255, 255, 0.08)",
   borderRadius: "20px",
@@ -688,7 +688,7 @@ const chartPanelSmallStyle: React.CSSProperties = {
   padding: "1.5rem",
   display: "flex",
   flexDirection: "column",
-  background: "rgba(6, 11, 40, 0.6)",
+  background: "var(--bg-panel)",
   backdropFilter: "blur(20px)",
   border: "1px solid rgba(255, 255, 255, 0.08)",
   borderRadius: "20px",
@@ -709,7 +709,7 @@ const bottomRowStyle: React.CSSProperties = {
 
 const recentPanelStyle: React.CSSProperties = {
   padding: "1.5rem",
-  background: "rgba(6, 11, 40, 0.6)",
+  background: "var(--bg-panel)",
   backdropFilter: "blur(20px)",
   border: "1px solid rgba(255, 255, 255, 0.08)",
   borderRadius: "20px",
@@ -718,7 +718,7 @@ const recentPanelStyle: React.CSSProperties = {
 
 const sourcePanelStyle: React.CSSProperties = {
   padding: "1.5rem",
-  background: "rgba(6, 11, 40, 0.6)",
+  background: "var(--bg-panel)",
   backdropFilter: "blur(20px)",
   border: "1px solid rgba(255, 255, 255, 0.08)",
   borderRadius: "20px",

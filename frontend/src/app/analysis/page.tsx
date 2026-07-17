@@ -27,7 +27,7 @@ export default function AnalysisPage() {
   const [selectedJobIds, setSelectedJobIds] = useState<string[]>([]);
 
   // Form states
-  const [gameCode, setGameCode] = useState("THAI");
+  const [gameCode, setGameCode] = useState("THAI_NATIONAL");
   const [analysisType, setAnalysisType] = useState("FREQUENCY");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -108,7 +108,7 @@ export default function AnalysisPage() {
   };
 
   const handleDeleteJob = async (jobId: string) => {
-    if (!confirm("ต้องการลบประวัติการวิเคราะห์นี้ใช่หรือไม่?")) {
+    if (!confirm("Are you sure you want to delete this analysis history?")) {
       return;
     }
     try {
@@ -126,7 +126,7 @@ export default function AnalysisPage() {
 
   const handleBulkDelete = async () => {
     if (selectedJobIds.length === 0) return;
-    if (!confirm(`ต้องการลบประวัติการวิเคราะห์ที่เลือกทั้งหมด ${selectedJobIds.length} รายการใช่หรือไม่?`)) {
+    if (!confirm(`Are you sure you want to delete all ${selectedJobIds.length} selected analysis histories?`)) {
       return;
     }
     try {
@@ -167,7 +167,7 @@ export default function AnalysisPage() {
                 <div style={formColStyle}>
                   <label style={labelStyle}>Target Game</label>
                   <select value={gameCode} onChange={(e) => setGameCode(e.target.value)}>
-                    <option value="THAI">Thai Government Lottery</option>
+                    <option value="THAI_NATIONAL">Thai National Lottery</option>
                     <option value="LAO">Lao Government Lottery</option>
                   </select>
                 </div>
@@ -195,7 +195,7 @@ export default function AnalysisPage() {
               </div>
 
               <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? "Calculating..." : "🔮 Run Model"}
+                {isSubmitting ? "Calculating..." : " Analyze Data"}
               </button>
             </form>
           </div>
@@ -341,7 +341,7 @@ export default function AnalysisPage() {
             </div>
           ) : (
             <div className="glass-panel" style={resultsPlaceholderStyle}>
-              🔮 Select a model run from the history or start a new analysis to visualize statistics.
+               Select a model run from the history or start a new analysis to visualize statistics.
             </div>
           )}
         </div>
@@ -387,12 +387,12 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               }}
             >
               <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0, fontSize: "1.1rem" }}>
-                🔮 เลขที่งวดนี้จะออกได้แก่... (เลขวิเคราะห์ทางสถิติที่ดีที่สุด 2 ชุด)
+                 The winning numbers for this draw could be... (Statistical Projection)
               </h4>
               
               <div style={{ marginTop: "1.2rem" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                  {details.best_analyzed_6d.slice(0, 2).map((item: any, idx: number) => (
+                  {details.best_analyzed_6d.slice(0, 1).map((item: any, idx: number) => (
                     <div
                       key={item.number}
                       style={{
@@ -409,47 +409,10 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                       }}
                     >
                       <span style={{ color: "var(--accent-cyan)", fontWeight: "bold", display: "flex", alignItems: "center" }}>
-                        ชุดที่ {idx + 1}:{" "}
-                        {idx === 0 ? (
-                          <>
-                            <span
-                              style={{
-                                filter: isSet1Visible ? "none" : "blur(6px)",
-                                transition: "filter 0.2s ease",
-                                userSelect: isSet1Visible ? "auto" : "none",
-                                marginLeft: "0.5rem",
-                              }}
-                            >
-                              {item.number}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setIsSet1Visible(!isSet1Visible)}
-                              style={{
-                                background: "rgba(255, 255, 255, 0.08)",
-                                border: "1px solid rgba(255, 255, 255, 0.15)",
-                                cursor: "pointer",
-                                fontSize: "1rem",
-                                padding: "0.2rem 0.5rem",
-                                borderRadius: "6px",
-                                marginLeft: "0.8rem",
-                                color: isSet1Visible ? "var(--accent-cyan)" : "rgba(255, 255, 255, 0.6)",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                transition: "all 0.2s",
-                              }}
-                              title={isSet1Visible ? "คลิกเพื่อซ่อนตัวเลข" : "คลิกเพื่อดูตัวเลข"}
-                            >
-                              {isSet1Visible ? "👁️" : "🔒"}
-                            </button>
-                          </>
-                        ) : (
-                          <span style={{ marginLeft: "0.5rem" }}>{item.number}</span>
-                        )}
+                        Set {idx + 1}: <span style={{ marginLeft: "0.5rem" }}>{item.number}</span>
                       </span>
                       <span style={{ fontSize: "0.95rem", color: "var(--text-secondary)" }}>
-                        คะแนนความถ่วงน้ำหนัก: {item.score}
+                        Weighted Score: {item.score}
                       </span>
                     </div>
                   ))}
@@ -470,14 +433,14 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               }}
             >
               <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
-                🔮 Recommended 3-Digit & 2-Digit Sets (เลขเด่นแนะนำ 3 ตัว และ 2 ตัว)
+                 Recommended 3-Digit & 2-Digit Sets
               </h4>
               
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem", marginTop: "1rem" }}>
                 {details.generated_3d_recommendations?.length > 0 && (
                   <div>
                     <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.6rem", fontWeight: "bold" }}>
-                      Top 5 Synthesized 3-Digit Picks (เลขท้าย 3 ตัววิเคราะห์สังเคราะห์):
+                      Top 5 Calculated 3-Digit Picks:
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
                       {details.generated_3d_recommendations.map((item: any) => (
@@ -507,7 +470,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 {details.generated_2d_recommendations?.length > 0 && (
                   <div>
                     <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.6rem", fontWeight: "bold" }}>
-                      Top 5 Synthesized 2-Digit Picks (เลขท้าย 2 ตัววิเคราะห์สังเคราะห์):
+                      Top 5 Calculated 2-Digit Picks:
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
                       {details.generated_2d_recommendations.map((item: any) => (
@@ -564,7 +527,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                       transition: "all 0.2s ease",
                     }}
                   >
-                    เลข {len} ตัว
+                    {len}-Digit Number
                   </button>
                 );
               })}
@@ -588,7 +551,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               })}
               {(!details[`top_${endingLength}digit_endings`] || details[`top_${endingLength}digit_endings`].length === 0) && (
                 <div style={{ color: "var(--text-secondary)", fontSize: "0.9rem", textAlign: "center", padding: "1rem" }}>
-                  ไม่มีข้อมูลเลขท้าย {endingLength} ตัวสำหรับเงื่อนไขนี้
+                  No {endingLength}-digit ending data for this condition
                 </div>
               )}
             </div>

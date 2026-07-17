@@ -125,3 +125,29 @@ class UserService:
         user = self._user_repository.deactivate(user_id)
         logger.info("User deactivated id=%s", user_id)
         return user
+
+    def get_all_users(self, *, include_deleted: bool = False, limit: int | None = None, offset: int | None = None) -> list[User]:
+        """Fetch all users.
+
+        Returns:
+            A list of all users.
+        """
+        return list(self._user_repository.get_all(
+            include_deleted=include_deleted, limit=limit, offset=offset
+        ))
+
+    def update_admin_status(self, user_id: uuid.UUID, is_admin: bool) -> User:
+        """Update a user's admin status.
+
+        Args:
+            user_id: The ID of the user to update.
+            is_admin: True to grant admin, False to revoke.
+
+        Returns:
+            The updated user.
+        """
+        user = self.get_user_by_id(user_id)
+        user.is_admin = is_admin
+        updated = self._user_repository.update(user)
+        logger.info("Updated admin status for user id=%s to %s", user_id, is_admin)
+        return updated

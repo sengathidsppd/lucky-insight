@@ -140,3 +140,22 @@ def optional_current_user(
         return user_service.get_user_by_id(user_id)
     except (ExpiredTokenException, InvalidTokenException, ValueError, EntityNotFoundError):
         return None
+
+def get_current_admin_user(current_user: User = Depends(get_current_active_user)) -> User:
+    """Require that the current active user is an admin.
+
+    Args:
+        current_user: The authenticated active user.
+
+    Returns:
+        The authenticated admin user.
+
+    Raises:
+        HTTPException: With status 403 if the user is not an admin.
+    """
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required",
+        )
+    return current_user

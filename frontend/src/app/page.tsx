@@ -20,7 +20,7 @@ export default function LandingPage() {
       <header style={headerStyle}>
         <div style={logoStyle}>
           <span style={logoEmojiStyle}>🍀</span>
-          <span style={logoTextStyle}>Lucky Insight</span>
+          <span style={logoTextStyle}>Insight Analytics</span>
         </div>
         <div>
           <Link href="/login" className="btn btn-secondary" style={{ padding: "0.6rem 1.2rem", fontSize: "0.9rem" }}>
@@ -37,7 +37,7 @@ export default function LandingPage() {
 
           <div style={ctaRowStyle}>
             <Link href="/register" className="btn btn-primary" style={{ padding: "1rem 2rem", fontSize: "1.05rem" }}>
-              Get Started Free 🚀
+              Get Started Free 
             </Link>
             <Link href="/login" className="btn btn-secondary" style={{ padding: "1rem 2rem", fontSize: "1.05rem" }}>
               Access Dashboard
@@ -64,7 +64,7 @@ export default function LandingPage() {
           </div>
 
           <div className="glass-panel" style={featureCardStyle}>
-            <div style={featureIconStyle}>📊</div>
+            <div style={featureIconStyle}></div>
             <h3 style={featureTitleStyle}>Statistical Models</h3>
             <p style={featureDescStyle}>
               Calculate digit frequency, hot pairs, high/low, and odd/even distribution ratios.
@@ -74,7 +74,7 @@ export default function LandingPage() {
       </main>
 
       <footer style={footerStyle}>
-        <p>&copy; {new Date().getFullYear()} Lucky Insight. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Insight Analytics. All rights reserved.</p>
       </footer>
     </div>
   );

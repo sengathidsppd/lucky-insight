@@ -1,6 +1,5 @@
 // API client and cookie helpers for the Next.js application.
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
 export function getCookie(name: string): string | null {
   if (typeof window === "undefined") return null;
@@ -58,6 +57,8 @@ export async function apiRequest<T = any>(
     ...defaultHeaders,
     ...headers,
   };
+
+  console.log("Fetching API URL:", url);
 
   const response = await fetch(url, {
     ...rest,

@@ -264,6 +264,10 @@ class AnalysisService:
 
             weighted_total = (0.4 * pos_score_norm) + (0.3 * gap_score_norm) + (0.3 * dist_score)
             
+            import random
+            noise_factor = random.uniform(0.9, 1.1)
+            final_score = weighted_total * noise_factor
+            
             audit = {
                 "position_frequency": {
                     "raw_score": round(pos_score, 4),
@@ -280,16 +284,25 @@ class AnalysisService:
                     "explanation": f"Contains {odds} odd and {highs} high digits"
                 }
             }
-            return round(weighted_total, 2), audit
+            return round(final_score, 2), audit
 
-        # Score and rank unique 6-digit combinations
-        unique_6d = list(set(endings_map[6]))
+        # Score and rank unique 6-digit combinations + random candidates for dynamic results
+        unique_6d = set(endings_map[6])
+        import random
+        # Inject 10,000 random combinations to find high-scoring unseen numbers
+        for _ in range(10000):
+            unique_6d.add(f"{random.randint(0, 999999):06d}")
+            
         scored_6d = []
         for num in unique_6d:
             sc, aud = score_number(num)
             scored_6d.append({"number": num, "score": sc, "audit": aud})
         
         scored_6d.sort(key=lambda x: x["score"], reverse=True)
+
+        # Select top 150, then randomly sample 5, DO NOT re-sort so the top pick is varied
+        top_150_6d = scored_6d[:150]
+        best_5_6d = random.sample(top_150_6d, min(5, len(top_150_6d)))
 
         # Generate exactly 1 smart recommendation (Hot Pick):
         # The absolute top frequency/probability digit for each position slot.
@@ -319,7 +332,10 @@ class AnalysisService:
             dist_score = 100.0 - (abs(odds - 1.5) * 20.0) - (abs(highs - 1.5) * 20.0)
 
             weighted_total = (0.4 * pos_score_norm) + (0.3 * gap_score_norm) + (0.3 * dist_score)
-            return round(weighted_total, 2)
+            
+            import random
+            final_score = weighted_total * random.uniform(0.9, 1.1)
+            return round(final_score, 2)
 
         # Score 2-digit combinations (positions 4 and 5 of a 6-digit draw)
         def score_2d(num_str: str) -> float:
@@ -337,27 +353,34 @@ class AnalysisService:
             dist_score = 100.0 - (abs(odds - 1) * 30.0) - (abs(highs - 1) * 30.0)
 
             weighted_total = (0.4 * pos_score_norm) + (0.3 * gap_score_norm) + (0.3 * dist_score)
-            return round(weighted_total, 2)
+            
+            import random
+            final_score = weighted_total * random.uniform(0.9, 1.1)
+            return round(final_score, 2)
 
         scored_3d_all = []
         for x in range(1000):
             num_3d = f"{x:03d}"
             scored_3d_all.append({"number": num_3d, "score": score_3d(num_3d)})
         scored_3d_all.sort(key=lambda x: x["score"], reverse=True)
-        top_5_3d = scored_3d_all[:5]
+        # Select top 100 mathematically, then pick 5 dynamically to provide variety (don't re-sort)
+        top_100_3d = scored_3d_all[:100]
+        top_5_3d = random.sample(top_100_3d, min(5, len(top_100_3d)))
 
         scored_2d_all = []
         for x in range(100):
             num_2d = f"{x:02d}"
             scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
         scored_2d_all.sort(key=lambda x: x["score"], reverse=True)
-        top_5_2d = scored_2d_all[:5]
+        # Select top 30 mathematically, then pick 5 dynamically to provide variety (don't re-sort)
+        top_30_2d = scored_2d_all[:30]
+        top_5_2d = random.sample(top_30_2d, min(5, len(top_30_2d)))
 
         result_data = {
             "total_records_analyzed": total_records,
             "top_single_digits": top_digits,
             "position_frequencies": pos_freq_data,
-            "best_analyzed_6d": scored_6d[:5],
+            "best_analyzed_6d": best_5_6d,
             "generated_recommendations": [pick_1_str],
             "generated_3d_recommendations": top_5_3d,
             "generated_2d_recommendations": top_5_2d,

@@ -81,7 +81,7 @@ def map_record_to_response(record: NumberRecord) -> RecordResponse:
 
 
 @router.post(
-    "/",
+    "",
     response_model=RecordDetailResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new number record",
@@ -126,7 +126,7 @@ def create_record(
 
 
 @router.get(
-    "/",
+    "",
     response_model=RecordListResponse,
     status_code=status.HTTP_200_OK,
     summary="List all records",

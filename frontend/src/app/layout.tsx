@@ -4,7 +4,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import NavigationShell from "@/components/NavigationShell";
 
 export const metadata: Metadata = {
-  title: "Lucky Insight — Number Management & Lottery Analytics",
+  title: "Insight Analytics — Number Management & Lottery Analytics",
   description:
     "Unlock mathematical insights from your lucky numbers and compare against official lottery draws.",
 };

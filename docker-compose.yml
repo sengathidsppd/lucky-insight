@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: lucky_insight
+      POSTGRES_PASSWORD: lucky_insight_password
+      POSTGRES_DB: lucky_insight
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql+psycopg://lucky_insight:lucky_insight_password@db:5432/lucky_insight
+      JWT_SECRET_KEY: change-me-to-a-random-secret-value
+      JWT_REFRESH_SECRET: change-me-to-a-different-random-secret-value
+      APP_ENV: production
+      DEBUG: "false"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    restart: always
+    environment:
+      NEXT_PUBLIC_API_URL: /api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: always
+    environment:
+      NGROK_AUTHTOKEN: "3Ge27t9VfcUjNUI6XxB6VqbJoS4_7yNXbm9bFEssUFqTCaeyL"
+    command:
+      - "http"
+      - "frontend:3000"
+      - "--domain=fiction-cobbler-wiring.ngrok-free.dev"
+    depends_on:
+      - frontend
+
+volumes:
+  pg_data:

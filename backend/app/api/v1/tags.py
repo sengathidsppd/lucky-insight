@@ -40,7 +40,7 @@ def get_record_service(db: Session = Depends(get_db)) -> NumberRecordService:
 
 
 @router.post(
-    "/",
+    "",
     response_model=TagDetailResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new tag",
@@ -76,7 +76,7 @@ def create_tag(
 
 
 @router.get(
-    "/",
+    "",
     response_model=TagListResponse,
     status_code=status.HTTP_200_OK,
     summary="Get all tags",
