@@ -441,10 +441,10 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 {details.generated_3d_recommendations?.length > 0 && (
                   <div>
                     <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.6rem", fontWeight: "bold" }}>
-                      Top 5 Calculated 3-Digit Picks:
+                      Top 3 Calculated 3-Digit Picks:
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                      {details.generated_3d_recommendations.map((item: any) => (
+                      {details.generated_3d_recommendations.slice(0, 3).map((item: any) => (
                         <div
                           key={item.number}
                           style={{
@@ -471,10 +471,10 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 {details.generated_2d_recommendations?.length > 0 && (
                   <div>
                     <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.6rem", fontWeight: "bold" }}>
-                      Top 5 Calculated 2-Digit Picks:
+                      Top 3 Calculated 2-Digit Picks:
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                      {details.generated_2d_recommendations.map((item: any) => (
+                      {details.generated_2d_recommendations.slice(0, 3).map((item: any) => (
                         <div
                           key={item.number}
                           style={{

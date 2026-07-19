@@ -363,18 +363,18 @@ class AnalysisService:
             num_3d = f"{x:03d}"
             scored_3d_all.append({"number": num_3d, "score": score_3d(num_3d)})
         scored_3d_all.sort(key=lambda x: x["score"], reverse=True)
-        # Select top 100 mathematically, then pick 5 dynamically to provide variety (don't re-sort)
+        # Select top 100 mathematically, then pick 3 dynamically to provide variety (don't re-sort)
         top_100_3d = scored_3d_all[:100]
-        top_5_3d = random.sample(top_100_3d, min(5, len(top_100_3d)))
+        top_3_3d = random.sample(top_100_3d, min(3, len(top_100_3d)))
 
         scored_2d_all = []
         for x in range(100):
             num_2d = f"{x:02d}"
             scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
         scored_2d_all.sort(key=lambda x: x["score"], reverse=True)
-        # Select top 30 mathematically, then pick 5 dynamically to provide variety (don't re-sort)
+        # Select top 30 mathematically, then pick 3 dynamically to provide variety (don't re-sort)
         top_30_2d = scored_2d_all[:30]
-        top_5_2d = random.sample(top_30_2d, min(5, len(top_30_2d)))
+        top_3_2d = random.sample(top_30_2d, min(3, len(top_30_2d)))
 
         result_data = {
             "total_records_analyzed": total_records,
@@ -382,8 +382,8 @@ class AnalysisService:
             "position_frequencies": pos_freq_data,
             "best_analyzed_6d": best_5_6d,
             "generated_recommendations": [pick_1_str],
-            "generated_3d_recommendations": top_5_3d,
-            "generated_2d_recommendations": top_5_2d,
+            "generated_3d_recommendations": top_3_3d,
+            "generated_2d_recommendations": top_3_2d,
             "recent_draws": [r.number for r in records[:10]],
         }
 
