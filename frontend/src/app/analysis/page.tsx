@@ -355,6 +355,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
   const result = job.result;
   const [endingLength, setEndingLength] = useState(2); // default to 2-digit endings
   const [isSet1Visible, setIsSet1Visible] = useState(false);
+  const [hoveredCell, setHoveredCell] = useState<{ digit: string; pos: number } | null>(null);
 
   useEffect(() => {
     setIsSet1Visible(false);
@@ -555,6 +556,202 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 </div>
               )}
             </div>
+
+            {/* Custom Interactive Trend Analysis Section */}
+            {(() => {
+              const recentDrawsList = details.recent_draws || (details.best_analyzed_6d || []).map((d: any) => d.number) || [];
+              const trendData = (recentDrawsList || [])
+                .slice(0, 10)
+                .reverse() // oldest to newest (left to right)
+                .map((draw: string, idx: number) => {
+                  const cleaned = draw.replace(/\D/g, "");
+                  if (cleaned.length === 0) return null;
+                  const total = cleaned.length;
+                  const odds = cleaned.split("").filter(c => parseInt(c, 10) % 2 !== 0).length;
+                  const highs = cleaned.split("").filter(c => parseInt(c, 10) >= 5).length;
+                  return {
+                    label: `Draw ${idx + 1}`,
+                    number: draw,
+                    oddPercent: Math.round((odds / total) * 100),
+                    highPercent: Math.round((highs / total) * 100),
+                  };
+                })
+                .filter(Boolean) as any[];
+
+              return (
+                <>
+                  {/* Heatmap Section */}
+                  {details.position_frequencies?.length > 0 && (
+                    <div
+                      className="glass-panel"
+                      style={{
+                        background: "rgba(255, 255, 255, 0.03)",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
+                        padding: "1.2rem",
+                        borderRadius: "10px",
+                        marginTop: "2rem",
+                      }}
+                    >
+                      <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", marginBottom: "0.8rem", fontWeight: "bold" }}>
+                        📊 Position-Specific Digit Heatmap (ตารางความร้อนความถี่แยกหลัก 0-9)
+                      </h4>
+                      
+                      <div style={{ overflowX: "auto" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "500px" }}>
+                          <thead>
+                            <tr>
+                              <th style={{ padding: "0.5rem", border: "1px solid rgba(255,255,255,0.08)", color: "var(--text-secondary)", fontSize: "0.8rem" }}>Digit</th>
+                              {[1, 2, 3, 4, 5, 6].map((pos) => (
+                                <th key={pos} style={{ padding: "0.5rem", border: "1px solid rgba(255,255,255,0.08)", color: "var(--accent-cyan)", fontSize: "0.8rem" }}>
+                                  หลักที่ {pos}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
+                              <tr key={digit}>
+                                <td style={{ padding: "0.4rem", border: "1px solid rgba(255,255,255,0.08)", textAlign: "center", fontWeight: "bold", fontSize: "0.9rem", color: "#fff", background: "rgba(255,255,255,0.02)" }}>
+                                  {digit}
+                                </td>
+                                {[0, 1, 2, 3, 4, 5].map((posIndex) => {
+                                  const freq = details.position_frequencies[posIndex]?.[String(digit)] || 0;
+                                  const percent = (freq * 100).toFixed(1);
+                                  const opacity = Math.min(0.85, freq * 4.0);
+                                  const isHovered = hoveredCell?.digit === String(digit) && hoveredCell?.pos === posIndex;
+                                  
+                                  return (
+                                    <td
+                                      key={posIndex}
+                                      onMouseEnter={() => setHoveredCell({ digit: String(digit), pos: posIndex })}
+                                      onMouseLeave={() => setHoveredCell(null)}
+                                      style={{
+                                        padding: "0.6rem",
+                                        border: "1px solid rgba(255,255,255,0.08)",
+                                        textAlign: "center",
+                                        fontSize: "0.85rem",
+                                        fontWeight: "bold",
+                                        color: isHovered || opacity > 0.45 ? "#000" : "#fff",
+                                        background: freq > 0 ? `rgba(0, 242, 254, ${opacity})` : "transparent",
+                                        transition: "all 0.15s ease",
+                                        cursor: "pointer",
+                                        boxShadow: isHovered ? "inset 0 0 0 2px var(--accent-purple)" : "none",
+                                      }}
+                                      title={`หลักที่ ${posIndex + 1}: เลข ${digit} (ความถี่ ${percent}%)`}
+                                    >
+                                      {percent}%
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Trend Line Chart Section */}
+                  {trendData.length > 0 && (
+                    <div
+                      className="glass-panel"
+                      style={{
+                        background: "rgba(255, 255, 255, 0.03)",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
+                        padding: "1.2rem",
+                        borderRadius: "10px",
+                        marginTop: "2rem",
+                      }}
+                    >
+                      <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", marginBottom: "0.8rem", fontWeight: "bold" }}>
+                        📈 Digit Distribution Trend (กราฟแนวโน้มสัดส่วนเลขคู่-คี่ และ สูง-ต่ำ ย้อนหลัง 10 งวด)
+                      </h4>
+                      
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", fontSize: "0.8rem", marginBottom: "0.5rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                          <div style={{ width: "12px", height: "12px", background: "var(--accent-cyan)", borderRadius: "2px" }} />
+                          <span style={{ color: "#fff" }}>Odd (เลขคี่) %</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                          <div style={{ width: "12px", height: "12px", background: "var(--accent-purple)", borderRadius: "2px" }} />
+                          <span style={{ color: "#fff" }}>High (เลขสูง) %</span>
+                        </div>
+                      </div>
+                      
+                      <div style={{ position: "relative", width: "100%", height: "220px" }}>
+                        <svg viewBox="0 0 500 220" style={{ width: "100%", height: "100%" }}>
+                          {/* Grids and Axes */}
+                          {[0, 25, 50, 75, 100].map((yVal) => {
+                            const y = 20 + 150 * (1 - yVal / 100);
+                            return (
+                              <g key={yVal}>
+                                <line x1="40" y1={y} x2="480" y2={y} stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
+                                <text x="30" y={y + 4} fill="var(--text-secondary)" fontSize="10" textAnchor="end">
+                                  {yVal}%
+                                </text>
+                              </g>
+                            );
+                          })}
+                          
+                          {/* Draw labels and data points */}
+                          {trendData.map((d, idx) => {
+                            const x = 40 + (idx * 440) / (trendData.length - 1);
+                            return (
+                              <g key={idx}>
+                                <line x1={x} y1="20" x2={x} y2="170" stroke="rgba(255,255,255,0.04)" />
+                                <text x={x} y="195" fill="var(--text-secondary)" fontSize="9" textAnchor="middle" transform={`rotate(-15, ${x}, 195)`}>
+                                  {d.number}
+                                </text>
+                              </g>
+                            );
+                          })}
+                          
+                          {/* Line for Odd % */}
+                          <path
+                            d={trendData.reduce((acc, d, idx) => {
+                              const x = 40 + (idx * 440) / (trendData.length - 1);
+                              const y = 20 + 150 * (1 - d.oddPercent / 100);
+                              return acc + `${idx === 0 ? "M" : "L"} ${x} ${y}`;
+                            }, "")}
+                            fill="none"
+                            stroke="var(--accent-cyan)"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                          />
+                          
+                          {/* Line for High % */}
+                          <path
+                            d={trendData.reduce((acc, d, idx) => {
+                              const x = 40 + (idx * 440) / (trendData.length - 1);
+                              const y = 20 + 150 * (1 - d.highPercent / 100);
+                              return acc + `${idx === 0 ? "M" : "L"} ${x} ${y}`;
+                            }, "")}
+                            fill="none"
+                            stroke="var(--accent-purple)"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                          />
+                          
+                          {/* Glowing Data Dots */}
+                          {trendData.map((d, idx) => {
+                            const x = 40 + (idx * 440) / (trendData.length - 1);
+                            const yOdd = 20 + 150 * (1 - d.oddPercent / 100);
+                            const yHigh = 20 + 150 * (1 - d.highPercent / 100);
+                            
+                            return (
+                              <g key={idx}>
+                                <circle cx={x} cy={yOdd} r="5" fill="var(--accent-cyan)" stroke="#090d16" strokeWidth="2" />
+                                <circle cx={x} cy={yHigh} r="5" fill="var(--accent-purple)" stroke="#090d16" strokeWidth="2" />
+                              </g>
+                            );
+                          })}
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

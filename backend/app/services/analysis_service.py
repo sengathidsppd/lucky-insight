@@ -384,6 +384,7 @@ class AnalysisService:
             "generated_recommendations": [pick_1_str],
             "generated_3d_recommendations": top_5_3d,
             "generated_2d_recommendations": top_5_2d,
+            "recent_draws": [r.number for r in records[:10]],
         }
 
         # Add endings of length 1 to 6
