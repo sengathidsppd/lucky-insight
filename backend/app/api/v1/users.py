@@ -2,7 +2,9 @@
 
 import uuid
 from fastapi import APIRouter, Depends, status, HTTPException
+from sqlalchemy.orm import Session
 
+from app.core.database import get_db
 from app.api.dependencies.auth import get_current_active_user, get_current_admin_user, get_user_service
 from app.models.user import User
 from app.services.user_service import UserService
@@ -73,7 +75,8 @@ def update_admin_status(
     user_id: uuid.UUID,
     update_data: AdminStatusUpdate,
     current_admin: User = Depends(get_current_admin_user),
-    user_service: UserService = Depends(get_user_service)
+    user_service: UserService = Depends(get_user_service),
+    db: Session = Depends(get_db)
 ) -> UserAdminUpdateResponse:
     if user_id == current_admin.id:
         raise HTTPException(
@@ -82,6 +85,7 @@ def update_admin_status(
         )
     
     u = user_service.update_admin_status(user_id, update_data.is_admin)
+    db.commit()
     return UserAdminUpdateResponse(
         data=UserResponse(
             id=u.id,
