@@ -21,6 +21,21 @@ export default function UsersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [resetTargetUserId, setResetTargetUserId] = useState<string | null>(null);
+  const [resetTargetUserEmail, setResetTargetUserEmail] = useState<string>("");
+  const [newPassword, setNewPassword] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
+
+  const generateRandomPassword = () => {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+    let generated = "";
+    for (let i = 0; i < 12; i++) {
+      generated += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewPassword(generated);
+  };
+
   const fetchUsers = async () => {
     setIsLoading(true);
     setError("");
@@ -68,6 +83,26 @@ export default function UsersPage() {
     }
   };
 
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetTargetUserId || !newPassword) return;
+
+    setIsResetting(true);
+    try {
+      await apiRequest(`/users/${resetTargetUserId}/password`, {
+        method: "PATCH",
+        body: JSON.stringify({ new_password: newPassword }),
+      });
+      alert(`Successfully reset password for ${resetTargetUserEmail}`);
+      setIsResetModalOpen(false);
+      setNewPassword("");
+    } catch (err: any) {
+      alert("Failed to reset password: " + err.message);
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   if (isAuthLoading || (isAuthenticated && !user?.is_admin && !error)) {
     return (
       <div style={containerStyle}>
@@ -107,6 +142,7 @@ export default function UsersPage() {
                   <th style={thStyle}>Joined</th>
                   <th style={thStyle}>Status</th>
                   <th style={thStyle}>Admin Privileges</th>
+                  <th style={thStyle}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -145,10 +181,169 @@ export default function UsersPage() {
                         </span>
                       </div>
                     </td>
+                    <td style={tdStyle}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setResetTargetUserId(u.id);
+                          setResetTargetUserEmail(u.email);
+                          setNewPassword("");
+                          setIsResetModalOpen(true);
+                        }}
+                        style={{
+                          padding: "0.4rem 0.8rem",
+                          background: "rgba(255, 255, 255, 0.05)",
+                          border: "1px solid rgba(255, 255, 255, 0.1)",
+                          borderRadius: "6px",
+                          color: "var(--text-secondary)",
+                          cursor: "pointer",
+                          fontSize: "0.8rem",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.3rem",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = "var(--accent-purple)";
+                          e.currentTarget.style.color = "#fff";
+                          e.currentTarget.style.background = "rgba(102, 126, 234, 0.1)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                          e.currentTarget.style.color = "var(--text-secondary)";
+                          e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                        }}
+                      >
+                        🔑 Reset PW
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+      {/* Reset Password Modal */}
+      {isResetModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(9, 13, 22, 0.8)",
+            backdropFilter: "blur(8px)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            className="glass-panel"
+            style={{
+              width: "100%",
+              maxWidth: "400px",
+              padding: "2rem",
+              background: "var(--bg-panel)",
+              border: "1px solid var(--border-light)",
+              boxShadow: "var(--shadow-glow)",
+              borderRadius: "12px",
+              position: "relative",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "1.4rem",
+                fontWeight: 700,
+                marginBottom: "0.5rem",
+                fontFamily: "Space Grotesk, sans-serif",
+                color: "#fff",
+              }}
+            >
+              🔑 Force Reset Password
+            </h3>
+            <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", marginBottom: "1.5rem" }}>
+              กำลังเปลี่ยนรหัสผ่านสำหรับ: <br />
+              <strong style={{ color: "var(--accent-cyan)" }}>{resetTargetUserEmail}</strong>
+            </p>
+
+            <form onSubmit={handleResetPasswordSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                <label style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>รหัสผ่านใหม่ (New Password)</label>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <input
+                    type="text"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="ขั้นต่ำ 6 ตัวอักษร"
+                    required
+                    style={{
+                      flex: 1,
+                      padding: "0.6rem 0.8rem",
+                      background: "rgba(255, 255, 255, 0.03)",
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      borderRadius: "6px",
+                      color: "#fff",
+                      fontSize: "0.95rem",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={generateRandomPassword}
+                    style={{
+                      padding: "0.6rem 0.8rem",
+                      background: "rgba(102, 126, 234, 0.1)",
+                      border: "1px solid var(--border-light)",
+                      borderRadius: "6px",
+                      color: "var(--accent-purple)",
+                      cursor: "pointer",
+                      fontSize: "0.85rem",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    🎲 สุ่มรหัส
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "1rem" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsResetModalOpen(false);
+                    setNewPassword("");
+                  }}
+                  disabled={isResetting}
+                  className="btn btn-secondary"
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isResetting || newPassword.length < 6}
+                  className="btn btn-primary"
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    background: "var(--gradient-cyan-purple)",
+                    border: "none",
+                    color: "#fff",
+                    cursor: newPassword.length >= 6 ? "pointer" : "not-allowed",
+                    opacity: newPassword.length >= 6 ? 1 : 0.5,
+                  }}
+                >
+                  {isResetting ? "Updating..." : "Confirm"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

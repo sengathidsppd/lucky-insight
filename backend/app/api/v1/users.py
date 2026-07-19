@@ -13,7 +13,9 @@ from app.schemas.user import (
     UserResponse, 
     UserListResponse, 
     AdminStatusUpdate, 
-    UserAdminUpdateResponse
+    UserAdminUpdateResponse,
+    AdminUserPasswordReset,
+    UserPasswordResetResponse
 )
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -87,6 +89,34 @@ def update_admin_status(
     u = user_service.update_admin_status(user_id, update_data.is_admin)
     db.commit()
     return UserAdminUpdateResponse(
+        data=UserResponse(
+            id=u.id,
+            email=u.email,
+            first_name=None,
+            last_name=None,
+            is_active=u.is_active,
+            is_admin=u.is_admin,
+            created_at=u.created_at,
+            updated_at=u.updated_at,
+        )
+    )
+
+@router.patch(
+    "/{user_id}/password",
+    response_model=UserPasswordResetResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Reset a user's password (Admin only)",
+)
+def admin_reset_password(
+    user_id: uuid.UUID,
+    reset_data: AdminUserPasswordReset,
+    current_admin: User = Depends(get_current_admin_user),
+    user_service: UserService = Depends(get_user_service),
+    db: Session = Depends(get_db)
+) -> UserPasswordResetResponse:
+    u = user_service.reset_password(user_id, reset_data.new_password)
+    db.commit()
+    return UserPasswordResetResponse(
         data=UserResponse(
             id=u.id,
             email=u.email,

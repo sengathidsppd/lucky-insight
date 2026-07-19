@@ -58,3 +58,13 @@ class UserAdminUpdateResponse(BaseModel):
     success: bool = True
     message: str = "User admin status updated successfully."
     data: UserResponse
+
+class AdminUserPasswordReset(BaseModel):
+    new_password: str
+
+class UserPasswordResetResponse(BaseModel):
+    """Response body for ``PATCH /api/v1/users/{id}/password``."""
+
+    success: bool = True
+    message: str = "User password reset successfully."
+    data: UserResponse

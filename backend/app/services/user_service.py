@@ -12,6 +12,7 @@ from app.core.logging import get_logger
 from app.models.user import User
 from app.repositories.exceptions import DuplicateEntityError, EntityNotFoundError
 from app.repositories.user_repository import UserRepository
+from app.security.password import hash_password
 
 logger = get_logger(__name__)
 
@@ -150,4 +151,20 @@ class UserService:
         user.is_admin = is_admin
         updated = self._user_repository.update(user)
         logger.info("Updated admin status for user id=%s to %s", user_id, is_admin)
+        return updated
+
+    def reset_password(self, user_id: uuid.UUID, new_password: str) -> User:
+        """Force reset a user's password (Admin only).
+
+        Args:
+            user_id: The ID of the user to update.
+            new_password: The new plaintext password.
+
+        Returns:
+            The updated user.
+        """
+        user = self.get_user_by_id(user_id)
+        user.password_hash = hash_password(new_password)
+        updated = self._user_repository.update(user)
+        logger.info("Admin reset password for user id=%s", user_id)
         return updated
