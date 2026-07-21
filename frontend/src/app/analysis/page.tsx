@@ -366,13 +366,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
 
   return (
     <div style={resultsBodyStyle}>
-      {/* Summary Text */}
-      <div style={summaryBoxStyle}>
-        <h4 style={{ fontWeight: 700, marginBottom: "0.5rem" }}>Summary Analysis</h4>
-        <p style={{ fontSize: "0.95rem", lineHeight: "1.5", color: "var(--text-secondary)" }}>
-          {result.explanation}
-        </p>
-      </div>
+
 
       {job.analysis_type === "FREQUENCY" && details.top_single_digits && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
@@ -387,7 +381,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
             }}
           >
             <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0, fontSize: "1.1rem" }}>
-               🔮 เลขที่งวดนี้จะออกได้แก่... (Statistical Picks)
+               🔮 Winning Number Projections (Statistical Picks)
             </h4>
             
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.2rem", marginTop: "1.2rem" }}>
@@ -395,7 +389,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               {details.best_analyzed_6d?.[0] && (
                 <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem", textAlign: "center" }}>
                   <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem", fontWeight: "bold" }}>
-                    เลขเด่น 6 ตัว (Top 6D)
+                    6-Digit Pick (Top 6D)
                   </div>
                   <div style={{ fontSize: "1.8rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "2px", margin: "0.5rem 0" }}>
                     {details.best_analyzed_6d[0].number}
@@ -410,7 +404,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               {details.generated_4d_recommendations?.[0] && (
                 <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem", textAlign: "center" }}>
                   <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem", fontWeight: "bold" }}>
-                    เลขเด่น 4 ตัว (Top 4D)
+                    4-Digit Pick (Top 4D)
                   </div>
                   <div style={{ fontSize: "1.8rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "2px", margin: "0.5rem 0" }}>
                     {details.generated_4d_recommendations[0].number}
@@ -425,7 +419,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               {details.generated_3d_recommendations?.[0] && (
                 <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem", textAlign: "center" }}>
                   <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem", fontWeight: "bold" }}>
-                    เลขเด่น 3 ตัว (Top 3D)
+                    3-Digit Pick (Top 3D)
                   </div>
                   <div style={{ fontSize: "1.8rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "2px", margin: "0.5rem 0" }}>
                     {details.generated_3d_recommendations[0].number}
@@ -440,7 +434,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               {details.generated_2d_recommendations?.[0] && (
                 <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem", textAlign: "center" }}>
                   <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem", fontWeight: "bold" }}>
-                    เลขเด่น 2 ตัว (Top 2D)
+                    2-Digit Pick (Top 2D)
                   </div>
                   <div style={{ fontSize: "1.8rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "2px", margin: "0.5rem 0" }}>
                     {details.generated_2d_recommendations[0].number}
@@ -452,62 +446,6 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               )}
             </div>
           </div>
-
-          
-          <div>
-            <h4 style={subPanelTitleStyle}>Analyze Digit Endings</h4>
-            {/* Tab Buttons for Ending Lengths 1 to 6 */}
-            <div style={{ display: "flex", gap: "0.4rem", marginBottom: "1rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-              {[6, 5, 4, 3, 2, 1].map((len) => {
-                const hasData = !!details[`top_${len}digit_endings`]?.length;
-                const isActive = endingLength === len;
-                return (
-                  <button
-                    key={len}
-                    type="button"
-                    onClick={() => setEndingLength(len)}
-                    disabled={!hasData}
-                    className={`btn ${isActive ? "btn-primary" : "btn-secondary"}`}
-                    style={{
-                      padding: "0.4rem 0.8rem",
-                      fontSize: "0.8rem",
-                      borderRadius: "6px",
-                      opacity: hasData ? 1 : 0.4,
-                      cursor: hasData ? "pointer" : "not-allowed",
-                      border: isActive ? "1px solid var(--accent-cyan)" : "1px solid transparent",
-                      background: isActive ? "var(--gradient-cyan-purple)" : "rgba(255, 255, 255, 0.05)",
-                      color: "#fff",
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    {len}-Digit Number
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Render selected ending length bar charts */}
-            <div className="chart-bar-container" style={{ marginTop: "0.5rem" }}>
-              {(details[`top_${endingLength}digit_endings`] || []).map((item: any) => {
-                const endingsList = details[`top_${endingLength}digit_endings`] || [];
-                const maxCount = Math.max(...endingsList.map((d: any) => d.count), 1);
-                const percent = Math.round((item.count / maxCount) * 100);
-                return (
-                  <div key={item.combination} className="chart-bar-row">
-                    <span className="chart-bar-label">Ending {item.combination}</span>
-                    <div className="chart-bar-track">
-                      <div className="chart-bar-fill" style={{ width: `${percent}%` }} />
-                    </div>
-                    <span className="chart-bar-value">{item.count}</span>
-                  </div>
-                );
-              })}
-              {(!details[`top_${endingLength}digit_endings`] || details[`top_${endingLength}digit_endings`].length === 0) && (
-                <div style={{ color: "var(--text-secondary)", fontSize: "0.9rem", textAlign: "center", padding: "1rem" }}>
-                  No {endingLength}-digit ending data for this condition
-                </div>
-              )}
-            </div>
 
             {/* Custom Interactive Trend Analysis Section */}
             {(() => {
@@ -705,7 +643,6 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               );
             })()}
           </div>
-        </div>
       )}
 
       {job.analysis_type === "PAIR" && details.top_digit_pairs && (

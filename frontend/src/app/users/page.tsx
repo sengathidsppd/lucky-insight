@@ -266,19 +266,19 @@ export default function UsersPage() {
               🔑 Force Reset Password
             </h3>
             <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", marginBottom: "1.5rem" }}>
-              กำลังเปลี่ยนรหัสผ่านสำหรับ: <br />
+              Resetting password for: <br />
               <strong style={{ color: "var(--accent-cyan)" }}>{resetTargetUserEmail}</strong>
             </p>
 
             <form onSubmit={handleResetPasswordSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                <label style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>รหัสผ่านใหม่ (New Password)</label>
+                <label style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>New Password</label>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
                   <input
                     type="text"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="ขั้นต่ำ 6 ตัวอักษร"
+                    placeholder="Min 6 characters"
                     required
                     style={{
                       flex: 1,
@@ -304,7 +304,7 @@ export default function UsersPage() {
                       fontWeight: "bold",
                     }}
                   >
-                    🎲 สุ่มรหัส
+                    🎲 Generate
                   </button>
                 </div>
               </div>
