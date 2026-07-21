@@ -456,14 +456,14 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 .map((draw: string, idx: number) => {
                   const cleaned = draw.replace(/\D/g, "");
                   if (cleaned.length === 0) return null;
-                  const total = cleaned.length;
-                  const odds = cleaned.split("").filter(c => parseInt(c, 10) % 2 !== 0).length;
-                  const highs = cleaned.split("").filter(c => parseInt(c, 10) >= 5).length;
+                  const digits = cleaned.split("").map(c => parseInt(c, 10));
                   return {
                     label: `Draw ${idx + 1}`,
                     number: draw,
-                    oddPercent: Math.round((odds / total) * 100),
-                    highPercent: Math.round((highs / total) * 100),
+                    open: digits[0],
+                    close: digits[digits.length - 1],
+                    high: Math.max(...digits),
+                    low: Math.min(...digits),
                   };
                 })
                 .filter(Boolean) as any[];
@@ -483,7 +483,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                       }}
                     >
                       <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", marginBottom: "0.8rem", fontWeight: "bold" }}>
-                        📊 Position-Specific Digit Heatmap (ตารางความร้อนความถี่แยกหลัก 0-9)
+                        📊 Position-Specific Digit Heatmap
                       </h4>
                       
                       <div style={{ overflowX: "auto" }}>
@@ -493,7 +493,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                               <th style={{ padding: "0.5rem", border: "1px solid rgba(255,255,255,0.08)", color: "var(--text-secondary)", fontSize: "0.8rem" }}>Digit</th>
                               {[1, 2, 3, 4, 5, 6].map((pos) => (
                                 <th key={pos} style={{ padding: "0.5rem", border: "1px solid rgba(255,255,255,0.08)", color: "var(--accent-cyan)", fontSize: "0.8rem" }}>
-                                  หลักที่ {pos}
+                                  Slot {pos}
                                 </th>
                               ))}
                             </tr>
@@ -527,7 +527,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                                         cursor: "pointer",
                                         boxShadow: isHovered ? "inset 0 0 0 2px var(--accent-purple)" : "none",
                                       }}
-                                      title={`หลักที่ ${posIndex + 1}: เลข ${digit} (ความถี่ ${percent}%)`}
+                                      title={`Slot ${posIndex + 1}: Digit ${digit} (Frequency: ${percent}%)`}
                                     >
                                       {percent}%
                                     </td>
@@ -541,7 +541,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                     </div>
                   )}
 
-                  {/* Trend Line Chart Section */}
+                  {/* Trend Candlestick Chart Section */}
                   {trendData.length > 0 && (
                     <div
                       className="glass-panel"
@@ -554,84 +554,85 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                       }}
                     >
                       <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", marginBottom: "0.8rem", fontWeight: "bold" }}>
-                        📈 Digit Distribution Trend (กราฟแนวโน้มสัดส่วนเลขคู่-คี่ และ สูง-ต่ำ ย้อนหลัง 10 งวด)
+                        📈 Digit Distribution Trend (OHLC Candlestick - Last 10 Draws)
                       </h4>
                       
                       <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", fontSize: "0.8rem", marginBottom: "0.5rem" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                          <div style={{ width: "12px", height: "12px", background: "var(--accent-cyan)", borderRadius: "2px" }} />
-                          <span style={{ color: "#fff" }}>Odd (เลขคี่) %</span>
+                          <div style={{ width: "12px", height: "12px", background: "#10b981", borderRadius: "2px" }} />
+                          <span style={{ color: "#fff" }}>Bullish (Close &gt;= Open)</span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                          <div style={{ width: "12px", height: "12px", background: "var(--accent-purple)", borderRadius: "2px" }} />
-                          <span style={{ color: "#fff" }}>High (เลขสูง) %</span>
+                          <div style={{ width: "12px", height: "12px", background: "#ef4444", borderRadius: "2px" }} />
+                          <span style={{ color: "#fff" }}>Bearish (Close &lt; Open)</span>
                         </div>
                       </div>
                       
                       <div style={{ position: "relative", width: "100%", height: "220px" }}>
                         <svg viewBox="0 0 500 220" style={{ width: "100%", height: "100%" }}>
-                          {/* Grids and Axes */}
-                          {[0, 25, 50, 75, 100].map((yVal) => {
-                            const y = 20 + 150 * (1 - yVal / 100);
+                          {/* Grids and Axes (Y values 0 to 9) */}
+                          {[0, 2, 4, 6, 8, 9].map((yVal) => {
+                            const y = 20 + 150 * (1 - yVal / 9);
                             return (
                               <g key={yVal}>
                                 <line x1="40" y1={y} x2="480" y2={y} stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
                                 <text x="30" y={y + 4} fill="var(--text-secondary)" fontSize="10" textAnchor="end">
-                                  {yVal}%
+                                  {yVal}
                                 </text>
                               </g>
                             );
                           })}
                           
-                          {/* Draw labels and data points */}
+                          {/* Draw labels and candlesticks */}
                           {trendData.map((d, idx) => {
                             const x = 40 + (idx * 440) / (trendData.length - 1);
-                            return (
-                              <g key={idx}>
-                                <line x1={x} y1="20" x2={x} y2="170" stroke="rgba(255,255,255,0.04)" />
-                                <text x={x} y="195" fill="var(--text-secondary)" fontSize="9" textAnchor="middle" transform={`rotate(-15, ${x}, 195)`}>
-                                  {d.number}
-                                </text>
-                              </g>
-                            );
-                          })}
-                          
-                          {/* Line for Odd % */}
-                          <path
-                            d={trendData.reduce((acc, d, idx) => {
-                              const x = 40 + (idx * 440) / (trendData.length - 1);
-                              const y = 20 + 150 * (1 - d.oddPercent / 100);
-                              return acc + `${idx === 0 ? "M" : "L"} ${x} ${y}`;
-                            }, "")}
-                            fill="none"
-                            stroke="var(--accent-cyan)"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                          />
-                          
-                          {/* Line for High % */}
-                          <path
-                            d={trendData.reduce((acc, d, idx) => {
-                              const x = 40 + (idx * 440) / (trendData.length - 1);
-                              const y = 20 + 150 * (1 - d.highPercent / 100);
-                              return acc + `${idx === 0 ? "M" : "L"} ${x} ${y}`;
-                            }, "")}
-                            fill="none"
-                            stroke="var(--accent-purple)"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                          />
-                          
-                          {/* Glowing Data Dots */}
-                          {trendData.map((d, idx) => {
-                            const x = 40 + (idx * 440) / (trendData.length - 1);
-                            const yOdd = 20 + 150 * (1 - d.oddPercent / 100);
-                            const yHigh = 20 + 150 * (1 - d.highPercent / 100);
+                            const isBullish = d.close >= d.open;
+                            const color = isBullish ? "#10b981" : "#ef4444";
+                            
+                            // Y Coordinates scaled from 0-9
+                            const yHigh = 20 + 150 * (1 - d.high / 9);
+                            const yLow = 20 + 150 * (1 - d.low / 9);
+                            const yOpen = 20 + 150 * (1 - d.open / 9);
+                            const yClose = 20 + 150 * (1 - d.close / 9);
+                            
+                            const yTop = Math.min(yOpen, yClose);
+                            const yBottom = Math.max(yOpen, yClose);
+                            const bodyHeight = Math.max(3, yBottom - yTop);
                             
                             return (
                               <g key={idx}>
-                                <circle cx={x} cy={yOdd} r="5" fill="var(--accent-cyan)" stroke="#090d16" strokeWidth="2" />
-                                <circle cx={x} cy={yHigh} r="5" fill="var(--accent-purple)" stroke="#090d16" strokeWidth="2" />
+                                {/* Vertical Gridline */}
+                                <line x1={x} y1="20" x2={x} y2="170" stroke="rgba(255,255,255,0.03)" />
+                                
+                                {/* Label */}
+                                <text x={x} y="195" fill="var(--text-secondary)" fontSize="9" textAnchor="middle" transform={`rotate(-15, ${x}, 195)`}>
+                                  {d.number}
+                                </text>
+
+                                {/* Candle Wick */}
+                                <line 
+                                  x1={x} 
+                                  y1={yLow} 
+                                  x2={x} 
+                                  y2={yHigh} 
+                                  stroke={color} 
+                                  strokeWidth="1.5" 
+                                />
+
+                                {/* Candle Body */}
+                                <rect 
+                                  x={x - 7} 
+                                  y={yTop} 
+                                  width="14" 
+                                  height={bodyHeight} 
+                                  fill={isBullish ? "rgba(16, 185, 129, 0.25)" : "rgba(239, 68, 68, 0.25)"} 
+                                  stroke={color} 
+                                  strokeWidth="1.5" 
+                                  rx="1"
+                                  style={{ transition: "all 0.2s ease", cursor: "pointer" }}
+                                >
+                                  <title>{`Draw: ${d.number}\nHigh: ${d.high}\nOpen (1st): ${d.open}\nClose (Last): ${d.close}\nLow: ${d.low}`}</title>
+                                </rect>
                               </g>
                             );
                           })}
