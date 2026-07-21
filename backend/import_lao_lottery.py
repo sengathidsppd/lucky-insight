@@ -1,8 +1,10 @@
 import re
 from datetime import datetime
+
 from app.core.database import SessionLocal
 from app.models.lottery_game import LotteryGame
 from app.models.lottery_result import LotteryResult
+
 
 def parse_and_import():
     db = SessionLocal()
@@ -12,7 +14,11 @@ def parse_and_import():
             print("LAO game not found in DB!")
             return
 
-        with open('lao_raw.txt', 'r', encoding='utf-8') as f:
+        # Clear old LAO results first to avoid duplicates or numbering mismatches
+        deleted = db.query(LotteryResult).filter(LotteryResult.game_id == lao_game.id).delete()
+        print(f"Cleared {deleted} old LAO results from DB.")
+
+        with open('lao_raw.txt', encoding='utf-8') as f:
             content = f.read()
 
         # Split by blocks that start with the draw number "ງວດທີ"
