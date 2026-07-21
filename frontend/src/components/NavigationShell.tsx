@@ -68,7 +68,21 @@ export default function NavigationShell({ children }: { children: React.ReactNod
         {navItems.map((item) => {
           const isActive = pathname === item.path;
           return (
-            <Link key={item.path} href={item.path} style={getLinkStyle(isActive, item.image)}>
+            <Link key={item.path} href={item.path} style={getLinkStyle(isActive)}>
+              {/* Background Image with Filter (isolated from text) */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundImage: `url('${item.image}')`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  filter: isActive ? "none" : "grayscale(90%) brightness(45%)",
+                  transition: "all 0.3s",
+                  zIndex: 1,
+                }}
+              />
+              {/* Text overlay */}
               <div style={getOverlayStyle(isActive)}>
                 <span style={textStyle}>{item.name}</span>
               </div>
@@ -168,22 +182,18 @@ const floatingNavStyle: React.CSSProperties = {
   zIndex: 100,
 };
 
-const getLinkStyle = (isActive: boolean, imagePath: string): React.CSSProperties => ({
+const getLinkStyle = (isActive: boolean): React.CSSProperties => ({
   position: "relative",
   width: "140px",
   height: "80px",
   borderRadius: "16px",
   overflow: "hidden",
   textDecoration: "none",
-  backgroundImage: `url('${imagePath}')`,
-  backgroundSize: "cover",
-  backgroundPosition: "center",
   boxShadow: isActive ? "0 0 20px rgba(14, 165, 233, 0.5)" : "0 8px 16px rgba(0,0,0,0.4)",
   border: isActive ? "2px solid var(--accent-cyan)" : "2px solid rgba(255, 255, 255, 0.05)",
   transition: "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
   transform: isActive ? "scale(1.05) translateX(-10px)" : "scale(1) translateX(0)",
   display: "block",
-  filter: isActive ? "none" : "grayscale(90%) brightness(35%)",
 });
 
 const getOverlayStyle = (isActive: boolean): React.CSSProperties => ({
@@ -197,6 +207,7 @@ const getOverlayStyle = (isActive: boolean): React.CSSProperties => ({
   justifyContent: "center",
   padding: "0.5rem",
   transition: "all 0.3s",
+  zIndex: 2,
 });
 
 const textStyle: React.CSSProperties = {
