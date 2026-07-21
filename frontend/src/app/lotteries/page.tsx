@@ -206,7 +206,7 @@ export default function LotteriesPage() {
 
                   {res.draw_number && (
                     <div style={winningNumberContainerStyle}>
-                      <div style={winningNumberLabelStyle}>Winning Number</div>
+                      <div style={winningNumberLabelStyle}>Draw Number</div>
                       <div style={winningNumberValueStyle}>{res.draw_number}</div>
                     </div>
                   )}
@@ -287,22 +287,22 @@ export default function LotteriesPage() {
               </div>
 
               <div style={formColStyle}>
-                <label style={labelStyle}>Primary Winning Number (Optional)</label>
+                <label style={labelStyle}>Draw Number (e.g. 93)</label>
                 <input
                   type="text"
                   value={newDrawNumber}
                   onChange={(e) => setNewDrawNumber(e.target.value)}
-                  placeholder="e.g. 987654"
+                  placeholder="e.g. 93"
                 />
               </div>
 
               <div style={formColStyle}>
-                <label style={labelStyle}>1st Prize Description</label>
+                <label style={labelStyle}>1st Prize (6-Digit Number) *</label>
                 <input
                   type="text"
                   value={newFirstPrize}
                   onChange={(e) => setNewFirstPrize(e.target.value)}
-                  placeholder="e.g. 987654"
+                  placeholder="e.g. 096592"
                 />
               </div>
 
