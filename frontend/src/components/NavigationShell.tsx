@@ -178,33 +178,34 @@ const getLinkStyle = (isActive: boolean, imagePath: string): React.CSSProperties
   backgroundImage: `url('${imagePath}')`,
   backgroundSize: "cover",
   backgroundPosition: "center",
-  boxShadow: isActive ? "0 0 20px rgba(6, 182, 212, 0.6)" : "0 8px 16px rgba(0,0,0,0.5)",
-  border: isActive ? "2px solid var(--accent-cyan)" : "2px solid rgba(255, 255, 255, 0.1)",
+  boxShadow: isActive ? "0 0 20px rgba(14, 165, 233, 0.5)" : "0 8px 16px rgba(0,0,0,0.4)",
+  border: isActive ? "2px solid var(--accent-cyan)" : "2px solid rgba(255, 255, 255, 0.05)",
   transition: "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
   transform: isActive ? "scale(1.05) translateX(-10px)" : "scale(1) translateX(0)",
   display: "block",
+  filter: isActive ? "none" : "grayscale(90%) brightness(35%)",
 });
 
 const getOverlayStyle = (isActive: boolean): React.CSSProperties => ({
   position: "absolute",
   inset: 0,
   background: isActive 
-    ? "linear-gradient(to top, rgba(10, 2, 15, 0.95) 0%, rgba(10, 2, 15, 0.2) 100%)" 
-    : "linear-gradient(to top, rgba(10, 2, 15, 0.85) 0%, rgba(10, 2, 15, 0.4) 100%)",
+    ? "linear-gradient(to top, rgba(14, 165, 233, 0.35) 0%, rgba(11, 12, 16, 0.2) 100%)" 
+    : "linear-gradient(to top, rgba(11, 12, 16, 0.85) 0%, rgba(11, 12, 16, 0.6) 100%)",
   display: "flex",
-  alignItems: "flex-end",
+  alignItems: "center",
   justifyContent: "center",
-  paddingBottom: "0.5rem",
+  padding: "0.5rem",
   transition: "all 0.3s",
 });
 
 const textStyle: React.CSSProperties = {
   color: "#fff",
-  fontSize: "0.8rem",
+  fontSize: "0.85rem",
   fontWeight: 700,
   textTransform: "uppercase",
-  letterSpacing: "1px",
-  textShadow: "0 2px 4px rgba(0,0,0,0.8)",
+  letterSpacing: "1.5px",
+  textShadow: "0 2px 4px rgba(0,0,0,0.9)",
   textAlign: "center",
 };
 
@@ -214,11 +215,11 @@ const logoutBtnStyle: React.CSSProperties = {
   height: "40px",
   borderRadius: "12px",
   overflow: "hidden",
-  border: "1px solid rgba(217, 70, 239, 0.4)",
-  background: "var(--bg-deep)",
+  border: "1px solid rgba(239, 68, 68, 0.25)",
+  background: "rgba(239, 68, 68, 0.05)",
   cursor: "pointer",
   marginTop: "1rem",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
   transition: "all 0.3s",
 };
 
@@ -228,8 +229,7 @@ const logoutOverlayStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "rgba(255,0,0,0.1)",
-  color: "hsl(0, 80%, 75%)",
+  color: "#f87171",
   fontSize: "0.75rem",
   fontWeight: 700,
 };
