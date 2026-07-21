@@ -470,77 +470,6 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
 
               return (
                 <>
-                  {/* Heatmap Section */}
-                  {details.position_frequencies?.length > 0 && (
-                    <div
-                      className="glass-panel"
-                      style={{
-                        background: "rgba(255, 255, 255, 0.03)",
-                        border: "1px solid rgba(255, 255, 255, 0.08)",
-                        padding: "1.2rem",
-                        borderRadius: "10px",
-                        marginTop: "2rem",
-                      }}
-                    >
-                      <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", marginBottom: "0.8rem", fontWeight: "bold" }}>
-                        📊 Position-Specific Digit Heatmap
-                      </h4>
-                      
-                      <div style={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "500px" }}>
-                          <thead>
-                            <tr>
-                              <th style={{ padding: "0.5rem", border: "1px solid rgba(255,255,255,0.08)", color: "var(--text-secondary)", fontSize: "0.8rem" }}>Digit</th>
-                              {[1, 2, 3, 4, 5, 6].map((pos) => (
-                                <th key={pos} style={{ padding: "0.5rem", border: "1px solid rgba(255,255,255,0.08)", color: "var(--accent-cyan)", fontSize: "0.8rem" }}>
-                                  Slot {pos}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
-                              <tr key={digit}>
-                                <td style={{ padding: "0.4rem", border: "1px solid rgba(255,255,255,0.08)", textAlign: "center", fontWeight: "bold", fontSize: "0.9rem", color: "#fff", background: "rgba(255,255,255,0.02)" }}>
-                                  {digit}
-                                </td>
-                                {[0, 1, 2, 3, 4, 5].map((posIndex) => {
-                                  const freq = details.position_frequencies[posIndex]?.[String(digit)] || 0;
-                                  const percent = (freq * 100).toFixed(1);
-                                  const opacity = Math.min(0.85, freq * 4.0);
-                                  const isHovered = hoveredCell?.digit === String(digit) && hoveredCell?.pos === posIndex;
-                                  
-                                  return (
-                                    <td
-                                      key={posIndex}
-                                      onMouseEnter={() => setHoveredCell({ digit: String(digit), pos: posIndex })}
-                                      onMouseLeave={() => setHoveredCell(null)}
-                                      style={{
-                                        padding: "0.6rem",
-                                        border: "1px solid rgba(255,255,255,0.08)",
-                                        textAlign: "center",
-                                        fontSize: "0.85rem",
-                                        fontWeight: "bold",
-                                        color: isHovered || opacity > 0.45 ? "#000" : "#fff",
-                                        background: freq > 0 ? `rgba(0, 242, 254, ${opacity})` : "transparent",
-                                        transition: "all 0.15s ease",
-                                        cursor: "pointer",
-                                        boxShadow: isHovered ? "inset 0 0 0 2px var(--accent-purple)" : "none",
-                                      }}
-                                      title={`Slot ${posIndex + 1}: Digit ${digit} (Frequency: ${percent}%)`}
-                                    >
-                                      {percent}%
-                                    </td>
-                                  );
-                                })}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Trend Candlestick Chart Section */}
                   {trendData.length > 0 && (
                     <div
@@ -608,7 +537,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                                 <text x={x} y="195" fill="var(--text-secondary)" fontSize="9" textAnchor="middle" transform={`rotate(-15, ${x}, 195)`}>
                                   {d.number}
                                 </text>
-
+ 
                                 {/* Candle Wick */}
                                 <line 
                                   x1={x} 
@@ -618,7 +547,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                                   stroke={color} 
                                   strokeWidth="1.5" 
                                 />
-
+ 
                                 {/* Candle Body */}
                                 <rect 
                                   x={x - 7} 
@@ -637,6 +566,77 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                             );
                           })}
                         </svg>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Heatmap Section */}
+                  {details.position_frequencies?.length > 0 && (
+                    <div
+                      className="glass-panel"
+                      style={{
+                        background: "rgba(255, 255, 255, 0.03)",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
+                        padding: "1.2rem",
+                        borderRadius: "10px",
+                        marginTop: "2rem",
+                      }}
+                    >
+                      <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", marginBottom: "0.8rem", fontWeight: "bold" }}>
+                        📊 Position-Specific Digit Heatmap
+                      </h4>
+                      
+                      <div style={{ overflowX: "auto" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "500px" }}>
+                          <thead>
+                            <tr>
+                              <th style={{ padding: "0.5rem", border: "1px solid rgba(255,255,255,0.08)", color: "var(--text-secondary)", fontSize: "0.8rem" }}>Digit</th>
+                              {[1, 2, 3, 4, 5, 6].map((pos) => (
+                                <th key={pos} style={{ padding: "0.5rem", border: "1px solid rgba(255,255,255,0.08)", color: "var(--accent-cyan)", fontSize: "0.8rem" }}>
+                                  Slot {pos}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
+                              <tr key={digit}>
+                                <td style={{ padding: "0.4rem", border: "1px solid rgba(255,255,255,0.08)", textAlign: "center", fontWeight: "bold", fontSize: "0.9rem", color: "#fff", background: "rgba(255,255,255,0.02)" }}>
+                                  {digit}
+                                </td>
+                                {[0, 1, 2, 3, 4, 5].map((posIndex) => {
+                                  const freq = details.position_frequencies[posIndex]?.[String(digit)] || 0;
+                                  const percent = (freq * 100).toFixed(1);
+                                  const opacity = Math.min(0.85, freq * 4.0);
+                                  const isHovered = hoveredCell?.digit === String(digit) && hoveredCell?.pos === posIndex;
+                                  
+                                  return (
+                                    <td
+                                      key={posIndex}
+                                      onMouseEnter={() => setHoveredCell({ digit: String(digit), pos: posIndex })}
+                                      onMouseLeave={() => setHoveredCell(null)}
+                                      style={{
+                                        padding: "0.6rem",
+                                        border: "1px solid rgba(255,255,255,0.08)",
+                                        textAlign: "center",
+                                        fontSize: "0.85rem",
+                                        fontWeight: "bold",
+                                        color: isHovered || opacity > 0.45 ? "#000" : "#fff",
+                                        background: freq > 0 ? `rgba(0, 242, 254, ${opacity})` : "transparent",
+                                        transition: "all 0.15s ease",
+                                        cursor: "pointer",
+                                        boxShadow: isHovered ? "inset 0 0 0 2px var(--accent-purple)" : "none",
+                                      }}
+                                      title={`Slot ${posIndex + 1}: Digit ${digit} (Frequency: ${percent}%)`}
+                                    >
+                                      {percent}%
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   )}
