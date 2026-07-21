@@ -376,130 +376,82 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
 
       {job.analysis_type === "FREQUENCY" && details.top_single_digits && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-          {/* Recommended 6-Digit Numbers */}
-          {details.best_analyzed_6d?.length > 0 && (
-            <div
-              className="glass-panel"
-              style={{
-                background: "rgba(102, 126, 234, 0.08)",
-                border: "1px solid rgba(102, 126, 234, 0.2)",
-                padding: "1.5rem",
-                borderRadius: "10px",
-              }}
-            >
-              <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0, fontSize: "1.1rem" }}>
-                 The winning numbers for this draw could be... (Statistical Projection)
-              </h4>
-              
-              <div style={{ marginTop: "1.2rem" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                  {details.best_analyzed_6d.slice(0, 1).map((item: any, idx: number) => (
-                    <div
-                      key={item.number}
-                      style={{
-                        background: "rgba(255, 255, 255, 0.04)",
-                        border: "1px solid rgba(255, 255, 255, 0.08)",
-                        padding: "0.8rem 1.2rem",
-                        borderRadius: "8px",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        fontFamily: "monospace",
-                        fontSize: "1.3rem",
-                        letterSpacing: "2px",
-                      }}
-                    >
-                      <span style={{ color: "var(--accent-cyan)", fontWeight: "bold", display: "flex", alignItems: "center" }}>
-                        Set {idx + 1}: <span style={{ marginLeft: "0.5rem" }}>{item.number}</span>
-                      </span>
-                      <span style={{ fontSize: "0.95rem", color: "var(--text-secondary)" }}>
-                        Weighted Score: {item.score}
-                      </span>
-                    </div>
-                  ))}
+          {/* Recommended Picks (6D, 4D, 3D, 2D) */}
+          <div
+            className="glass-panel"
+            style={{
+              background: "rgba(102, 126, 234, 0.06)",
+              border: "1px solid rgba(102, 126, 234, 0.15)",
+              padding: "1.5rem",
+              borderRadius: "12px",
+            }}
+          >
+            <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0, fontSize: "1.1rem" }}>
+               🔮 เลขที่งวดนี้จะออกได้แก่... (Statistical Picks)
+            </h4>
+            
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.2rem", marginTop: "1.2rem" }}>
+              {/* 6-Digit Card */}
+              {details.best_analyzed_6d?.[0] && (
+                <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem", fontWeight: "bold" }}>
+                    เลขเด่น 6 ตัว (Top 6D)
+                  </div>
+                  <div style={{ fontSize: "1.8rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "2px", margin: "0.5rem 0" }}>
+                    {details.best_analyzed_6d[0].number}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                    Score: {details.best_analyzed_6d[0].score}
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
+              )}
 
-          {/* Recommended 3-Digit & 2-Digit Sets */}
-          {(details.generated_3d_recommendations?.length > 0 || details.generated_2d_recommendations?.length > 0) && (
-            <div
-              className="glass-panel"
-              style={{
-                background: "rgba(102, 126, 234, 0.05)",
-                border: "1px solid rgba(102, 126, 234, 0.15)",
-                padding: "1.2rem",
-                borderRadius: "10px",
-              }}
-            >
-              <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
-                 Recommended 3-Digit & 2-Digit Sets
-              </h4>
-              
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem", marginTop: "1rem" }}>
-                {details.generated_3d_recommendations?.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.6rem", fontWeight: "bold" }}>
-                      Top 3 Calculated 3-Digit Picks:
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                      {details.generated_3d_recommendations.slice(0, 3).map((item: any) => (
-                        <div
-                          key={item.number}
-                          style={{
-                            background: "rgba(0, 242, 254, 0.04)",
-                            border: "1px dashed rgba(0, 242, 254, 0.15)",
-                            padding: "0.5rem 0.8rem",
-                            borderRadius: "6px",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            fontFamily: "monospace",
-                            fontSize: "1.1rem",
-                            letterSpacing: "2px",
-                          }}
-                        >
-                          <span style={{ color: "var(--accent-cyan)", fontWeight: "bold" }}>{item.number}</span>
-                          <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Score: {item.score}</span>
-                        </div>
-                      ))}
-                    </div>
+              {/* 4-Digit Card */}
+              {details.generated_4d_recommendations?.[0] && (
+                <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem", fontWeight: "bold" }}>
+                    เลขเด่น 4 ตัว (Top 4D)
                   </div>
-                )}
+                  <div style={{ fontSize: "1.8rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "2px", margin: "0.5rem 0" }}>
+                    {details.generated_4d_recommendations[0].number}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                    Score: {details.generated_4d_recommendations[0].score}
+                  </div>
+                </div>
+              )}
 
-                {details.generated_2d_recommendations?.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.6rem", fontWeight: "bold" }}>
-                      Top 3 Calculated 2-Digit Picks:
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                      {details.generated_2d_recommendations.slice(0, 3).map((item: any) => (
-                        <div
-                          key={item.number}
-                          style={{
-                            background: "rgba(102, 126, 234, 0.04)",
-                            border: "1px dashed rgba(102, 126, 234, 0.15)",
-                            padding: "0.5rem 0.8rem",
-                            borderRadius: "6px",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            fontFamily: "monospace",
-                            fontSize: "1.1rem",
-                            letterSpacing: "2px",
-                          }}
-                        >
-                          <span style={{ color: "var(--accent-purple)", fontWeight: "bold" }}>{item.number}</span>
-                          <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Score: {item.score}</span>
-                        </div>
-                      ))}
-                    </div>
+              {/* 3-Digit Card */}
+              {details.generated_3d_recommendations?.[0] && (
+                <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem", fontWeight: "bold" }}>
+                    เลขเด่น 3 ตัว (Top 3D)
                   </div>
-                )}
-              </div>
+                  <div style={{ fontSize: "1.8rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "2px", margin: "0.5rem 0" }}>
+                    {details.generated_3d_recommendations[0].number}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                    Score: {details.generated_3d_recommendations[0].score}
+                  </div>
+                </div>
+              )}
+
+              {/* 2-Digit Card */}
+              {details.generated_2d_recommendations?.[0] && (
+                <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem", fontWeight: "bold" }}>
+                    เลขเด่น 2 ตัว (Top 2D)
+                  </div>
+                  <div style={{ fontSize: "1.8rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "2px", margin: "0.5rem 0" }}>
+                    {details.generated_2d_recommendations[0].number}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                    Score: {details.generated_2d_recommendations[0].score}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           
           <div>

@@ -11,7 +11,6 @@ from typing import Any
 from app.core.logging import get_logger
 from app.models.analysis_job import AnalysisJob
 from app.models.analysis_result import AnalysisResult
-from app.models.number_record import NumberRecord
 from app.repositories.analysis_repository import AnalysisRepository
 from app.repositories.exceptions import EntityNotFoundError
 from app.repositories.lottery_result_repository import LotteryResultRepository
@@ -63,14 +62,18 @@ class AnalysisService:
 
             src_uuid = uuid.UUID(source_id) if source_id else None
             cat_uuid = uuid.UUID(category_id) if category_id else None
-            
+
             if date_from_str:
-                dt_from = datetime.fromisoformat(date_from_str.replace("Z", "+00:00")).replace(hour=0, minute=0, second=0, microsecond=0)
+                dt_from = datetime.fromisoformat(date_from_str.replace("Z", "+00:00")).replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                )
             else:
                 dt_from = None
 
             if date_to_str:
-                dt_to = datetime.fromisoformat(date_to_str.replace("Z", "+00:00")).replace(hour=23, minute=59, second=59, microsecond=999999)
+                dt_to = datetime.fromisoformat(date_to_str.replace("Z", "+00:00")).replace(
+                    hour=23, minute=59, second=59, microsecond=999999
+                )
             else:
                 dt_to = None
 
@@ -87,21 +90,29 @@ class AnalysisService:
             )
 
             from types import SimpleNamespace
+
             combined_records = [SimpleNamespace(number=r.number) for r in user_records]
 
             # If game_id is provided, also fetch official draw results and merge them
             if game_id:
                 from sqlalchemy import select
+
                 from app.models.lottery_result import LotteryResult
 
-                stmt = select(LotteryResult).where(LotteryResult.game_id == game_id).where(LotteryResult.deleted_at.is_(None))
+                stmt = (
+                    select(LotteryResult)
+                    .where(LotteryResult.game_id == game_id)
+                    .where(LotteryResult.deleted_at.is_(None))
+                )
                 stmt = stmt.order_by(LotteryResult.draw_date.desc()).limit(100)
 
                 results = self._lottery_result_repository._session.execute(stmt).scalars().all()
                 combined_records.extend([SimpleNamespace(number=r.first_prize) for r in results])
 
             if not combined_records:
-                raise ValueError("No records or official draw results found matching the specified filters.")
+                raise ValueError(
+                    "No records or official draw results found matching the specified filters."
+                )
 
             # Perform calculation based on type
             result_data: dict[str, Any] = {}
@@ -185,13 +196,13 @@ class AnalysisService:
         for r in records:
             num_str = r.number.strip()
             cleaned_num = "".join([c for c in num_str if c.isdigit()])
-            
+
             # Position-specific & Single frequencies
             for pos, char in enumerate(cleaned_num):
                 all_digits.append(char)
                 if pos < 6:
                     position_counts[pos][char] += 1
-            
+
             # Endings
             for length in range(1, 7):
                 if len(cleaned_num) >= length:
@@ -199,14 +210,10 @@ class AnalysisService:
 
         digit_counts = Counter(all_digits)
         total_digit_instances = len(all_digits) or 1
-        
+
         # Calculate Relative Frequencies
         top_digits = [
-            {
-                "digit": d,
-                "count": c,
-                "relative_frequency": round(c / total_digit_instances, 4)
-            }
+            {"digit": d, "count": c, "relative_frequency": round(c / total_digit_instances, 4)}
             for d, c in digit_counts.most_common(10)
         ]
 
@@ -214,13 +221,11 @@ class AnalysisService:
         pos_freq_data = []
         for pos in range(6):
             pos_total = sum(position_counts[pos].values()) or 1
-            pos_freq_data.append({
-                str(d): round(position_counts[pos][str(d)] / pos_total, 4)
-                for d in range(10)
-            })
+            pos_freq_data.append(
+                {str(d): round(position_counts[pos][str(d)] / pos_total, 4) for d in range(10)}
+            )
 
         # Overdue Recovery Index Helper for Scoring
-        # (Newest records are assumed first in sequence)
         digit_gaps = {str(d): [] for d in range(10)}
         digit_last_seen = {str(d): -1 for d in range(10)}
         for idx, r in enumerate(records):
@@ -263,46 +268,45 @@ class AnalysisService:
             dist_score = 100.0 - (abs(odds - 3) * 15.0) - (abs(highs - 3) * 15.0)
 
             weighted_total = (0.4 * pos_score_norm) + (0.3 * gap_score_norm) + (0.3 * dist_score)
-            
-            import random
-            noise_factor = random.uniform(0.9, 1.1)
-            final_score = weighted_total * noise_factor
-            
+
+            final_score = weighted_total
+
             audit = {
                 "position_frequency": {
                     "raw_score": round(pos_score, 4),
                     "normalized": round(pos_score_norm, 2),
-                    "explanation": f"Sum of historical position-specific frequencies is {round(pos_score, 3)}"
+                    "explanation": f"Sum of historical position-specific frequencies is {round(pos_score, 3)}",
                 },
                 "recovery_index": {
                     "raw_score": round(gap_score, 4),
                     "normalized": round(gap_score_norm, 2),
-                    "explanation": f"Average recovery overdue factor is {round(gap_score, 2)}x"
+                    "explanation": f"Average recovery overdue factor is {round(gap_score, 2)}x",
                 },
                 "balance_distribution": {
                     "normalized": round(dist_score, 2),
-                    "explanation": f"Contains {odds} odd and {highs} high digits"
-                }
+                    "explanation": f"Contains {odds} odd and {highs} high digits",
+                },
             }
             return round(final_score, 2), audit
 
         # Score and rank unique 6-digit combinations + random candidates for dynamic results
         unique_6d = set(endings_map[6])
         import random
+
+        random.seed(42)
         # Inject 10,000 random combinations to find high-scoring unseen numbers
         for _ in range(10000):
             unique_6d.add(f"{random.randint(0, 999999):06d}")
-            
+
         scored_6d = []
         for num in unique_6d:
             sc, aud = score_number(num)
             scored_6d.append({"number": num, "score": sc, "audit": aud})
-        
+
         scored_6d.sort(key=lambda x: x["score"], reverse=True)
 
-        # Select top 150, then randomly sample 5, DO NOT re-sort so the top pick is varied
-        top_150_6d = scored_6d[:150]
-        best_5_6d = random.sample(top_150_6d, min(5, len(top_150_6d)))
+        # Select top 5 mathematically without random sampling
+        best_5_6d = scored_6d[:5]
 
         # Generate exactly 1 smart recommendation (Hot Pick):
         # The absolute top frequency/probability digit for each position slot.
@@ -318,9 +322,9 @@ class AnalysisService:
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
             pos_score = (
-                pos_freq_data[3].get(num_str[0], 0) +
-                pos_freq_data[4].get(num_str[1], 0) +
-                pos_freq_data[5].get(num_str[2], 0)
+                pos_freq_data[3].get(num_str[0], 0)
+                + pos_freq_data[4].get(num_str[1], 0)
+                + pos_freq_data[5].get(num_str[2], 0)
             ) / 3
             pos_score_norm = min(100.0, pos_score * 300.0)
 
@@ -332,16 +336,14 @@ class AnalysisService:
             dist_score = 100.0 - (abs(odds - 1.5) * 20.0) - (abs(highs - 1.5) * 20.0)
 
             weighted_total = (0.4 * pos_score_norm) + (0.3 * gap_score_norm) + (0.3 * dist_score)
-            
-            import random
-            final_score = weighted_total * random.uniform(0.9, 1.1)
+
+            final_score = weighted_total
             return round(final_score, 2)
 
         # Score 2-digit combinations (positions 4 and 5 of a 6-digit draw)
         def score_2d(num_str: str) -> float:
             pos_score = (
-                pos_freq_data[4].get(num_str[0], 0) +
-                pos_freq_data[5].get(num_str[1], 0)
+                pos_freq_data[4].get(num_str[0], 0) + pos_freq_data[5].get(num_str[1], 0)
             ) / 2
             pos_score_norm = min(100.0, pos_score * 300.0)
 
@@ -353,28 +355,52 @@ class AnalysisService:
             dist_score = 100.0 - (abs(odds - 1) * 30.0) - (abs(highs - 1) * 30.0)
 
             weighted_total = (0.4 * pos_score_norm) + (0.3 * gap_score_norm) + (0.3 * dist_score)
-            
-            import random
-            final_score = weighted_total * random.uniform(0.9, 1.1)
+
+            final_score = weighted_total
             return round(final_score, 2)
+
+        # Score 4-digit combinations (positions 2, 3, 4, 5 of a 6-digit draw)
+        def score_4d(num_str: str) -> float:
+            pos_score = (
+                pos_freq_data[2].get(num_str[0], 0)
+                + pos_freq_data[3].get(num_str[1], 0)
+                + pos_freq_data[4].get(num_str[2], 0)
+                + pos_freq_data[5].get(num_str[3], 0)
+            ) / 4
+            pos_score_norm = min(100.0, pos_score * 300.0)
+
+            gap_score = sum(recovery_indices.get(char, 1.0) for char in num_str) / 4
+            gap_score_norm = min(100.0, gap_score * 50.0)
+
+            odds = sum(1 for c in num_str if int(c) % 2 != 0)
+            highs = sum(1 for c in num_str if int(c) >= 5)
+            dist_score = 100.0 - (abs(odds - 2) * 20.0) - (abs(highs - 2) * 20.0)
+
+            weighted_total = (0.4 * pos_score_norm) + (0.3 * gap_score_norm) + (0.3 * dist_score)
+
+            final_score = weighted_total
+            return round(final_score, 2)
+
+        scored_4d_all = []
+        for x in range(10000):
+            num_4d = f"{x:04d}"
+            scored_4d_all.append({"number": num_4d, "score": score_4d(num_4d)})
+        scored_4d_all.sort(key=lambda x: x["score"], reverse=True)
+        top_1_4d = scored_4d_all[:1]
 
         scored_3d_all = []
         for x in range(1000):
             num_3d = f"{x:03d}"
             scored_3d_all.append({"number": num_3d, "score": score_3d(num_3d)})
         scored_3d_all.sort(key=lambda x: x["score"], reverse=True)
-        # Select top 100 mathematically, then pick 3 dynamically to provide variety (don't re-sort)
-        top_100_3d = scored_3d_all[:100]
-        top_3_3d = random.sample(top_100_3d, min(3, len(top_100_3d)))
+        top_1_3d = scored_3d_all[:1]
 
         scored_2d_all = []
         for x in range(100):
             num_2d = f"{x:02d}"
             scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
         scored_2d_all.sort(key=lambda x: x["score"], reverse=True)
-        # Select top 30 mathematically, then pick 3 dynamically to provide variety (don't re-sort)
-        top_30_2d = scored_2d_all[:30]
-        top_3_2d = random.sample(top_30_2d, min(3, len(top_30_2d)))
+        top_1_2d = scored_2d_all[:1]
 
         result_data = {
             "total_records_analyzed": total_records,
@@ -382,8 +408,9 @@ class AnalysisService:
             "position_frequencies": pos_freq_data,
             "best_analyzed_6d": best_5_6d,
             "generated_recommendations": [pick_1_str],
-            "generated_3d_recommendations": top_3_3d,
-            "generated_2d_recommendations": top_3_2d,
+            "generated_4d_recommendations": top_1_4d,
+            "generated_3d_recommendations": top_1_3d,
+            "generated_2d_recommendations": top_1_2d,
             "recent_draws": [r.number for r in records[:10]],
         }
 
@@ -395,7 +422,9 @@ class AnalysisService:
             ]
 
         most_freq_digit = top_digits[0]["digit"] if top_digits else "N/A"
-        most_freq_digit_pct = round(top_digits[0]["relative_frequency"] * 100, 2) if top_digits else 0
+        most_freq_digit_pct = (
+            round(top_digits[0]["relative_frequency"] * 100, 2) if top_digits else 0
+        )
         most_freq_2d = (
             result_data["top_2digit_endings"][0]["combination"]
             if result_data["top_2digit_endings"]
@@ -417,7 +446,18 @@ class AnalysisService:
         """Find the most common pairs of digits appearing together and compute association lifts."""
         pairs = []
         digit_occurrences = Counter()
-        mirror_map = {'0':'5', '1':'6', '2':'7', '3':'8', '4':'9', '5':'0', '6':'1', '7':'2', '8':'3', '9':'4'}
+        mirror_map = {
+            "0": "5",
+            "1": "6",
+            "2": "7",
+            "3": "8",
+            "4": "9",
+            "5": "0",
+            "6": "1",
+            "7": "2",
+            "8": "3",
+            "9": "4",
+        }
         mirror_counts = Counter()
         reverse_counts = Counter()
         neighbor_matches = 0
@@ -425,7 +465,7 @@ class AnalysisService:
         for r in records:
             digits = sorted([c for c in r.number if c.isdigit()])
             unique_digits = sorted(list(set(digits)))
-            
+
             # Count individual occurrences for Lift
             for d in unique_digits:
                 digit_occurrences[d] += 1
@@ -433,14 +473,14 @@ class AnalysisService:
             # Unique undirected pairs in the number
             for p in itertools.combinations(unique_digits, 2):
                 pairs.append(f"{p[0]},{p[1]}")
-                
+
                 # Check Mirror pairs
                 if mirror_map[p[0]] == p[1]:
                     mirror_counts[f"{p[0]},{p[1]}"] += 1
-            
+
             # Adjacency Neighbor counts
             for i in range(len(digits) - 1):
-                if abs(int(digits[i]) - int(digits[i+1])) == 1:
+                if abs(int(digits[i]) - int(digits[i + 1])) == 1:
                     neighbor_matches += 1
 
             # Reverse pairs (2-digit endings order independence)
@@ -453,7 +493,7 @@ class AnalysisService:
 
         total_records = len(records) or 1
         pair_counts = Counter(pairs)
-        
+
         # Calculate association lift metrics
         top_pairs = []
         for p, count in pair_counts.most_common(10):
@@ -462,20 +502,19 @@ class AnalysisService:
             support_a = digit_occurrences[d1] / total_records
             support_b = digit_occurrences[d2] / total_records
             lift = support_ab / (support_a * support_b) if (support_a * support_b) > 0 else 0.0
-            
-            top_pairs.append({
-                "pair": p,
-                "count": count,
-                "support": round(support_ab, 4),
-                "lift": round(lift, 4)
-            })
+
+            top_pairs.append(
+                {"pair": p, "count": count, "support": round(support_ab, 4), "lift": round(lift, 4)}
+            )
 
         result_data = {
             "total_records_analyzed": len(records),
             "top_digit_pairs": top_pairs,
             "mirror_pairs": [{"pair": p, "count": c} for p, c in mirror_counts.most_common(5)],
-            "reverse_combinations": [{"pair": p, "count": c} for p, c in reverse_counts.most_common(5)],
-            "neighbor_adjacency_count": neighbor_matches
+            "reverse_combinations": [
+                {"pair": p, "count": c} for p, c in reverse_counts.most_common(5)
+            ],
+            "neighbor_adjacency_count": neighbor_matches,
         }
 
         most_common_pair = top_pairs[0]["pair"] if top_pairs else "N/A"
@@ -508,7 +547,7 @@ class AnalysisService:
 
         total_records = len(records) or 1
         triplet_counts = Counter(triplets)
-        
+
         top_triplets = []
         for t, count in triplet_counts.most_common(10):
             d1, d2, d3 = t.split(",")
@@ -516,17 +555,19 @@ class AnalysisService:
             support_a = digit_occurrences[d1] / total_records
             support_b = digit_occurrences[d2] / total_records
             support_c = digit_occurrences[d3] / total_records
-            
+
             # Simple Lift calculation for 3 variables
             denominator = support_a * support_b * support_c
             lift = support_abc / denominator if denominator > 0 else 0.0
-            
-            top_triplets.append({
-                "triplet": t,
-                "count": count,
-                "support": round(support_abc, 4),
-                "lift": round(lift, 4)
-            })
+
+            top_triplets.append(
+                {
+                    "triplet": t,
+                    "count": count,
+                    "support": round(support_abc, 4),
+                    "lift": round(lift, 4),
+                }
+            )
 
         result_data = {
             "total_records_analyzed": len(records),
@@ -553,7 +594,7 @@ class AnalysisService:
         even_count = 0
         high_count = 0  # 5-9
         low_count = 0  # 0-4
-        
+
         draw_entropies = []
         draw_variances = []
         observed_counts = Counter()
@@ -570,7 +611,10 @@ class AnalysisService:
 
             # Shannon Entropy of the draw sequence
             digit_counts = Counter(cleaned_num)
-            entropy = -sum((c / len(cleaned_num)) * math.log2(c / len(cleaned_num)) for c in digit_counts.values())
+            entropy = -sum(
+                (c / len(cleaned_num)) * math.log2(c / len(cleaned_num))
+                for c in digit_counts.values()
+            )
             draw_entropies.append(entropy)
 
             for val in cleaned_num:
@@ -592,7 +636,9 @@ class AnalysisService:
         high_pct = round((high_count / total_digits) * 100, 2) if total_digits else 0
         low_pct = round((low_count / total_digits) * 100, 2) if total_digits else 0
 
-        avg_variance = round(sum(draw_variances) / len(draw_variances), 4) if draw_variances else 0.0
+        avg_variance = (
+            round(sum(draw_variances) / len(draw_variances), 4) if draw_variances else 0.0
+        )
         avg_entropy = round(sum(draw_entropies) / len(draw_entropies), 4) if draw_entropies else 0.0
 
         # Chi-Square Goodness-of-Fit test against uniform distribution (Expected: total_digits / 10)
@@ -611,7 +657,7 @@ class AnalysisService:
             "low_percentage": low_pct,
             "average_variance": avg_variance,
             "average_entropy": avg_entropy,
-            "chi_square_statistic": round(chi_sq_stat, 4)
+            "chi_square_statistic": round(chi_sq_stat, 4),
         }
 
         explanation = (
@@ -630,11 +676,11 @@ class AnalysisService:
     ) -> tuple[dict[str, Any], str]:
         """Perform Gap Analysis, Rolling Frequency Trends, Transition Matrix, and Markov Chain modeling."""
         total_records = len(records)
-        
+
         # 1. Gap Analysis
         digit_gaps = {str(d): [] for d in range(10)}
         digit_last_seen = {str(d): -1 for d in range(10)}
-        
+
         for idx, r in enumerate(records):
             num_str = "".join([c for c in r.number if c.isdigit()])
             for char in num_str:
@@ -655,13 +701,13 @@ class AnalysisService:
                 gap_data[d_str] = {
                     "current_gap": curr_gap,
                     "average_gap": round(avg_gap, 2),
-                    "recovery_index": round(curr_gap / avg_gap if avg_gap > 0 else 1.0, 2)
+                    "recovery_index": round(curr_gap / avg_gap if avg_gap > 0 else 1.0, 2),
                 }
             else:
                 gap_data[d_str] = {
                     "current_gap": total_records,
                     "average_gap": total_records,
-                    "recovery_index": 1.0
+                    "recovery_index": 1.0,
                 }
 
         # 2. Rolling Frequency & Momentum (last 50 vs overall)
@@ -670,10 +716,10 @@ class AnalysisService:
         recent_digits = []
         for r in recent_records:
             recent_digits.extend([c for c in r.number if c.isdigit()])
-        
+
         recent_counts = Counter(recent_digits)
         recent_total = len(recent_digits) or 1
-        
+
         overall_digits = []
         for r in records:
             overall_digits.extend([c for c in r.number if c.isdigit()])
@@ -686,21 +732,25 @@ class AnalysisService:
             rec_pct = recent_counts[d_str] / recent_total
             over_pct = overall_counts[d_str] / overall_total
             momentum = rec_pct - over_pct
-            
-            digit_trends.append({
-                "digit": d_str,
-                "rolling_frequency": round(rec_pct, 4),
-                "historical_frequency": round(over_pct, 4),
-                "momentum": round(momentum, 4),
-                "status": "HOT" if momentum > 0.02 else "COLD" if momentum < -0.02 else "NEUTRAL"
-            })
+
+            digit_trends.append(
+                {
+                    "digit": d_str,
+                    "rolling_frequency": round(rec_pct, 4),
+                    "historical_frequency": round(over_pct, 4),
+                    "momentum": round(momentum, 4),
+                    "status": (
+                        "HOT" if momentum > 0.02 else "COLD" if momentum < -0.02 else "NEUTRAL"
+                    ),
+                }
+            )
 
         # 3. Transition Matrix & First-Order Markov transitions
         transition_matrix = {str(i): {str(j): 0 for j in range(10)} for i in range(10)}
         for t in range(len(records) - 1):
             curr_digits = [int(c) for c in records[t].number if c.isdigit()]
-            next_digits = [int(c) for c in records[t+1].number if c.isdigit()]
-            
+            next_digits = [int(c) for c in records[t + 1].number if c.isdigit()]
+
             # Track transitions within the same position slot
             limit_pos = min(len(curr_digits), len(next_digits))
             for pos in range(limit_pos):
@@ -714,15 +764,14 @@ class AnalysisService:
         for d_from, transitions in transition_matrix.items():
             total_trans = sum(transitions.values()) or 1
             transition_probabilities[d_from] = {
-                d_to: round(count / total_trans, 4)
-                for d_to, count in transitions.items()
+                d_to: round(count / total_trans, 4) for d_to, count in transitions.items()
             }
 
         result_data = {
             "total_records_analyzed": total_records,
             "gaps": gap_data,
             "digit_trends": digit_trends,
-            "transition_probabilities": transition_probabilities
+            "transition_probabilities": transition_probabilities,
         }
 
         # Find most overdue digit
