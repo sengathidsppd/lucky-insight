@@ -451,33 +451,46 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
             {(() => {
               const recentDrawsList = details.recent_draws || (details.best_analyzed_6d || []).map((d: any) => d.number) || [];
               const trendData = (recentDrawsList || [])
-                .slice(0, 30)
+                .slice(0, 15)
                 .reverse() // oldest to newest (left to right)
                 .map((draw: string, idx: number) => {
                   const cleaned = draw.replace(/\D/g, "");
                   if (cleaned.length === 0) return null;
                   const digits = cleaned.split("").map(c => parseInt(c, 10));
-                  const sum = digits.reduce((a, b) => a + b, 0);
+                  const mid = Math.ceil(digits.length / 2);
+                  const frontAvg = digits.slice(0, mid).reduce((a, b) => a + b, 0) / (mid || 1);
+                  const backAvg = digits.slice(mid).reduce((a, b) => a + b, 0) / (digits.length - mid || 1);
                   return {
                     label: `Draw ${idx + 1}`,
                     number: draw,
-                    open: digits[0],
-                    close: digits[digits.length - 1],
-                    high: Math.max(...digits),
-                    low: Math.min(...digits),
-                    volume: sum,
+                    frontAvg,
+                    backAvg,
                   };
                 })
                 .filter(Boolean) as any[];
 
-              const avgClose = trendData.length > 0
-                ? trendData.reduce((acc, d) => acc + d.close, 0) / trendData.length
-                : 0;
-              const yAvg = 20 + 150 * (1 - avgClose / 9);
+              const frontPoints = trendData.map((d, idx) => {
+                const x = 50 + (idx * 410) / Math.max(1, trendData.length - 1);
+                const y = 20 + 150 * (1 - d.frontAvg / 9);
+                return { x, y };
+              });
+
+              const backPoints = trendData.map((d, idx) => {
+                const x = 50 + (idx * 410) / Math.max(1, trendData.length - 1);
+                const y = 20 + 150 * (1 - d.backAvg / 9);
+                return { x, y };
+              });
+
+              const dFront = trendData.length > 0
+                ? "M " + frontPoints.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" L ")
+                : "";
+              const dBack = trendData.length > 0
+                ? "M " + backPoints.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" L ")
+                : "";
 
               return (
                 <>
-                  {/* Trend Candlestick Chart Section */}
+                  {/* Trend Multi-Line Chart Section */}
                   {trendData.length > 0 && (
                     <div
                       className="glass-panel"
@@ -490,112 +503,118 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                       }}
                     >
                       <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", marginBottom: "0.8rem", fontWeight: "bold" }}>
-                        📈 Digit Distribution Trend (OHLC Candlestick - Last 30 Draws)
+                        📈 Digit Distribution Trend (Front vs Back Half Average - Last 15 Draws)
                       </h4>
                       
-                      <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", fontSize: "0.8rem", marginBottom: "0.5rem" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                          <div style={{ width: "12px", height: "12px", background: "#10b981", borderRadius: "2px" }} />
-                          <span style={{ color: "#fff" }}>Bullish (Close &gt;= Open)</span>
+                      {/* Legend */}
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: "1.5rem", fontSize: "0.8rem", marginBottom: "0.8rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                          <div style={{ width: "12px", height: "4px", background: "linear-gradient(90deg, #f59e0b, #ec4899)", borderRadius: "2px" }} />
+                          <span style={{ color: "#fff", fontWeight: "bold" }}>Front-Half Average</span>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                          <div style={{ width: "12px", height: "12px", background: "#ef4444", borderRadius: "2px" }} />
-                          <span style={{ color: "#fff" }}>Bearish (Close &lt; Open)</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                          <div style={{ width: "12px", height: "4px", background: "linear-gradient(90deg, #d946ef, #8b5cf6)", borderRadius: "2px" }} />
+                          <span style={{ color: "#fff", fontWeight: "bold" }}>Back-Half Average</span>
                         </div>
                       </div>
                       
                       <div style={{ position: "relative", width: "100%", height: "220px" }}>
                         <svg viewBox="0 0 500 220" style={{ width: "100%", height: "100%" }}>
+                          <defs>
+                            <filter id="chartShadow" x="-10%" y="-10%" width="120%" height="120%">
+                              <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="#000" floodOpacity="0.4" />
+                            </filter>
+                            <linearGradient id="frontGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                              <stop offset="0%" stopColor="#f59e0b" />
+                              <stop offset="100%" stopColor="#ec4899" />
+                            </linearGradient>
+                            <linearGradient id="backGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                              <stop offset="0%" stopColor="#d946ef" />
+                              <stop offset="100%" stopColor="#8b5cf6" />
+                            </linearGradient>
+                          </defs>
+
                           {/* Grids and Axes (Y values 0 to 9) */}
                           {[0, 2, 4, 6, 8, 9].map((yVal) => {
                             const y = 20 + 150 * (1 - yVal / 9);
                             return (
                               <g key={yVal}>
-                                <line x1="40" y1={y} x2="480" y2={y} stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
-                                <text x="30" y={y + 4} fill="var(--text-secondary)" fontSize="10" textAnchor="end">
+                                <line x1="45" y1={y} x2="470" y2={y} stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
+                                <text x="35" y={y + 3} fill="var(--text-secondary)" fontSize="10" textAnchor="end">
                                   {yVal}
                                 </text>
                               </g>
                             );
                           })}
 
-                          {/* Average Close Line */}
-                          {trendData.length > 0 && (
-                            <g>
-                              <line x1="40" y1={yAvg} x2="480" y2={yAvg} stroke="#ef4444" strokeWidth="1" strokeDasharray="3 3" opacity="0.8" />
-                              <text x="482" y={yAvg + 3} fill="#ef4444" fontSize="8" textAnchor="start">Avg: {avgClose.toFixed(1)}</text>
-                            </g>
-                          )}
-                          
-                          {/* Draw labels and candlesticks */}
+                          {/* Vertical Gridlines at Draw points */}
                           {trendData.map((d, idx) => {
-                            const x = 40 + (idx * 440) / Math.max(1, trendData.length - 1);
-                            const isBullish = d.close >= d.open;
-                            const color = isBullish ? "#10b981" : "#ef4444";
-                            
-                            // Y Coordinates scaled from 0-9
-                            const yHigh = 20 + 150 * (1 - d.high / 9);
-                            const yLow = 20 + 150 * (1 - d.low / 9);
-                            const yOpen = 20 + 150 * (1 - d.open / 9);
-                            const yClose = 20 + 150 * (1 - d.close / 9);
-                            
-                            const yTop = Math.min(yOpen, yClose);
-                            const yBottom = Math.max(yOpen, yClose);
-                            const bodyHeight = Math.max(3, yBottom - yTop);
+                            const x = 50 + (idx * 410) / Math.max(1, trendData.length - 1);
+                            return (
+                              <line key={idx} x1={x} y1="20" x2={x} y2="170" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
+                            );
+                          })}
 
-                            // Volume Bar (at the bottom of the grid, from Y=170 going up, max height 25px)
-                            // Sum of 6 digits max is 54. volHeight: 2px to 25px
-                            const volHeight = 2 + (d.volume / 54) * 23;
-                            const yVol = 170 - volHeight;
+                          {/* Trend Lines */}
+                          <path
+                            d={dFront}
+                            fill="none"
+                            stroke="url(#frontGrad)"
+                            strokeWidth="3.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            filter="url(#chartShadow)"
+                          />
+                          <path
+                            d={dBack}
+                            fill="none"
+                            stroke="url(#backGrad)"
+                            strokeWidth="3.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            filter="url(#chartShadow)"
+                          />
+
+                          {/* Interactive Nodes / Dots */}
+                          {trendData.map((d, idx) => {
+                            const x = 50 + (idx * 410) / Math.max(1, trendData.length - 1);
+                            const yF = 20 + 150 * (1 - d.frontAvg / 9);
+                            const yB = 20 + 150 * (1 - d.backAvg / 9);
                             
                             return (
                               <g key={idx}>
-                                {/* Vertical Gridline */}
-                                <line x1={x} y1="20" x2={x} y2="170" stroke="rgba(255,255,255,0.03)" />
-                                
-                                {/* Label */}
-                                {(trendData.length <= 10 || idx % 3 === 0) && (
-                                  <text x={x} y="195" fill="var(--text-secondary)" fontSize="8" textAnchor="middle" transform={`rotate(-15, ${x}, 195)`}>
+                                {/* Front Node */}
+                                <circle
+                                  cx={x}
+                                  cy={yF}
+                                  r="5"
+                                  fill="#f59e0b"
+                                  stroke="#fff"
+                                  strokeWidth="1.5"
+                                  style={{ transition: "transform 0.1s ease", transformOrigin: `${x}px ${yF}px`, cursor: "pointer" }}
+                                >
+                                  <title>{`Draw: ${d.number}\nFront-Half Avg: ${d.frontAvg.toFixed(2)}`}</title>
+                                </circle>
+
+                                {/* Back Node */}
+                                <circle
+                                  cx={x}
+                                  cy={yB}
+                                  r="5"
+                                  fill="#d946ef"
+                                  stroke="#fff"
+                                  strokeWidth="1.5"
+                                  style={{ transition: "transform 0.1s ease", transformOrigin: `${x}px ${yB}px`, cursor: "pointer" }}
+                                >
+                                  <title>{`Draw: ${d.number}\nBack-Half Avg: ${d.backAvg.toFixed(2)}`}</title>
+                                </circle>
+
+                                {/* X-axis Text Label */}
+                                {(idx % 2 === 0 || idx === trendData.length - 1) && (
+                                  <text x={x} y="192" fill="var(--text-secondary)" fontSize="8.5" textAnchor="middle" transform={`rotate(-15, ${x}, 192)`}>
                                     {d.number}
                                   </text>
                                 )}
-
-                                {/* Volume Bar at the bottom */}
-                                <rect
-                                  x={x - 3}
-                                  y={yVol}
-                                  width="6"
-                                  height={volHeight}
-                                  fill={isBullish ? "rgba(16, 185, 129, 0.2)" : "rgba(239, 68, 68, 0.2)"}
-                                  stroke={color}
-                                  strokeWidth="0.5"
-                                  rx="0.5"
-                                />
- 
-                                {/* Candle Wick */}
-                                <line 
-                                  x1={x} 
-                                  y1={yLow} 
-                                  x2={x} 
-                                  y2={yHigh} 
-                                  stroke={color} 
-                                  strokeWidth="1.2" 
-                                />
- 
-                                {/* Candle Body */}
-                                <rect 
-                                  x={x - 3} 
-                                  y={yTop} 
-                                  width="6" 
-                                  height={bodyHeight} 
-                                  fill={isBullish ? "rgba(16, 185, 129, 0.45)" : "rgba(239, 68, 68, 0.45)"} 
-                                  stroke={color} 
-                                  strokeWidth="1.2" 
-                                  rx="0.5"
-                                  style={{ transition: "all 0.2s ease", cursor: "pointer" }}
-                                >
-                                  <title>{`Draw: ${d.number}\nHigh: ${d.high}\nOpen (1st): ${d.open}\nClose (Last): ${d.close}\nLow: ${d.low}\nSum (Vol): ${d.volume}`}</title>
-                                </rect>
                               </g>
                             );
                           })}
