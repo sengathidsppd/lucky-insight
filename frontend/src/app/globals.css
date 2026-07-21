@@ -4,36 +4,38 @@
 
 :root {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  /* Metaverse / Cyberpunk Color Palette */
-  --bg-deep: #06020a;       /* Almost black, tint of purple */
-  --bg-dark: #0f0518;       /* Very dark violet */
-  --bg-panel: rgba(20, 5, 30, 0.7); /* Translucent dark purple panel */
-  --bg-panel-hover: rgba(30, 10, 45, 0.85);
+  /* Quantitative Analyst / Bloomberg Dark Palette */
+  --bg-deep: #0b0c10;       /* Stealth Charcoal Deep Black */
+  --bg-dark: #131722;       /* Slate Dark Gray */
+  --bg-panel: #1c2030;      /* Solid Flat Card Panel */
+  --bg-panel-hover: #222638;
 
-  --accent-primary: #d946ef;   /* Neon Magenta */
-  --accent-secondary: #06b6d4; /* Neon Cyan */
-  --accent-gradient: linear-gradient(135deg, #f02fc2 0%, #6094ea 100%);
+  --accent-primary: #0ea5e9;   /* High-tech Cyan/Blue */
+  --accent-secondary: #10b981; /* Quantitative Green */
+  --accent-cyan: #38bdf8;      /* High-tech Sky Blue */
+  --accent-purple: #8b5cf6;    /* Analytical Purple */
+  --accent-gradient: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%);
   
-  --gradient-btn: linear-gradient(135deg, #f02fc2 0%, #6094ea 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #f542c9 0%, #6c9df0 100%);
-  --gradient-border: linear-gradient(135deg, rgba(217, 70, 239, 0.5), rgba(6, 182, 212, 0.5));
+  --gradient-btn: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+  --gradient-border: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(16, 185, 129, 0.2));
   
   --text-primary: #ffffff;
-  --text-secondary: #a78bfa; /* Soft violet text */
-  --text-muted: #6b7280;
+  --text-secondary: #94a3b8; /* Professional Slate Gray */
+  --text-muted: #64748b;
 
-  --border-light: rgba(217, 70, 239, 0.15); /* Faint magenta border */
-  --border-focus: rgba(217, 70, 239, 0.5);
+  --border-light: #222533; /* Clean dark panel border */
+  --border-focus: #0ea5e9;
 
-  --shadow-premium: 0 8px 32px 0 rgba(15, 5, 24, 0.8);
-  --shadow-glow: 0 0 20px rgba(217, 70, 239, 0.25);
-  --shadow-glow-cyan: 0 0 20px rgba(6, 182, 212, 0.25);
+  --shadow-premium: 0 4px 20px 0 rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 15px rgba(14, 165, 233, 0.12);
+  --shadow-glow-cyan: 0 0 15px rgba(16, 185, 129, 0.12);
 
-  --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  --radius-lg: 16px;
-  --radius-md: 8px;
+  --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-lg: 12px;
+  --radius-md: 6px;
 }
 
 * {
@@ -44,10 +46,10 @@
 
 body {
   background-color: var(--bg-deep);
-  /* Giant soft radial glows for metaverse feel */
+  /* Flat dark professional design with subtle deep teal radial highlights */
   background-image: 
-    radial-gradient(circle at 15% 50%, rgba(74, 11, 77, 0.4) 0%, transparent 50%),
-    radial-gradient(circle at 85% 30%, rgba(13, 37, 74, 0.4) 0%, transparent 50%);
+    radial-gradient(circle at 10% 40%, rgba(14, 165, 233, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 20%, rgba(16, 185, 129, 0.03) 0%, transparent 45%);
   background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -66,14 +68,13 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--bg-panel);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-premium), inset 0 0 20px rgba(217,70,239,0.02);
+  box-shadow: var(--shadow-premium);
   transition: var(--transition-smooth);
-  backdrop-filter: blur(12px); /* Keep a slight blur, but mostly rely on the dark background */
 }
 
 .glass-panel:hover {
   background: var(--bg-panel-hover);
-  border-color: rgba(217, 70, 239, 0.3);
+  border-color: rgba(14, 165, 233, 0.25);
   box-shadow: var(--shadow-premium), var(--shadow-glow);
 }
 

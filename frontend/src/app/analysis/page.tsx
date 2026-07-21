@@ -380,9 +380,9 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               borderRadius: "12px",
             }}
           >
-            <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0, fontSize: "1.1rem" }}>
-               🔮 Winning Number Projections (Statistical Picks)
-            </h4>
+             <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0, fontSize: "1.1rem" }}>
+                Winning Number Projections (Statistical Picks)
+             </h4>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
               {/* 6-Digit Card */}
@@ -503,7 +503,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                       }}
                     >
                       <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", marginBottom: "0.8rem", fontWeight: "bold" }}>
-                        📈 Digit Distribution Trend (Front vs Back Half Average - Last 15 Draws)
+                        Digit Distribution Trend (Front vs Back Half Average - Last 15 Draws)
                       </h4>
                       
                       {/* Legend */}
@@ -636,7 +636,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                       }}
                     >
                       <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", marginBottom: "0.8rem", fontWeight: "bold" }}>
-                        📊 Position-Specific Digit Heatmap
+                        Position-Specific Digit Heatmap
                       </h4>
                       
                       <div style={{ overflowX: "auto" }}>
