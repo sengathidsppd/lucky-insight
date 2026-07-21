@@ -451,12 +451,13 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
             {(() => {
               const recentDrawsList = details.recent_draws || (details.best_analyzed_6d || []).map((d: any) => d.number) || [];
               const trendData = (recentDrawsList || [])
-                .slice(0, 10)
+                .slice(0, 30)
                 .reverse() // oldest to newest (left to right)
                 .map((draw: string, idx: number) => {
                   const cleaned = draw.replace(/\D/g, "");
                   if (cleaned.length === 0) return null;
                   const digits = cleaned.split("").map(c => parseInt(c, 10));
+                  const sum = digits.reduce((a, b) => a + b, 0);
                   return {
                     label: `Draw ${idx + 1}`,
                     number: draw,
@@ -464,9 +465,15 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                     close: digits[digits.length - 1],
                     high: Math.max(...digits),
                     low: Math.min(...digits),
+                    volume: sum,
                   };
                 })
                 .filter(Boolean) as any[];
+
+              const avgClose = trendData.length > 0
+                ? trendData.reduce((acc, d) => acc + d.close, 0) / trendData.length
+                : 0;
+              const yAvg = 20 + 150 * (1 - avgClose / 9);
 
               return (
                 <>
@@ -483,7 +490,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                       }}
                     >
                       <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", marginBottom: "0.8rem", fontWeight: "bold" }}>
-                        📈 Digit Distribution Trend (OHLC Candlestick - Last 10 Draws)
+                        📈 Digit Distribution Trend (OHLC Candlestick - Last 30 Draws)
                       </h4>
                       
                       <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", fontSize: "0.8rem", marginBottom: "0.5rem" }}>
@@ -511,10 +518,18 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                               </g>
                             );
                           })}
+
+                          {/* Average Close Line */}
+                          {trendData.length > 0 && (
+                            <g>
+                              <line x1="40" y1={yAvg} x2="480" y2={yAvg} stroke="#ef4444" strokeWidth="1" strokeDasharray="3 3" opacity="0.8" />
+                              <text x="482" y={yAvg + 3} fill="#ef4444" fontSize="8" textAnchor="start">Avg: {avgClose.toFixed(1)}</text>
+                            </g>
+                          )}
                           
                           {/* Draw labels and candlesticks */}
                           {trendData.map((d, idx) => {
-                            const x = 40 + (idx * 440) / (trendData.length - 1);
+                            const x = 40 + (idx * 440) / Math.max(1, trendData.length - 1);
                             const isBullish = d.close >= d.open;
                             const color = isBullish ? "#10b981" : "#ef4444";
                             
@@ -527,6 +542,11 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                             const yTop = Math.min(yOpen, yClose);
                             const yBottom = Math.max(yOpen, yClose);
                             const bodyHeight = Math.max(3, yBottom - yTop);
+
+                            // Volume Bar (at the bottom of the grid, from Y=170 going up, max height 25px)
+                            // Sum of 6 digits max is 54. volHeight: 2px to 25px
+                            const volHeight = 2 + (d.volume / 54) * 23;
+                            const yVol = 170 - volHeight;
                             
                             return (
                               <g key={idx}>
@@ -534,9 +554,23 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                                 <line x1={x} y1="20" x2={x} y2="170" stroke="rgba(255,255,255,0.03)" />
                                 
                                 {/* Label */}
-                                <text x={x} y="195" fill="var(--text-secondary)" fontSize="9" textAnchor="middle" transform={`rotate(-15, ${x}, 195)`}>
-                                  {d.number}
-                                </text>
+                                {(trendData.length <= 10 || idx % 3 === 0) && (
+                                  <text x={x} y="195" fill="var(--text-secondary)" fontSize="8" textAnchor="middle" transform={`rotate(-15, ${x}, 195)`}>
+                                    {d.number}
+                                  </text>
+                                )}
+
+                                {/* Volume Bar at the bottom */}
+                                <rect
+                                  x={x - 3}
+                                  y={yVol}
+                                  width="6"
+                                  height={volHeight}
+                                  fill={isBullish ? "rgba(16, 185, 129, 0.2)" : "rgba(239, 68, 68, 0.2)"}
+                                  stroke={color}
+                                  strokeWidth="0.5"
+                                  rx="0.5"
+                                />
  
                                 {/* Candle Wick */}
                                 <line 
@@ -545,22 +579,22 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                                   x2={x} 
                                   y2={yHigh} 
                                   stroke={color} 
-                                  strokeWidth="1.5" 
+                                  strokeWidth="1.2" 
                                 />
  
                                 {/* Candle Body */}
                                 <rect 
-                                  x={x - 7} 
+                                  x={x - 3} 
                                   y={yTop} 
-                                  width="14" 
+                                  width="6" 
                                   height={bodyHeight} 
-                                  fill={isBullish ? "rgba(16, 185, 129, 0.25)" : "rgba(239, 68, 68, 0.25)"} 
+                                  fill={isBullish ? "rgba(16, 185, 129, 0.45)" : "rgba(239, 68, 68, 0.45)"} 
                                   stroke={color} 
-                                  strokeWidth="1.5" 
-                                  rx="1"
+                                  strokeWidth="1.2" 
+                                  rx="0.5"
                                   style={{ transition: "all 0.2s ease", cursor: "pointer" }}
                                 >
-                                  <title>{`Draw: ${d.number}\nHigh: ${d.high}\nOpen (1st): ${d.open}\nClose (Last): ${d.close}\nLow: ${d.low}`}</title>
+                                  <title>{`Draw: ${d.number}\nHigh: ${d.high}\nOpen (1st): ${d.open}\nClose (Last): ${d.close}\nLow: ${d.low}\nSum (Vol): ${d.volume}`}</title>
                                 </rect>
                               </g>
                             );
