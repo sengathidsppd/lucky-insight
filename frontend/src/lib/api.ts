@@ -25,7 +25,8 @@ interface RequestOptions extends RequestInit {
 
 export async function apiRequest<T = any>(
   path: string,
-  options: RequestOptions = {}
+  options: RequestOptions = {},
+  _retry = true
 ): Promise<T> {
   const { params, headers, ...rest } = options;
 
@@ -60,12 +61,39 @@ export async function apiRequest<T = any>(
 
   console.log("Fetching API URL:", url);
 
-  const response = await fetch(url, {
+  let response = await fetch(url, {
     ...rest,
     headers: finalHeaders,
   });
 
   if (!response.ok) {
+    if (response.status === 401 && _retry && path !== "/auth/login" && path !== "/auth/refresh") {
+      const refreshToken = getCookie("refresh_token");
+      if (refreshToken) {
+        try {
+          const refreshResp = await apiRequest("/auth/refresh", {
+            method: "POST",
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          }, false);
+          
+          setCookie("token", refreshResp.data.access_token, 3600);
+          setCookie("refresh_token", refreshResp.data.refresh_token, 7 * 86400);
+          
+          // Retry original request
+          return apiRequest(path, options, false);
+        } catch (refreshErr) {
+          deleteCookie("token");
+          deleteCookie("refresh_token");
+          if (typeof window !== "undefined") window.location.href = "/login";
+          throw new Error("Session expired. Please login again.");
+        }
+      } else {
+        deleteCookie("token");
+        if (typeof window !== "undefined") window.location.href = "/login";
+        throw new Error("Session expired. Please login again.");
+      }
+    }
+
     let errorDetail = "An unexpected error occurred.";
     try {
       const errJson = await response.json();

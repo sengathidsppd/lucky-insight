@@ -401,49 +401,49 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               )}
 
               {/* 4-Digit Card */}
-              {details.generated_4d_recommendations?.[0] && (
-                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
+              {details.generated_4d_recommendations?.slice(0, 1).map((item: any, idx: number) => (
+                <div key={`4d-${idx}`} style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
                   <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
                     4-Digit Pick (Top 4D)
                   </div>
                   <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "4px" }}>
-                    {details.generated_4d_recommendations[0].number}
+                    {item.number}
                   </div>
                   <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", minWidth: "100px", textAlign: "right" }}>
-                    Score: {details.generated_4d_recommendations[0].score}
+                    Score: {item.score}
                   </div>
                 </div>
-              )}
+              ))}
 
               {/* 3-Digit Card */}
-              {details.generated_3d_recommendations?.[0] && (
-                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
+              {details.generated_3d_recommendations?.slice(0, 1).map((item: any, idx: number) => (
+                <div key={`3d-${idx}`} style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
                   <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
                     3-Digit Pick (Top 3D)
                   </div>
                   <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "4px" }}>
-                    {details.generated_3d_recommendations[0].number}
+                    {item.number}
                   </div>
                   <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", minWidth: "100px", textAlign: "right" }}>
-                    Score: {details.generated_3d_recommendations[0].score}
+                    Score: {item.score}
                   </div>
                 </div>
-              )}
+              ))}
 
               {/* 2-Digit Card */}
-              {details.generated_2d_recommendations?.[0] && (
-                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
+              {details.generated_2d_recommendations?.slice(0, 1).map((item: any, idx: number) => (
+                <div key={`2d-${idx}`} style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
                   <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
                     2-Digit Pick (Top 2D)
                   </div>
                   <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "4px" }}>
-                    {details.generated_2d_recommendations[0].number}
+                    {item.number}
                   </div>
                   <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", minWidth: "100px", textAlign: "right" }}>
-                    Score: {details.generated_2d_recommendations[0].score}
+                    Score: {item.score}
                   </div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
 

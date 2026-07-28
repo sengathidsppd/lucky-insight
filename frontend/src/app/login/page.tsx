@@ -74,12 +74,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={footerStyle}>
-          Don't have an account?{" "}
-          <Link href="/register" style={linkStyle}>
-            Create an account
-          </Link>
-        </div>
       </div>
     </div>
   );

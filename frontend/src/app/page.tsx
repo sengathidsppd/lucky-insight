@@ -36,10 +36,7 @@ export default function LandingPage() {
           </h1>
 
           <div style={ctaRowStyle}>
-            <Link href="/register" className="btn btn-primary" style={{ padding: "1rem 2rem", fontSize: "1.05rem" }}>
-              Get Started Free 
-            </Link>
-            <Link href="/login" className="btn btn-secondary" style={{ padding: "1rem 2rem", fontSize: "1.05rem" }}>
+            <Link href="/login" className="btn btn-primary" style={{ padding: "1rem 2rem", fontSize: "1.05rem" }}>
               Access Dashboard
             </Link>
           </div>

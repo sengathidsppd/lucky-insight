@@ -48,55 +48,7 @@ def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
     return AuthService(UserRepository(db))
 
 
-@router.post(
-    "/register",
-    response_model=RegisterResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Register a new user",
-)
-def register(
-    payload: RegisterRequest,
-    db: Session = Depends(get_db),
-    auth_service: AuthService = Depends(get_auth_service),
-) -> RegisterResponse:
-    """Register a new user account.
 
-    Args:
-        payload: The validated registration request body.
-        db: The request-scoped database session. Used only to commit the
-            transaction after the service layer has done its work — all
-            data access itself goes through ``AuthService``.
-        auth_service: The injected authentication service.
-
-    Returns:
-        The newly created user, wrapped in the standard success envelope.
-
-    Raises:
-        HTTPException: With status 409 if a user with that email already
-            exists, or 400 if the email fails service-level format
-            validation.
-    """
-    try:
-        user = auth_service.register_user(payload.email, payload.password)
-    except DuplicateEntityError as exc:
-        logger.info("Registration rejected: email already exists")
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
-    except InvalidEmailFormatException as exc:
-        logger.info("Registration rejected: invalid email format")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-
-    db.commit()
-
-    return RegisterResponse(
-        data=UserPublic(
-            id=user.id,
-            email=user.email,
-            first_name=payload.first_name,
-            last_name=payload.last_name,
-            is_active=user.is_active,
-            is_admin=user.is_admin,
-        )
-    )
 
 
 @router.post(

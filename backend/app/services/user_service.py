@@ -137,6 +137,20 @@ class UserService:
             include_deleted=include_deleted, limit=limit, offset=offset
         ))
 
+    def delete_user(self, user_id: uuid.UUID) -> bool:
+        """Soft delete a user.
+        
+        Args:
+            user_id: The ID of the user to delete.
+            
+        Returns:
+            True if user was deleted, False otherwise.
+        """
+        result = self._user_repository.soft_delete(user_id)
+        if result:
+            logger.info("User deleted id=%s", user_id)
+        return result
+
     def update_admin_status(self, user_id: uuid.UUID, is_admin: bool) -> User:
         """Update a user's admin status.
 

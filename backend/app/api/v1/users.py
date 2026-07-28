@@ -6,8 +6,13 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.api.dependencies.auth import get_current_active_user, get_current_admin_user, get_user_service
+from app.api.v1.auth import get_auth_service
 from app.models.user import User
 from app.services.user_service import UserService
+from app.services.auth_service import AuthService
+from app.repositories.exceptions import DuplicateEntityError
+from app.services.exceptions import InvalidEmailFormatException
+from app.schemas.auth import RegisterRequest, RegisterResponse, UserPublic
 from app.schemas.user import (
     CurrentUserResponse, 
     UserResponse, 
@@ -38,6 +43,38 @@ def get_me(current_user: User = Depends(get_current_active_user)) -> CurrentUser
             is_admin=current_user.is_admin,
             created_at=current_user.created_at,
             updated_at=current_user.updated_at,
+        )
+    )
+
+@router.post(
+    "",
+    response_model=RegisterResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new user (Admin only)",
+)
+def create_user(
+    payload: RegisterRequest,
+    current_admin: User = Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
+    auth_service: AuthService = Depends(get_auth_service),
+) -> RegisterResponse:
+    try:
+        user = auth_service.register_user(payload.email, payload.password)
+    except DuplicateEntityError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except InvalidEmailFormatException as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    db.commit()
+
+    return RegisterResponse(
+        data=UserPublic(
+            id=user.id,
+            email=user.email,
+            first_name=payload.first_name,
+            last_name=payload.last_name,
+            is_active=user.is_active,
+            is_admin=user.is_admin,
         )
     )
 
@@ -100,6 +137,25 @@ def update_admin_status(
             updated_at=u.updated_at,
         )
     )
+
+@router.delete(
+    "/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a user (Admin only)",
+)
+def delete_user(
+    user_id: uuid.UUID,
+    current_admin: User = Depends(get_current_admin_user),
+    user_service: UserService = Depends(get_user_service),
+    db: Session = Depends(get_db)
+):
+    success = user_service.delete_user(user_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found or already deleted",
+        )
+    db.commit()
 
 @router.patch(
     "/{user_id}/password",

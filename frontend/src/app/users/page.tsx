@@ -27,6 +27,11 @@ export default function UsersPage() {
   const [newPassword, setNewPassword] = useState("");
   const [isResetting, setIsResetting] = useState(false);
 
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createEmail, setCreateEmail] = useState("");
+  const [createPassword, setCreatePassword] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+
   const generateRandomPassword = () => {
     const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
     let generated = "";
@@ -103,6 +108,48 @@ export default function UsersPage() {
     }
   };
 
+  const handleCreateUserSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createEmail || !createPassword) return;
+
+    setIsCreating(true);
+    try {
+      await apiRequest(`/users`, {
+        method: "POST",
+        body: JSON.stringify({ email: createEmail, password: createPassword, first_name: "", last_name: "" }),
+      });
+      alert(`Successfully created user: ${createEmail}`);
+      setIsCreateModalOpen(false);
+      setCreateEmail("");
+      setCreatePassword("");
+      fetchUsers();
+    } catch (err: any) {
+      alert("Failed to create user: " + err.message);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, email: string) => {
+    if (userId === user?.id) {
+      alert("You cannot delete your own account.");
+      return;
+    }
+    
+    if (!confirm(`Are you sure you want to permanently delete user ${email}?`)) {
+      return;
+    }
+
+    try {
+      await apiRequest(`/users/${userId}`, {
+        method: "DELETE",
+      });
+      fetchUsers();
+    } catch (err: any) {
+      alert("Failed to delete user: " + err.message);
+    }
+  };
+
   if (isAuthLoading || (isAuthenticated && !user?.is_admin && !error)) {
     return (
       <div style={containerStyle}>
@@ -117,11 +164,22 @@ export default function UsersPage() {
   return (
     <div style={containerStyle}>
       {/* Header */}
-      <div style={headerStyle}>
+      <div style={{ ...headerStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h1 style={titleStyle}>User Management</h1>
           <p style={subtitleStyle}>Manage accounts and administrative privileges.</p>
         </div>
+        <button
+          onClick={() => {
+            setCreateEmail("");
+            setCreatePassword("");
+            setIsCreateModalOpen(true);
+          }}
+          className="btn btn-primary"
+          style={{ padding: "0.6rem 1.2rem", fontSize: "0.9rem" }}
+        >
+          + Create User
+        </button>
       </div>
 
       {/* Main Table Area */}
@@ -182,40 +240,75 @@ export default function UsersPage() {
                       </div>
                     </td>
                     <td style={tdStyle}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setResetTargetUserId(u.id);
-                          setResetTargetUserEmail(u.email);
-                          setNewPassword("");
-                          setIsResetModalOpen(true);
-                        }}
-                        style={{
-                          padding: "0.4rem 0.8rem",
-                          background: "rgba(255, 255, 255, 0.05)",
-                          border: "1px solid rgba(255, 255, 255, 0.1)",
-                          borderRadius: "6px",
-                          color: "var(--text-secondary)",
-                          cursor: "pointer",
-                          fontSize: "0.8rem",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.3rem",
-                          transition: "all 0.2s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = "var(--accent-purple)";
-                          e.currentTarget.style.color = "#fff";
-                          e.currentTarget.style.background = "rgba(102, 126, 234, 0.1)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
-                          e.currentTarget.style.color = "var(--text-secondary)";
-                          e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-                        }}
-                      >
-                        🔑 Reset PW
-                      </button>
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setResetTargetUserId(u.id);
+                            setResetTargetUserEmail(u.email);
+                            setNewPassword("");
+                            setIsResetModalOpen(true);
+                          }}
+                          style={{
+                            padding: "0.4rem 0.8rem",
+                            background: "rgba(255, 255, 255, 0.05)",
+                            border: "1px solid rgba(255, 255, 255, 0.1)",
+                            borderRadius: "6px",
+                            color: "var(--text-secondary)",
+                            cursor: "pointer",
+                            fontSize: "0.8rem",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.3rem",
+                            transition: "all 0.2s",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = "var(--accent-purple)";
+                            e.currentTarget.style.color = "#fff";
+                            e.currentTarget.style.background = "rgba(102, 126, 234, 0.1)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                            e.currentTarget.style.color = "var(--text-secondary)";
+                            e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                          }}
+                        >
+                          🔑 Reset PW
+                        </button>
+                        <button
+                          type="button"
+                          disabled={u.id === user?.id}
+                          onClick={() => handleDeleteUser(u.id, u.email)}
+                          style={{
+                            padding: "0.4rem 0.8rem",
+                            background: "rgba(255, 50, 50, 0.05)",
+                            border: "1px solid rgba(255, 50, 50, 0.2)",
+                            borderRadius: "6px",
+                            color: "rgba(255, 100, 100, 1)",
+                            cursor: u.id === user?.id ? "not-allowed" : "pointer",
+                            fontSize: "0.8rem",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.3rem",
+                            transition: "all 0.2s",
+                            opacity: u.id === user?.id ? 0.5 : 1,
+                          }}
+                          onMouseEnter={(e) => {
+                            if (u.id === user?.id) return;
+                            e.currentTarget.style.borderColor = "rgba(255, 50, 50, 0.5)";
+                            e.currentTarget.style.color = "#ff8888";
+                            e.currentTarget.style.background = "rgba(255, 50, 50, 0.15)";
+                          }}
+                          onMouseLeave={(e) => {
+                            if (u.id === user?.id) return;
+                            e.currentTarget.style.borderColor = "rgba(255, 50, 50, 0.2)";
+                            e.currentTarget.style.color = "rgba(255, 100, 100, 1)";
+                            e.currentTarget.style.background = "rgba(255, 50, 50, 0.05)";
+                          }}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -341,6 +434,146 @@ export default function UsersPage() {
                   }}
                 >
                   {isResetting ? "Updating..." : "Confirm"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create User Modal */}
+      {isCreateModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(9, 13, 22, 0.8)",
+            backdropFilter: "blur(8px)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            className="glass-panel"
+            style={{
+              width: "100%",
+              maxWidth: "400px",
+              padding: "2rem",
+              background: "var(--bg-panel)",
+              border: "1px solid var(--border-light)",
+              borderRadius: "16px",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.5)",
+            }}
+          >
+            <h3 style={{ margin: "0 0 1rem 0", fontSize: "1.25rem", color: "var(--text-primary)" }}>
+              Create New User
+            </h3>
+            <form onSubmit={handleCreateUserSubmit}>
+              <div style={{ marginBottom: "1rem" }}>
+                <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                  Email Address
+                </label>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <input
+                    type="email"
+                    value={createEmail}
+                    onChange={(e) => setCreateEmail(e.target.value)}
+                    placeholder="user@example.com"
+                    required
+                    style={{
+                      flex: 1,
+                      padding: "0.5rem",
+                      borderRadius: "6px",
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      background: "rgba(0,0,0,0.2)",
+                      color: "#fff",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+              </div>
+              <div style={{ marginBottom: "1.5rem" }}>
+                <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                  Password
+                </label>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <input
+                    type="text"
+                    value={createPassword}
+                    onChange={(e) => setCreatePassword(e.target.value)}
+                    placeholder="Minimum 6 characters"
+                    required
+                    minLength={6}
+                    style={{
+                      flex: 1,
+                      padding: "0.5rem",
+                      borderRadius: "6px",
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      background: "rgba(0,0,0,0.2)",
+                      color: "#fff",
+                      outline: "none",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+                      let generated = "";
+                      for (let i = 0; i < 12; i++) generated += chars.charAt(Math.floor(Math.random() * chars.length));
+                      setCreatePassword(generated);
+                    }}
+                    style={{
+                      padding: "0.5rem",
+                      background: "rgba(255,255,255,0.1)",
+                      border: "none",
+                      borderRadius: "6px",
+                      color: "#fff",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Generate
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "1rem" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCreateModalOpen(false);
+                    setCreateEmail("");
+                    setCreatePassword("");
+                  }}
+                  disabled={isCreating}
+                  className="btn btn-secondary"
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating || createPassword.length < 6 || !createEmail}
+                  className="btn btn-primary"
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    background: "var(--gradient-cyan-purple)",
+                    border: "none",
+                    color: "#fff",
+                    cursor: (createPassword.length >= 6 && createEmail) ? "pointer" : "not-allowed",
+                    opacity: (createPassword.length >= 6 && createEmail) ? 1 : 0.5,
+                  }}
+                >
+                  {isCreating ? "Creating..." : "Confirm"}
                 </button>
               </div>
             </form>

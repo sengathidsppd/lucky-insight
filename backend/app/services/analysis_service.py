@@ -305,19 +305,15 @@ class AnalysisService:
 
         scored_6d.sort(key=lambda x: x["score"], reverse=True)
 
-        # Select top 5 mathematically without random sampling
-        best_5_6d = scored_6d[:5]
+        import secrets
+        
+        # Select top 100 mathematically
+        best_100_6d = scored_6d[:100]
+        # Shuffle top 100 so index 0 is a random "lucky" pick
+        secrets.SystemRandom().shuffle(best_100_6d)
 
         # Generate exactly 1 smart recommendation (Hot Pick):
-        # The absolute top frequency/probability digit for each position slot.
-        pick_1 = []
-        for pos in range(6):
-            candidates = position_counts[pos].most_common(1)
-            if candidates:
-                pick_1.append(candidates[0][0])
-            else:
-                pick_1.append("0")
-        pick_1_str = "".join(pick_1)
+        pick_1_str = best_100_6d[0]["number"] if best_100_6d else "000000"
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
@@ -386,31 +382,34 @@ class AnalysisService:
             num_4d = f"{x:04d}"
             scored_4d_all.append({"number": num_4d, "score": score_4d(num_4d)})
         scored_4d_all.sort(key=lambda x: x["score"], reverse=True)
-        top_1_4d = scored_4d_all[:1]
+        top_100_4d = scored_4d_all[:100]
+        secrets.SystemRandom().shuffle(top_100_4d)
 
         scored_3d_all = []
         for x in range(1000):
             num_3d = f"{x:03d}"
             scored_3d_all.append({"number": num_3d, "score": score_3d(num_3d)})
         scored_3d_all.sort(key=lambda x: x["score"], reverse=True)
-        top_1_3d = scored_3d_all[:1]
+        top_50_3d = scored_3d_all[:50]
+        secrets.SystemRandom().shuffle(top_50_3d)
 
         scored_2d_all = []
         for x in range(100):
             num_2d = f"{x:02d}"
             scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
         scored_2d_all.sort(key=lambda x: x["score"], reverse=True)
-        top_1_2d = scored_2d_all[:1]
+        top_20_2d = scored_2d_all[:20]
+        secrets.SystemRandom().shuffle(top_20_2d)
 
         result_data = {
             "total_records_analyzed": total_records,
             "top_single_digits": top_digits,
             "position_frequencies": pos_freq_data,
-            "best_analyzed_6d": best_5_6d,
+            "best_analyzed_6d": best_100_6d,
             "generated_recommendations": [pick_1_str],
-            "generated_4d_recommendations": top_1_4d,
-            "generated_3d_recommendations": top_1_3d,
-            "generated_2d_recommendations": top_1_2d,
+            "generated_4d_recommendations": top_100_4d,
+            "generated_3d_recommendations": top_50_3d,
+            "generated_2d_recommendations": top_20_2d,
             "recent_draws": [r.number for r in records[:30]],
         }
 
