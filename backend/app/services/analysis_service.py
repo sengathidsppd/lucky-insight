@@ -307,9 +307,9 @@ class AnalysisService:
 
         import secrets
         
-        # Select top 100 mathematically
-        best_100_6d = scored_6d[:100]
-        # Shuffle top 100 so index 0 is a random "lucky" pick
+        # Select top 20 mathematically
+        best_100_6d = scored_6d[:20]
+        # Shuffle top 20 so index 0 is a random "lucky" pick
         secrets.SystemRandom().shuffle(best_100_6d)
 
         # Generate exactly 1 smart recommendation (Hot Pick):
@@ -382,7 +382,7 @@ class AnalysisService:
             num_4d = f"{x:04d}"
             scored_4d_all.append({"number": num_4d, "score": score_4d(num_4d)})
         scored_4d_all.sort(key=lambda x: x["score"], reverse=True)
-        top_100_4d = scored_4d_all[:100]
+        top_100_4d = scored_4d_all[:20]
         secrets.SystemRandom().shuffle(top_100_4d)
 
         scored_3d_all = []
@@ -390,7 +390,7 @@ class AnalysisService:
             num_3d = f"{x:03d}"
             scored_3d_all.append({"number": num_3d, "score": score_3d(num_3d)})
         scored_3d_all.sort(key=lambda x: x["score"], reverse=True)
-        top_50_3d = scored_3d_all[:50]
+        top_50_3d = scored_3d_all[:20]
         secrets.SystemRandom().shuffle(top_50_3d)
 
         scored_2d_all = []
