@@ -228,7 +228,7 @@ export default function DashboardPage() {
         <div>
           <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", margin: "0 0 1rem 0" }}>Latest Lottery Results</h3>
           <div className="db-lottery-row">
-            {latestDraws.map(({ game, draw }) => (
+            {latestDraws.filter(({ draw }) => draw !== null).map(({ game, draw }) => (
               <div key={game.id} className="glass-panel" style={{ ...lotteryCardStyle, background: getGameGradient(game.code) }}>
                 {/* Card Header */}
                 <div style={lotteryCardHeaderStyle}>
