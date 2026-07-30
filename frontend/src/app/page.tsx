@@ -56,7 +56,7 @@ export default function LandingPage() {
             <div style={featureIconStyle}>🏆</div>
             <h3 style={featureTitleStyle}>Lottery Results</h3>
             <p style={featureDescStyle}>
-              Keep track of historical winning numbers and prizes for Thai and Lao state lotteries.
+              Keep track of historical winning numbers and prizes for Lao Development Lottery.
             </p>
           </div>
 

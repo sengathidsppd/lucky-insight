@@ -27,7 +27,7 @@ interface LotteryResult {
 export default function LotteriesPage() {
   const { user } = useAuth();
   const [games, setGames] = useState<LotteryGame[]>([]);
-  const [selectedGameCode, setSelectedGameCode] = useState("THAI_NATIONAL");
+  const [selectedGameCode, setSelectedGameCode] = useState("LAO");
   const [results, setResults] = useState<LotteryResult[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const pageSize = 20;

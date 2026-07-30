@@ -27,7 +27,7 @@ export default function AnalysisPage() {
   const [selectedJobIds, setSelectedJobIds] = useState<string[]>([]);
 
   // Form states
-  const [gameCode, setGameCode] = useState("THAI_NATIONAL");
+  const [gameCode, setGameCode] = useState("LAO");
   const [analysisType, setAnalysisType] = useState("FREQUENCY");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -167,8 +167,7 @@ export default function AnalysisPage() {
                 <div style={formColStyle}>
                   <label style={labelStyle}>Target Game</label>
                   <select value={gameCode} onChange={(e) => setGameCode(e.target.value)}>
-                    <option value="THAI_NATIONAL">Thai National Lottery</option>
-                    <option value="LAO">Lao Government Lottery</option>
+                    <option value="LAO">Lao Development Lottery</option>
                   </select>
                 </div>
 
