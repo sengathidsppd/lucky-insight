@@ -1,5 +1,5 @@
 // API client and cookie helpers for the Next.js application.
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://lucky-insight.onrender.com/api/v1";
 
 export function getCookie(name: string): string | null {
   if (typeof window === "undefined") return null;
