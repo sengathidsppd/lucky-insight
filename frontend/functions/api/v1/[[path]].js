@@ -7,7 +7,7 @@ export async function onRequest(context) {
   const url = new URL(context.request.url);
   const path = url.pathname + url.search;
 
-  // Handle CORS preflight
+  // Handle CORS preflight OPTIONS requests immediately
   if (context.request.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -22,6 +22,7 @@ export async function onRequest(context) {
 
   const backendUrl = `${BACKEND_URL}${path}`;
 
+  // Clone headers and remove host header
   const headers = new Headers(context.request.headers);
   headers.delete("host");
 
@@ -30,27 +31,37 @@ export async function onRequest(context) {
     headers,
   };
 
+  // Safely read body as ArrayBuffer to avoid Cloudflare stream duplex errors
   if (context.request.method !== "GET" && context.request.method !== "HEAD") {
-    init.body = context.request.body;
-    init.duplex = "half";
+    try {
+      const bodyBuffer = await context.request.arrayBuffer();
+      if (bodyBuffer && bodyBuffer.byteLength > 0) {
+        init.body = bodyBuffer;
+      }
+    } catch (e) {
+      console.error("Error reading request body buffer:", e);
+    }
   }
 
   try {
     const response = await fetch(backendUrl, init);
+
+    // Read response body as arrayBuffer to ensure safe response transmission
+    const responseBuffer = await response.arrayBuffer();
 
     const responseHeaders = new Headers(response.headers);
     responseHeaders.set("Access-Control-Allow-Origin", "*");
     responseHeaders.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
     responseHeaders.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-    return new Response(response.body, {
+    return new Response(responseBuffer, {
       status: response.status,
       statusText: response.statusText,
       headers: responseHeaders,
     });
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: "Backend unreachable", detail: err.message }),
+      JSON.stringify({ error: "Backend proxy error", detail: err.message }),
       { status: 502, headers: { "Content-Type": "application/json" } }
     );
   }
