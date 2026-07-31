@@ -3,10 +3,11 @@
 export function getApiBaseUrl(): string {
   if (typeof window !== "undefined") {
     const customUrl = localStorage.getItem("NEXT_PUBLIC_API_URL");
-    if (customUrl) return customUrl;
+    if (customUrl && !customUrl.includes("localhost")) return customUrl;
   }
   return process.env.NEXT_PUBLIC_API_URL || "https://lucky-insight.onrender.com/api/v1";
 }
+
 
 export function setApiBaseUrl(url: string): void {
   if (typeof window !== "undefined") {
