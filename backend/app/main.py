@@ -26,38 +26,32 @@ logger = get_logger(__name__)
 settings = get_settings()
 
 
+import threading
+
+
+def _initialize_db() -> None:
+    """Run database table creation in a non-blocking background thread."""
+    try:
+        from app.core.database import engine
+        from app.models.base import Base
+        import app.models  # noqa: F401
+
+        logger.info("Ensuring database tables exist...")
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database setup completed successfully.")
+    except Exception as exc:
+        logger.warning("Database init notice: %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     """Handle application startup and shutdown events."""
     logger.info("Starting %s (env=%s)", settings.APP_NAME, settings.APP_ENV)
-    
-    # Run migrations programmatically on startup
-    import os
-    from alembic import command
-    from alembic.config import Config
-    from app.core.database import engine
-    from app.models.base import Base
-    import app.models  # noqa: F401
-
-    try:
-        logger.info("Ensuring database tables exist...")
-        Base.metadata.create_all(bind=engine)
-        
-        app_dir = os.path.dirname(os.path.abspath(__file__))
-        backend_dir = os.path.dirname(app_dir)
-        alembic_ini_path = os.path.join(backend_dir, "alembic.ini")
-        
-        logger.info("Running database migrations programmatically on startup...")
-        alembic_cfg = Config(alembic_ini_path)
-        alembic_cfg.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
-        command.upgrade(alembic_cfg, "head")
-        logger.info("Database setup completed successfully.")
-    except Exception as exc:
-        logger.warning("Migration notice: %s", exc)
-
-        
+    # Run DB init in background thread so server boots in <100ms
+    threading.Thread(target=_initialize_db, daemon=True).start()
     yield
     logger.info("Shutting down %s", settings.APP_NAME)
+
 
 
 from fastapi.middleware.cors import CORSMiddleware
