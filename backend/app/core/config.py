@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
+    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,https://lucky-insight.soumphonphukdysengathid.workers.dev,*"
     LOG_LEVEL: str = "INFO"
 
     # SMTP Settings for Password Reset
@@ -55,7 +55,8 @@ class Settings(BaseSettings):
     SMTP_USERNAME: str | None = None
     SMTP_PASSWORD: str | None = None
     SMTP_SENDER: str | None = "noreply@lucky-insight.com"
-    FRONTEND_URL: str = "http://localhost:3000"
+    FRONTEND_URL: str = "https://lucky-insight.soumphonphukdysengathid.workers.dev"
+
 
 
 @lru_cache

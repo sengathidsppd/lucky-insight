@@ -48,3 +48,6 @@ pg_data/
 pgsql/
 pg_log.txt
 
+# Local SQLite
+*.db
+*.sqlite3

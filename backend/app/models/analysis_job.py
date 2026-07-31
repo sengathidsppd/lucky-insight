@@ -3,7 +3,7 @@
 import uuid
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import ForeignKey, String, Text, JSON
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -39,10 +39,11 @@ class AnalysisJob(BaseEntity):
         nullable=False,
     )
     parameters: Mapped[dict[str, Any] | None] = mapped_column(
-        JSONB,
+        JSON().with_variant(JSONB, "postgresql"),
         nullable=True,
         default=None,
     )
+
     error_message: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,

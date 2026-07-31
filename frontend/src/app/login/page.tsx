@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { getApiBaseUrl, setApiBaseUrl } from "@/lib/api";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -10,6 +11,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showApiConfig, setShowApiConfig] = useState(false);
+  const [currentApiUrl, setCurrentApiUrl] = useState("");
+
+  useEffect(() => {
+    setCurrentApiUrl(getApiBaseUrl());
+  }, []);
+
+  const handleSaveApiUrl = () => {
+    setApiBaseUrl(currentApiUrl);
+    setError("");
+    alert(`API Base URL updated to: ${currentApiUrl}`);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +33,9 @@ export default function LoginPage() {
       await login(email, password);
     } catch (err: any) {
       setError(err.message || "Invalid credentials.");
+      if (err.message && err.message.includes("Cannot connect")) {
+        setShowApiConfig(true);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -74,10 +90,67 @@ export default function LoginPage() {
           </button>
         </form>
 
+        <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
+          <button
+            type="button"
+            onClick={() => setShowApiConfig(!showApiConfig)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--text-secondary)",
+              fontSize: "0.75rem",
+              cursor: "pointer",
+              textDecoration: "underline"
+            }}
+          >
+            {showApiConfig ? "Hide API Settings" : "⚙️ Backend API Settings"}
+          </button>
+        </div>
+
+        {showApiConfig && (
+          <div style={{
+            marginTop: "1rem",
+            padding: "1rem",
+            background: "rgba(255, 255, 255, 0.03)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            borderRadius: "var(--radius-md)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.5rem"
+          }}>
+            <label style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+              Backend API URL:
+            </label>
+            <input
+              type="text"
+              value={currentApiUrl}
+              onChange={(e) => setCurrentApiUrl(e.target.value)}
+              placeholder="https://your-api-domain.com/api/v1"
+              style={{ fontSize: "0.8rem", padding: "0.4rem 0.6rem" }}
+            />
+            <button
+              type="button"
+              onClick={handleSaveApiUrl}
+              className="btn"
+              style={{
+                fontSize: "0.75rem",
+                padding: "0.3rem 0.6rem",
+                alignSelf: "flex-end",
+                background: "var(--accent-cyan)",
+                color: "#000",
+                fontWeight: 600,
+                border: "none"
+              }}
+            >
+              Save API URL
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
 
 // Styling Objects
 

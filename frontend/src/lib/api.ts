@@ -1,5 +1,18 @@
 // API client and cookie helpers for the Next.js application.
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://lucky-insight.onrender.com/api/v1";
+
+export function getApiBaseUrl(): string {
+  if (typeof window !== "undefined") {
+    const customUrl = localStorage.getItem("NEXT_PUBLIC_API_URL");
+    if (customUrl) return customUrl;
+  }
+  return process.env.NEXT_PUBLIC_API_URL || "https://lucky-insight.onrender.com/api/v1";
+}
+
+export function setApiBaseUrl(url: string): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("NEXT_PUBLIC_API_URL", url);
+  }
+}
 
 export function getCookie(name: string): string | null {
   if (typeof window === "undefined") return null;
@@ -30,8 +43,9 @@ export async function apiRequest<T = any>(
 ): Promise<T> {
   const { params, headers, ...rest } = options;
 
+  const baseUrl = getApiBaseUrl().replace(/\/$/, "");
   // Build URL with query params
-  let url = `${BASE_URL}${path}`;
+  let url = `${baseUrl}${path}`;
   if (params) {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, val]) => {
@@ -61,10 +75,18 @@ export async function apiRequest<T = any>(
 
   console.log("Fetching API URL:", url);
 
-  let response = await fetch(url, {
-    ...rest,
-    headers: finalHeaders,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...rest,
+      headers: finalHeaders,
+    });
+  } catch (err: any) {
+    console.error("Network error fetching API:", err);
+    throw new Error(
+      `Cannot connect to backend server (${baseUrl}). Please verify that backend is online.`
+    );
+  }
 
   if (!response.ok) {
     if (response.status === 401 && _retry && path !== "/auth/login" && path !== "/auth/refresh") {
@@ -116,3 +138,4 @@ export async function apiRequest<T = any>(
 
   return response.json();
 }
+

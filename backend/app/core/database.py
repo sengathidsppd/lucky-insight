@@ -18,16 +18,25 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
-engine = create_engine(
-    settings.DATABASE_URL,
-    pool_size=10,
-    max_overflow=20,
-    pool_timeout=30,
-    pool_recycle=1800,
-    pool_pre_ping=True,
-    future=True,
-    echo=False,
-)
+is_sqlite = settings.DATABASE_URL.startswith("sqlite")
+engine_kwargs: dict = {
+    "future": True,
+    "echo": False,
+}
+
+if is_sqlite:
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    engine_kwargs.update({
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_timeout": 30,
+        "pool_recycle": 1800,
+        "pool_pre_ping": True,
+    })
+
+engine = create_engine(settings.DATABASE_URL, **engine_kwargs)
+
 
 SessionLocal = sessionmaker(
     bind=engine,

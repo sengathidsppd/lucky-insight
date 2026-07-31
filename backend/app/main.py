@@ -34,7 +34,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     import os
     from alembic import command
     from alembic.config import Config
+    from app.core.database import engine
+    from app.models.base import Base
+    import app.models  # noqa: F401
+
     try:
+        logger.info("Ensuring database tables exist...")
+        Base.metadata.create_all(bind=engine)
+        
         app_dir = os.path.dirname(os.path.abspath(__file__))
         backend_dir = os.path.dirname(app_dir)
         alembic_ini_path = os.path.join(backend_dir, "alembic.ini")
@@ -43,9 +50,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         alembic_cfg = Config(alembic_ini_path)
         alembic_cfg.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
         command.upgrade(alembic_cfg, "head")
-        logger.info("Database migrations completed successfully.")
+        logger.info("Database setup completed successfully.")
     except Exception as exc:
-        logger.error("Failed to run database migrations on startup: %s", exc)
+        logger.warning("Migration notice: %s", exc)
+
         
     yield
     logger.info("Shutting down %s", settings.APP_NAME)

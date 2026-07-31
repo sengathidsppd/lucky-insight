@@ -400,51 +400,75 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               )}
 
               {/* 4-Digit Card */}
-              {details.generated_4d_recommendations?.slice(0, 1).map((item: any, idx: number) => (
-                <div key={`4d-${idx}`} style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
-                  <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                    4-Digit Pick (Top 4D)
-                  </div>
-                  <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "4px" }}>
-                    {item.number}
-                  </div>
-                  <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", minWidth: "100px", textAlign: "right" }}>
-                    Score: {item.score}
-                  </div>
-                </div>
-              ))}
+              {(() => {
+                const top4dItem = details.generated_4d_recommendations?.[0];
+                const top3dItem = details.generated_3d_recommendations?.[0]
+                  ? {
+                      ...details.generated_3d_recommendations[0],
+                      number: top4dItem?.number ? top4dItem.number.slice(-3) : details.generated_3d_recommendations[0].number,
+                    }
+                  : top4dItem
+                  ? { number: top4dItem.number.slice(-3), score: top4dItem.score }
+                  : null;
 
-              {/* 3-Digit Card */}
-              {details.generated_3d_recommendations?.slice(0, 1).map((item: any, idx: number) => (
-                <div key={`3d-${idx}`} style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
-                  <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                    3-Digit Pick (Top 3D)
-                  </div>
-                  <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "4px" }}>
-                    {item.number}
-                  </div>
-                  <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", minWidth: "100px", textAlign: "right" }}>
-                    Score: {item.score}
-                  </div>
-                </div>
-              ))}
+                const top2dItem = details.generated_2d_recommendations?.[0]
+                  ? {
+                      ...details.generated_2d_recommendations[0],
+                      number: top4dItem?.number ? top4dItem.number.slice(-2) : details.generated_2d_recommendations[0].number,
+                    }
+                  : top4dItem
+                  ? { number: top4dItem.number.slice(-2), score: top4dItem.score }
+                  : null;
 
-              {/* 2-Digit Card */}
-              {details.generated_2d_recommendations?.slice(0, 1).map((item: any, idx: number) => (
-                <div key={`2d-${idx}`} style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
-                  <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                    2-Digit Pick (Top 2D)
-                  </div>
-                  <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "4px" }}>
-                    {item.number}
-                  </div>
-                  <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", minWidth: "100px", textAlign: "right" }}>
-                    Score: {item.score}
-                  </div>
-                </div>
-              ))}
+                return (
+                  <>
+                    {top4dItem && (
+                      <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
+                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
+                          4-Digit Pick (Top 4D)
+                        </div>
+                        <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "4px" }}>
+                          {top4dItem.number}
+                        </div>
+                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", minWidth: "100px", textAlign: "right" }}>
+                          Score: {top4dItem.score}
+                        </div>
+                      </div>
+                    )}
+
+                    {top3dItem && (
+                      <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
+                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
+                          3-Digit Pick (Top 3D)
+                        </div>
+                        <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "4px" }}>
+                          {top3dItem.number}
+                        </div>
+                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", minWidth: "100px", textAlign: "right" }}>
+                          Score: {top3dItem.score}
+                        </div>
+                      </div>
+                    )}
+
+                    {top2dItem && (
+                      <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
+                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
+                          2-Digit Pick (Top 2D)
+                        </div>
+                        <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "4px" }}>
+                          {top2dItem.number}
+                        </div>
+                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", minWidth: "100px", textAlign: "right" }}>
+                          Score: {top2dItem.score}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
+
 
             {/* Custom Interactive Trend Analysis Section */}
             {(() => {

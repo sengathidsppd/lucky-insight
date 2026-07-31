@@ -3,7 +3,7 @@
 import uuid
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import ForeignKey, Text
+from sqlalchemy import ForeignKey, Text, JSON
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -26,9 +26,10 @@ class AnalysisResult(BaseEntity):
         nullable=False,
     )
     result_data: Mapped[dict[str, Any]] = mapped_column(
-        JSONB,
+        JSON().with_variant(JSONB, "postgresql"),
         nullable=False,
     )
+
     explanation: Mapped[str] = mapped_column(
         Text,
         nullable=False,
