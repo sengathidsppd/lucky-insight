@@ -30,17 +30,39 @@ import threading
 
 
 def _initialize_db() -> None:
-    """Run database table creation in a non-blocking background thread."""
+    """Run database table creation and default user seeding in a background thread."""
     try:
-        from app.core.database import engine
+        from app.core.database import engine, SessionLocal
         from app.models.base import Base
+        from app.models.user import User
+        from app.security.password import hash_password
         import app.models  # noqa: F401
 
         logger.info("Ensuring database tables exist...")
         Base.metadata.create_all(bind=engine)
+
+        db = SessionLocal()
+        try:
+            default_user = db.query(User).filter(User.email == "suzu@gmail.com").first()
+            if not default_user:
+                db.add(
+                    User(
+                        email="suzu@gmail.com",
+                        hashed_password=hash_password("12345678"),
+                        full_name="Suzu Admin",
+                        is_active=True,
+                        is_admin=True,
+                    )
+                )
+                db.commit()
+                logger.info("Default user suzu@gmail.com seeded successfully.")
+        finally:
+            db.close()
+
         logger.info("Database setup completed successfully.")
     except Exception as exc:
         logger.warning("Database init notice: %s", exc)
+
 
 
 @asynccontextmanager
