@@ -48,8 +48,7 @@ def _initialize_db() -> None:
                 db.add(
                     User(
                         email="suzu@gmail.com",
-                        hashed_password=hash_password("12345678"),
-                        full_name="Suzu Admin",
+                        password_hash=hash_password("12345678"),
                         is_active=True,
                         is_admin=True,
                     )
