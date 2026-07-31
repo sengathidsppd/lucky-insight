@@ -376,8 +376,12 @@ export default function RecordsPage() {
 
       </div>
 
+      {/* Personal Journal Analytics */}
+      <PersonalJournalAnalytics />
+
       {/* Search and Filters panel */}
       <div className="glass-panel" style={filtersPanelStyle}>
+
         <div style={filterGridStyle}>
           <div style={filterColStyle}>
             <label style={filterLabelStyle}>Search Number</label>
@@ -1103,3 +1107,42 @@ const importErrorsListStyle: React.CSSProperties = {
   maxHeight: "150px",
   overflowY: "auto",
 };
+
+function PersonalJournalAnalytics() {
+  const [stats, setStats] = useState<any | null>(null);
+
+  useEffect(() => {
+    apiRequest("/records/analytics/summary")
+      .then((resp) => setStats(resp))
+      .catch((err) => console.error("Personal analytics error:", err));
+  }, []);
+
+  if (!stats) return null;
+
+  return (
+    <div className="glass-panel" style={{ padding: "1.25rem", borderRadius: "12px", marginBottom: "1.5rem" }}>
+      <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--accent-cyan)", marginBottom: "0.75rem" }}>
+        📔 Personal Journal Analytics & Historical Match Rate
+      </h3>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
+        <div style={{ background: "rgba(255,255,255,0.02)", padding: "0.8rem", borderRadius: "8px" }}>
+          <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>Total Personal Records</div>
+          <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "#fff" }}>{stats.total_user_records}</div>
+        </div>
+        <div style={{ background: "rgba(255,255,255,0.02)", padding: "0.8rem", borderRadius: "8px" }}>
+          <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>Unique Numbers</div>
+          <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--accent-cyan)" }}>{stats.unique_numbers_count}</div>
+        </div>
+        <div style={{ background: "rgba(255,255,255,0.02)", padding: "0.8rem", borderRadius: "8px" }}>
+          <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>Historical Draws Matched</div>
+          <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--accent-purple)" }}>{stats.historical_matches}</div>
+        </div>
+        <div style={{ background: "rgba(255,255,255,0.02)", padding: "0.8rem", borderRadius: "8px" }}>
+          <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>Match Precision</div>
+          <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "#10b981" }}>{stats.match_percentage}%</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

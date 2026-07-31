@@ -438,3 +438,42 @@ def import_csv(
         failed_count=result["failed_count"],
         errors=result["errors"],
     )
+
+
+@router.get(
+    "/analytics/summary",
+    status_code=status.HTTP_200_OK,
+    summary="Get personal number journal analytics",
+)
+def get_personal_analytics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Return analytics correlating user's recorded numbers with historical draw matches."""
+    from collections import Counter
+    from app.models.number_record import NumberRecord
+    from app.models.lottery_result import LotteryResult
+
+    user_recs = db.query(NumberRecord).filter(
+        NumberRecord.user_id == current_user.id,
+        NumberRecord.deleted_at.is_(None)
+    ).all()
+
+    draw_results = db.query(LotteryResult).all()
+    draw_numbers = {r.first_prize for r in draw_results if r.first_prize} | {r.last2 for r in draw_results if r.last2}
+
+    matches = 0
+    num_counts = Counter([r.number for r in user_recs])
+    for r in user_recs:
+        if r.number in draw_numbers or any(r.number in (d or "") for d in draw_numbers):
+            matches += 1
+
+    return {
+        "success": True,
+        "total_user_records": len(user_recs),
+        "unique_numbers_count": len(num_counts),
+        "top_recorded_numbers": [{"number": k, "count": v} for k, v in num_counts.most_common(5)],
+        "historical_matches": matches,
+        "match_percentage": round((matches / len(user_recs) * 100) if user_recs else 0, 2)
+    }
+

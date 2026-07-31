@@ -61,8 +61,12 @@ export default function NavigationShell({ children }: { children: React.ReactNod
   return (
     <div className="app-wrapper" style={appWrapperStyle}>
       <main className="main-area" style={mainAreaStyle}>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
+          <NotificationBell />
+        </div>
         {children}
       </main>
+
       
       <nav className="floating-nav" style={floatingNavStyle}>
         {navItems.map((item) => {
@@ -244,3 +248,66 @@ const logoutOverlayStyle: React.CSSProperties = {
   fontSize: "0.75rem",
   fontWeight: 700,
 };
+
+import { useState, useEffect } from "react";
+import { apiRequest } from "@/lib/api";
+
+function NotificationBell() {
+  const [unread, setUnread] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [notifs, setNotifs] = useState<any[]>([]);
+
+  useEffect(() => {
+    apiRequest("/notifications")
+      .then((resp) => {
+        setUnread(resp.unread_count || 0);
+        setNotifs(resp.data || []);
+      })
+      .catch(() => {});
+  }, []);
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          background: "rgba(255,255,255,0.05)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: "50%",
+          width: "40px",
+          height: "40px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          color: "#fff",
+          position: "relative",
+        }}
+      >
+        🔔
+        {unread > 0 && (
+          <span style={{ position: "absolute", top: "-2px", right: "-2px", background: "var(--accent-cyan)", color: "#000", fontSize: "0.65rem", fontWeight: 800, padding: "2px 6px", borderRadius: "10px" }}>
+            {unread}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div style={{ position: "absolute", top: "50px", right: 0, width: "320px", background: "rgba(10, 2, 15, 0.95)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "12px", backdropFilter: "blur(12px)", padding: "1rem", zIndex: 1000, boxShadow: "0 10px 30px rgba(0,0,0,0.6)" }}>
+          <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "#fff", marginBottom: "0.75rem" }}>
+            Notifications ({unread} unread)
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxHeight: "250px", overflowY: "auto" }}>
+            {notifs.map((n) => (
+              <div key={n.id} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "8px", padding: "0.6rem" }}>
+                <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--accent-cyan)" }}>{n.title}</div>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>{n.message}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+

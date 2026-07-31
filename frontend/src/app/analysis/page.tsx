@@ -318,7 +318,7 @@ export default function AnalysisPage() {
         <div style={rightPanelStyle}>
           {selectedJob ? (
             <div className="glass-panel" style={resultsPanelCardStyle}>
-              <div style={resultsHeaderStyle}>
+              <div style={{ ...resultsHeaderStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <span style={resultsGameBadgeStyle}>{selectedJob.game_code}</span>
                   <h2 style={resultsTitleStyle}>{selectedJob.analysis_type} Analysis</h2>
@@ -326,6 +326,30 @@ export default function AnalysisPage() {
                     Status: <strong style={{ color: "var(--accent-cyan)" }}>{selectedJob.status}</strong>
                   </p>
                 </div>
+                {selectedJob.status === "COMPLETED" && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const csvContent = await apiRequest(`/analysis/${selectedJob.id}/export/csv`);
+                        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement("a");
+                        link.href = url;
+                        link.setAttribute("download", `analysis_report_${selectedJob.id.slice(0, 8)}.csv`);
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      } catch (err: any) {
+                        alert("Export failed: " + err.message);
+                      }
+                    }}
+                    className="btn btn-secondary"
+                    style={{ padding: "0.4rem 0.8rem", fontSize: "0.8rem" }}
+                  >
+                    📄 Export CSV Report
+                  </button>
+                )}
               </div>
 
               {selectedJob.status === "COMPLETED" ? (
@@ -338,9 +362,11 @@ export default function AnalysisPage() {
                 </div>
               )}
             </div>
+
           ) : (
             <div className="glass-panel" style={resultsPlaceholderStyle}>
-               Select a model run from the history or start a new analysis to visualize statistics.
+               <div>Select a model run from the history or start a new analysis to visualize statistics.</div>
+               <GameComparisonMatrix />
             </div>
           )}
         </div>
@@ -348,6 +374,39 @@ export default function AnalysisPage() {
     </div>
   );
 }
+
+function GameComparisonMatrix() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiRequest("/analysis/compare/summary")
+      .then((resp) => setData(resp.comparison || []))
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginTop: "1rem" }}>Loading comparison matrix...</div>;
+
+  return (
+    <div style={{ marginTop: "1.5rem", textAlign: "left", width: "100%" }}>
+      <h4 style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--accent-cyan)", marginBottom: "0.8rem" }}>
+        ⚖️ Multi-Game Statistical Comparison Matrix
+      </h4>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+        {data.map((item) => (
+          <div key={item.game_code} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", padding: "1rem", borderRadius: "8px" }}>
+            <div style={{ fontWeight: 800, color: "var(--accent-cyan)", fontSize: "0.95rem" }}>{item.game_name} ({item.game_code})</div>
+            <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "0.5rem" }}>Total Draws: <strong>{item.total_draws}</strong></div>
+            <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Top Digit: <strong style={{ color: "#fff" }}>{item.top_digit}</strong></div>
+            <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Most Common 2D: <strong style={{ color: "var(--accent-purple)" }}>{item.most_common_last2}</strong></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
 
 function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {

@@ -183,3 +183,77 @@ def delete_job(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Analysis job not found",
         ) from exc
+
+
+from fastapi.responses import Response
+
+@router.get(
+    "/{job_id}/export/csv",
+    status_code=status.HTTP_200_OK,
+    summary="Export analysis result as CSV",
+)
+def export_analysis_csv(
+    job_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    service: AnalysisService = Depends(get_analysis_service),
+):
+    """Return CSV representation of analysis job result."""
+    try:
+        job = service.get_job(current_user.id, job_id)
+        if not job.result:
+            raise HTTPException(status_code=400, detail="Job has no result data to export")
+            
+        import csv, io
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Analysis Type", "Status", "Created At", "Explanation"])
+        writer.writerow([job.analysis_type, job.status, str(job.created_at), job.result.explanation])
+        writer.writerow([])
+        writer.writerow(["Key", "Value"])
+        for k, v in job.result.result_data.items():
+            writer.writerow([k, str(v)])
+            
+        return Response(
+            content=output.getvalue(),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=analysis_{job_id}.csv"},
+        )
+    except EntityNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Analysis job not found") from exc
+
+
+@router.get(
+    "/compare/summary",
+    status_code=status.HTTP_200_OK,
+    summary="Compare stats across lottery games (Thai vs Lao)",
+)
+def compare_games_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Return statistical comparison matrix across games."""
+    from app.models.lottery_result import LotteryResult
+    from app.models.lottery_game import LotteryGame
+    from collections import Counter
+
+    games = db.query(LotteryGame).all()
+    comparison_data = []
+
+    for game in games:
+        results = db.query(LotteryResult).filter(LotteryResult.game_id == game.id).all()
+        digits = [c for r in results for c in (r.first_prize or "") if c.isdigit()]
+        counts = Counter(digits)
+        top_digit = counts.most_common(1)[0][0] if counts else "N/A"
+        
+        comparison_data.append({
+            "game_code": game.code,
+            "game_name": game.name,
+            "total_draws": len(results),
+            "top_digit": top_digit,
+            "most_common_last2": Counter([r.last2 for r in results if r.last2]).most_common(1)[0][0] if results else "N/A"
+        })
+
+    return {"success": True, "comparison": comparison_data}
+
+
