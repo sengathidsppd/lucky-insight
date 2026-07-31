@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { getApiBaseUrl, setApiBaseUrl } from "@/lib/api";
+
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -11,18 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showApiConfig, setShowApiConfig] = useState(false);
-  const [currentApiUrl, setCurrentApiUrl] = useState("");
 
-  useEffect(() => {
-    setCurrentApiUrl(getApiBaseUrl());
-  }, []);
-
-  const handleSaveApiUrl = () => {
-    setApiBaseUrl(currentApiUrl);
-    setError("");
-    alert(`API Base URL updated to: ${currentApiUrl}`);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
