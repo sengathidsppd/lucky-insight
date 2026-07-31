@@ -18,10 +18,16 @@ class Settings(BaseSettings):
     def convert_postgres_scheme(cls, v: str) -> str:
         if isinstance(v, str):
             if v.startswith("postgres://"):
-                return v.replace("postgres://", "postgresql+psycopg://", 1)
+                v = v.replace("postgres://", "postgresql+psycopg://", 1)
             elif v.startswith("postgresql://"):
-                return v.replace("postgresql://", "postgresql+psycopg://", 1)
+                v = v.replace("postgresql://", "postgresql+psycopg://", 1)
+
+            # Ensure sslmode=require for Supabase and cloud Postgres databases
+            if ("supabase" in v or "render" in v) and "sslmode=" not in v:
+                connector = "&" if "?" in v else "?"
+                v = f"{v}{connector}sslmode=require"
         return v
+
 
     @field_validator("APP_PORT", mode="before")
     @classmethod
