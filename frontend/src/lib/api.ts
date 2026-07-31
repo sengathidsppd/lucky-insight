@@ -120,14 +120,24 @@ export async function apiRequest<T = any>(
       }
     }
 
-    let errorDetail = "An unexpected error occurred.";
+    let errorDetail = "";
     try {
       const errJson = await response.json();
-      errorDetail = errJson.detail || errJson.message || errorDetail;
+      errorDetail = errJson.detail || errJson.message || errJson.error || "";
     } catch {
       // Ignore if not JSON
     }
+    if (!errorDetail) {
+      if (response.status === 401) {
+        errorDetail = "Invalid email or password.";
+      } else if (response.status === 403) {
+        errorDetail = "Account is inactive or access forbidden.";
+      } else {
+        errorDetail = `Request failed with status ${response.status}.`;
+      }
+    }
     throw new Error(errorDetail);
+
   }
 
   // If status is 204 or empty, return null
