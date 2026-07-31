@@ -5,8 +5,11 @@ export function getApiBaseUrl(): string {
     const customUrl = localStorage.getItem("NEXT_PUBLIC_API_URL");
     if (customUrl && !customUrl.includes("localhost")) return customUrl;
   }
-  return process.env.NEXT_PUBLIC_API_URL || "https://lucky-insight.onrender.com/api/v1";
+  // Use relative URL so requests go through Cloudflare Pages Function proxy
+  // instead of directly to Render (which may be unreachable from some regions)
+  return process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 }
+
 
 
 export function setApiBaseUrl(url: string): void {
