@@ -3,28 +3,40 @@
 This module wires up the SQLAlchemy engine and session factory used across
 the application. It intentionally contains no business logic and does not
 create any tables; table creation is handled exclusively through Alembic
-migrations in a future task.
+migrations.
+
+The declarative ``Base`` class lives in ``app.models.base`` (not here) so
+that the models package owns the single source of truth for ORM metadata.
 """
 
 from collections.abc import Generator
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import get_settings
 
 settings = get_settings()
 
-engine = create_engine(
-    settings.DATABASE_URL,
-    pool_size=10,
-    max_overflow=20,
-    pool_timeout=30,
-    pool_recycle=1800,
-    pool_pre_ping=True,
-    future=True,
-    echo=False,
-)
+is_sqlite = settings.DATABASE_URL.startswith("sqlite")
+engine_kwargs: dict = {
+    "future": True,
+    "echo": False,
+}
+
+if is_sqlite:
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    engine_kwargs.update({
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_timeout": 30,
+        "pool_recycle": 1800,
+        "pool_pre_ping": True,
+    })
+
+engine = create_engine(settings.DATABASE_URL, **engine_kwargs)
+
 
 SessionLocal = sessionmaker(
     bind=engine,
@@ -32,10 +44,6 @@ SessionLocal = sessionmaker(
     autoflush=False,
     future=True,
 )
-
-
-class Base(DeclarativeBase):
-    """Base class for all ORM models."""
 
 
 def get_db() -> Generator[Session]:

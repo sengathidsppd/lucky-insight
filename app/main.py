@@ -3,9 +3,20 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from app.api.health import router as health_router
+from app.api.v1.analysis import router as analysis_v1_router
+from app.api.v1.auth import router as auth_v1_router
+from app.api.v1.dashboard import router as dashboard_v1_router
+from app.api.v1.lookups import router as lookups_v1_router
+from app.api.v1.lotteries import router as lotteries_v1_router
+from app.api.v1.ocr import router as ocr_v1_router
+from app.api.v1.records import router as records_v1_router
+from app.api.v1.tags import router as tags_v1_router
+from app.api.v1.users import router as users_v1_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 
@@ -15,13 +26,35 @@ logger = get_logger(__name__)
 settings = get_settings()
 
 
+import threading
+
+
+def _initialize_db() -> None:
+    """Run database table creation in a non-blocking background thread."""
+    try:
+        from app.core.database import engine
+        from app.models.base import Base
+        import app.models  # noqa: F401
+
+        logger.info("Ensuring database tables exist...")
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database setup completed successfully.")
+    except Exception as exc:
+        logger.warning("Database init notice: %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     """Handle application startup and shutdown events."""
     logger.info("Starting %s (env=%s)", settings.APP_NAME, settings.APP_ENV)
+    # Run DB init in background thread so server boots in <100ms
+    threading.Thread(target=_initialize_db, daemon=True).start()
     yield
     logger.info("Shutting down %s", settings.APP_NAME)
 
+
+
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Lucky Insight API",
@@ -31,4 +64,51 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+cors_origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_origin_regex=r".*",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """Return HTTP 400 for request validation errors.
+
+    FastAPI's default is HTTP 422; the project's API contract calls for
+    400 Bad Request on validation failures instead. Only JSON-serializable
+    error fields are included, since Pydantic's raw error context can
+    hold non-serializable objects (e.g. the original exception instance).
+    """
+    errors = [
+        {"loc": list(error["loc"]), "msg": error["msg"], "type": error["type"]}
+        for error in exc.errors()
+    ]
+    return JSONResponse(
+        status_code=400,
+        content={"success": False, "message": "Validation failed.", "errors": errors},
+    )
+
+
+from app.api.v1.notifications import router as notifications_v1_router
+
 app.include_router(health_router)
+app.include_router(auth_v1_router, prefix="/api/v1")
+app.include_router(users_v1_router, prefix="/api/v1")
+app.include_router(lookups_v1_router, prefix="/api/v1")
+app.include_router(tags_v1_router, prefix="/api/v1")
+app.include_router(records_v1_router, prefix="/api/v1")
+app.include_router(lotteries_v1_router, prefix="/api/v1")
+app.include_router(analysis_v1_router, prefix="/api/v1")
+app.include_router(dashboard_v1_router, prefix="/api/v1")
+app.include_router(ocr_v1_router, prefix="/api/v1")
+app.include_router(notifications_v1_router, prefix="/api/v1")
+
+

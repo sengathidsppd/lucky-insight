@@ -7,11 +7,43 @@ environment variables directly.
 """
 
 from functools import lru_cache
+from typing import Any
+
+from pydantic import field_validator
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def convert_postgres_scheme(cls, v: str) -> str:
+        if isinstance(v, str):
+            if v.startswith("postgres://"):
+                v = v.replace("postgres://", "postgresql+psycopg://", 1)
+            elif v.startswith("postgresql://"):
+                v = v.replace("postgresql://", "postgresql+psycopg://", 1)
+
+            # Ensure sslmode=require for Supabase and cloud Postgres databases
+            if ("supabase" in v or "render" in v) and "sslmode=" not in v:
+                connector = "&" if "?" in v else "?"
+                v = f"{v}{connector}sslmode=require"
+        return v
+
+
+    @field_validator("APP_PORT", mode="before")
+    @classmethod
+    def convert_port(cls, v: Any) -> int:
+        import os
+        port_env = os.environ.get("PORT")
+        if port_env:
+            try:
+                return int(port_env)
+            except ValueError:
+                pass
+        return int(v) if v is not None else 8000
+
+
     """Strongly typed application settings.
 
     Values are loaded from environment variables. See ``.env.example`` for
@@ -33,11 +65,23 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str
 
-    JWT_SECRET: str
+    JWT_SECRET_KEY: str
+    JWT_REFRESH_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,https://lucky-insight.soumphonphukdysengathid.workers.dev,*"
     LOG_LEVEL: str = "INFO"
+
+    # SMTP Settings for Password Reset
+    SMTP_HOST: str | None = None
+    SMTP_PORT: int | None = 587
+    SMTP_USERNAME: str | None = None
+    SMTP_PASSWORD: str | None = None
+    SMTP_SENDER: str | None = "noreply@lucky-insight.com"
+    FRONTEND_URL: str = "https://lucky-insight.soumphonphukdysengathid.workers.dev"
+
 
 
 @lru_cache
