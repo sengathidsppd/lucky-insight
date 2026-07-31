@@ -23,6 +23,19 @@ class Settings(BaseSettings):
                 return v.replace("postgresql://", "postgresql+psycopg://", 1)
         return v
 
+    @field_validator("APP_PORT", mode="before")
+    @classmethod
+    def convert_port(cls, v: Any) -> int:
+        import os
+        port_env = os.environ.get("PORT")
+        if port_env:
+            try:
+                return int(port_env)
+            except ValueError:
+                pass
+        return int(v) if v is not None else 8000
+
+
     """Strongly typed application settings.
 
     Values are loaded from environment variables. See ``.env.example`` for
