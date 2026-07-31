@@ -69,6 +69,52 @@ export default function RecordsPage() {
   const [importError, setImportError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // OCR State
+  const [isOcrOpen, setIsOcrOpen] = useState(false);
+  const [ocrFile, setOcrFile] = useState<File | null>(null);
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrResult, setOcrResult] = useState<any | null>(null);
+  const [ocrError, setOcrError] = useState("");
+
+  const handleOcrSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ocrFile) return;
+    setOcrLoading(true);
+    setOcrError("");
+    setOcrResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", ocrFile);
+      const resp = await apiRequest("/ocr/scan", {
+        method: "POST",
+        body: formData,
+      });
+      setOcrResult(resp);
+    } catch (err: any) {
+      setOcrError(err.message || "Failed to process OCR image scan.");
+    } finally {
+      setOcrLoading(false);
+    }
+  };
+
+  const handleQuickAddExtracted = async (extractedNum: string) => {
+    try {
+      await apiRequest("/records/", {
+        method: "POST",
+        body: JSON.stringify({
+          number: extractedNum,
+          note: "Imported via OCR Ticket Scan",
+        }),
+      });
+      alert(`Number ${extractedNum} added to records successfully!`);
+      fetchRecords();
+    } catch (err: any) {
+      alert("Failed to add number: " + err.message);
+    }
+  };
+
+
   // Fetch Lookups
   const fetchLookups = async () => {
     try {
@@ -320,10 +366,14 @@ export default function RecordsPage() {
           <button onClick={() => setIsImportOpen(true)} className="btn btn-secondary">
             📥 Import CSV
           </button>
+          <button onClick={() => setIsOcrOpen(true)} className="btn btn-secondary">
+            📷 OCR Scan
+          </button>
           <button onClick={handleOpenCreate} className="btn btn-primary">
             ➕ Add Number
           </button>
         </div>
+
       </div>
 
       {/* Search and Filters panel */}
@@ -705,7 +755,113 @@ export default function RecordsPage() {
           </div>
         </div>
       )}
+
+      {/* OCR Scan Modal */}
+      {isOcrOpen && (
+        <div style={modalBackdropStyle}>
+          <div className="glass-panel" style={modalContentStyle}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={modalTitleStyle}>📷 Ticket OCR Scanner</h3>
+              <button
+                onClick={() => {
+                  setIsOcrOpen(false);
+                  setOcrResult(null);
+                  setOcrError("");
+                }}
+                style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: "1.2rem" }}
+              >
+                ✕
+              </button>
+            </div>
+            <p style={subtitleStyle}>Upload a lottery ticket photo to automatically extract 2D, 3D, 4D, and 6D numbers.</p>
+
+            {ocrError && <div style={errorStyle}>{ocrError}</div>}
+
+            <form onSubmit={handleOcrSubmit} style={formStyle}>
+              <label style={labelStyle}>Select Ticket Image File (PNG, JPG)</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setOcrFile(e.target.files?.[0] || null)}
+                required
+              />
+
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={ocrLoading || !ocrFile}
+              >
+                {ocrLoading ? "Scanning Image..." : "🔍 Scan Ticket"}
+              </button>
+            </form>
+
+            {ocrResult && (
+              <div style={importResultStyle}>
+                <h4 style={{ fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.5rem" }}>
+                  Extracted Numbers from {ocrResult.filename}:
+                </h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  {ocrResult.extracted_numbers?.map((item: any, idx: number) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        background: "rgba(255,255,255,0.03)",
+                        padding: "0.6rem 0.8rem",
+                        borderRadius: "6px",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <div>
+                        <span style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--accent-cyan)", fontFamily: "monospace", letterSpacing: "2px" }}>
+                          {item.number}
+                        </span>
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginLeft: "0.75rem" }}>
+                          ({item.type})
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickAddExtracted(item.number)}
+                        className="btn"
+                        style={{
+                          fontSize: "0.75rem",
+                          padding: "0.3rem 0.6rem",
+                          background: "var(--accent-cyan)",
+                          color: "#000",
+                          fontWeight: 700,
+                          border: "none",
+                        }}
+                      >
+                        + Save Number
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={modalButtonsContainerStyle}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOcrOpen(false);
+                  setOcrResult(null);
+                  setOcrError("");
+                }}
+                className="btn btn-secondary"
+                style={{ width: "100%" }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+
   );
 }
 

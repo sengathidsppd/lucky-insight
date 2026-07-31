@@ -397,11 +397,90 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+      {/* Calendar Heatmap Section */}
+      <CalendarHeatmap />
+    </div>
+  );
+}
+
+function CalendarHeatmap() {
+  const [heatmapData, setHeatmapData] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiRequest("/lotteries/heatmap?year=2026")
+      .then((resp) => {
+        const map: Record<string, number> = {};
+        (resp.data || []).forEach((item: any) => {
+          map[item.date] = item.count;
+        });
+        setHeatmapData(map);
+      })
+      .catch((err) => console.error("Heatmap fetch error:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  return (
+    <div className="glass-panel" style={{ padding: "1.5rem", borderRadius: "12px", marginTop: "1rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+        <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", margin: 0 }}>
+          📅 Draw Frequency Calendar Heatmap (2026)
+        </h3>
+        <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Intensity by draw occurrences</span>
+      </div>
+
+      {loading ? (
+        <div style={{ padding: "1rem", color: "var(--text-secondary)" }}>Loading heatmap...</div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem" }}>
+          {months.map((m, mIdx) => {
+            const daysInMonth = new Date(2026, mIdx + 1, 0).getDate();
+            return (
+              <div key={m} style={{ background: "rgba(255,255,255,0.02)", padding: "0.75rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--accent-cyan)", marginBottom: "0.5rem" }}>
+                  {m} 2026
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "4px" }}>
+                  {Array.from({ length: daysInMonth }).map((_, dIdx) => {
+                    const dayNum = dIdx + 1;
+                    const dateStr = `2026-${String(mIdx + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
+                    const count = heatmapData[dateStr] || 0;
+                    const bg = count > 2 ? "var(--accent-cyan)" : count > 0 ? "rgba(6, 182, 212, 0.4)" : "rgba(255, 255, 255, 0.05)";
+                    return (
+                      <div
+                        key={dIdx}
+                        title={`${dateStr}: ${count} draws`}
+                        style={{
+                          width: "100%",
+                          aspectRatio: "1",
+                          borderRadius: "3px",
+                          background: bg,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "0.6rem",
+                          color: count > 0 ? "#000" : "rgba(255,255,255,0.3)",
+                          fontWeight: count > 0 ? 700 : 400,
+                        }}
+                      >
+                        {dayNum}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 // --- Sub-components ---
+
 
 function MiniStat({ label, value, color }: { label: string; value: string; color: string }) {
   return (

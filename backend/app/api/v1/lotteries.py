@@ -343,3 +343,34 @@ def delete_result(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Draw result not found",
         ) from exc
+
+
+@router.get(
+    "/heatmap",
+    status_code=status.HTTP_200_OK,
+    summary="Get draw frequency heatmap data",
+)
+def get_draw_heatmap(
+    year: int = Query(2026, description="Target year for heatmap"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Return day-by-day frequency counts for calendar heatmap visualization."""
+    from collections import defaultdict
+    from sqlalchemy import extract
+    
+    results = db.query(LotteryResult).filter(
+        extract('year', LotteryResult.draw_date) == year
+    ).all()
+    
+    heatmap_counts: dict = defaultdict(int)
+    for r in results:
+        date_str = r.draw_date.strftime("%Y-%m-%d")
+        heatmap_counts[date_str] += 1
+        
+    data = [
+        {"date": date_str, "count": count, "intensity": min(4, count)}
+        for date_str, count in heatmap_counts.items()
+    ]
+    return {"success": True, "year": year, "data": data}
+
