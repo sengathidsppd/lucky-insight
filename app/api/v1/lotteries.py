@@ -365,10 +365,12 @@ def get_draw_heatmap(
         .join(LotteryGame, LotteryResult.game_id == LotteryGame.id)
         .filter(
             extract("year", LotteryResult.draw_date) == year,
+            LotteryGame.code == "LAO",
             LotteryResult.deleted_at.is_(None),
         )
         .all()
     )
+
 
     data = []
     for r, game in results:
