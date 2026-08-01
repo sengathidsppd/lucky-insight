@@ -708,24 +708,29 @@ const modalBackdropStyle: React.CSSProperties = {
   left: 0,
   right: 0,
   bottom: 0,
-  background: "rgba(5, 4, 9, 0.65)",
+  background: "rgba(5, 4, 9, 0.75)",
   backdropFilter: "blur(8px)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   zIndex: 1000,
   padding: "1rem",
+  overflowY: "auto",
 };
 
 const modalContentStyle: React.CSSProperties = {
   width: "100%",
   maxWidth: "500px",
-  padding: "2.5rem",
+  maxHeight: "88vh",
+  overflowY: "auto",
+  padding: "1.75rem",
   display: "flex",
   flexDirection: "column",
-  gap: "1.5rem",
+  gap: "1.25rem",
   boxShadow: "0 24px 64px rgba(0,0,0,0.8)",
+  WebkitOverflowScrolling: "touch",
 };
+
 
 const modalTitleStyle: React.CSSProperties = {
   fontSize: "1.4rem",
