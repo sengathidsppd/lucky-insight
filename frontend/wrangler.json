@@ -2,5 +2,8 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "lucky-insight",
   "compatibility_date": "2026-07-30",
-  "pages_build_output_dir": "./out"
+  "main": "src/worker.js",
+  "assets": {
+    "directory": "./out"
+  }
 }
