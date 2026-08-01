@@ -64,60 +64,13 @@ def _initialize_db() -> None:
                 db.commit()
                 logger.info("Default user %s updated successfully.", admin_email)
 
-            # Seed Lottery Games and Results if empty
-            from datetime import date
+            # Remove extra seeded games if created by previous seed runs
             from app.models.lottery_game import LotteryGame
-            from app.models.lottery_result import LotteryResult
-
-            thai_game = db.query(LotteryGame).filter(LotteryGame.code == "THAI_GOV").first()
-            if not thai_game:
-                thai_game = LotteryGame(
-                    code="THAI_GOV",
-                    name="Thai Government Lottery (หวยรัฐบาลไทย)",
-                    description="Official Thai Government Lottery Draw Results",
-                )
-                db.add(thai_game)
-                db.commit()
-                db.refresh(thai_game)
-
-            lao_game = db.query(LotteryGame).filter(LotteryGame.code == "LAO_DEV").first()
-            if not lao_game:
-                lao_game = LotteryGame(
-                    code="LAO_DEV",
-                    name="Lao Development Lottery (หวยพัฒนาลาว)",
-                    description="Official Lao Development Lottery Draw Results",
-                )
-                db.add(lao_game)
-                db.commit()
-                db.refresh(lao_game)
-
-            # Seed Thai Lottery Results if empty
-            thai_count = db.query(LotteryResult).filter(LotteryResult.game_id == thai_game.id).count()
-            if thai_count == 0:
-                sample_thai_results = [
-                    LotteryResult(game_id=thai_game.id, draw_date=date(2026, 7, 16), first_prize="931446", last2="44", front3="087, 392", back3="614, 004"),
-                    LotteryResult(game_id=thai_game.id, draw_date=date(2026, 7, 1), first_prize="922605", last2="16", front3="867, 281", back3="947, 491"),
-                    LotteryResult(game_id=thai_game.id, draw_date=date(2026, 6, 16), first_prize="518504", last2="31", front3="428, 879", back3="012, 456"),
-                    LotteryResult(game_id=thai_game.id, draw_date=date(2026, 6, 1), first_prize="833605", last2="08", front3="507, 924", back3="231, 549"),
-                    LotteryResult(game_id=thai_game.id, draw_date=date(2026, 5, 16), first_prize="205690", last2="60", front3="674, 918", back3="070, 132"),
-                ]
-                db.add_all(sample_thai_results)
-                db.commit()
-
-            # Seed Lao Lottery Results if empty
-            lao_count = db.query(LotteryResult).filter(LotteryResult.game_id == lao_game.id).count()
-            if lao_count == 0:
-                sample_lao_results = [
-                    LotteryResult(game_id=lao_game.id, draw_date=date(2026, 7, 29), first_prize="784512", last2="12", front3="784", back3="512"),
-                    LotteryResult(game_id=lao_game.id, draw_date=date(2026, 7, 27), first_prize="391845", last2="45", front3="391", back3="845"),
-                    LotteryResult(game_id=lao_game.id, draw_date=date(2026, 7, 24), first_prize="902634", last2="34", front3="902", back3="634"),
-                    LotteryResult(game_id=lao_game.id, draw_date=date(2026, 7, 22), first_prize="158390", last2="90", front3="158", back3="390"),
-                    LotteryResult(game_id=lao_game.id, draw_date=date(2026, 7, 20), first_prize="647218", last2="18", front3="647", back3="218"),
-                ]
-                db.add_all(sample_lao_results)
-                db.commit()
+            db.query(LotteryGame).filter(LotteryGame.code.in_(["THAI_GOV", "LAO_DEV"])).delete(synchronize_session=False)
+            db.commit()
         finally:
             db.close()
+
 
 
         logger.info("Database setup completed successfully.")
