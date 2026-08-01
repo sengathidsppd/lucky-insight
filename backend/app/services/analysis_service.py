@@ -392,7 +392,8 @@ class AnalysisService:
             num_2d = f"{x:02d}"
             scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
         scored_2d_all.sort(key=lambda item: item["score"], reverse=True)
-        top_20_2d = scored_2d_all[:20]
+        top_20_2d = list(scored_2d_all[:20])
+        secrets.SystemRandom().shuffle(top_20_2d)
 
         # Directly score all 1,000 3-digit combinations (000-999) for accurate 3D recommendations
         scored_3d_all = []
@@ -400,7 +401,8 @@ class AnalysisService:
             num_3d = f"{x:03d}"
             scored_3d_all.append({"number": num_3d, "score": score_3d(num_3d)})
         scored_3d_all.sort(key=lambda item: item["score"], reverse=True)
-        top_50_3d = scored_3d_all[:20]
+        top_50_3d = list(scored_3d_all[:20])
+        secrets.SystemRandom().shuffle(top_50_3d)
 
         # Directly score 4-digit combinations (0000-9999) for accurate 4D recommendations
         scored_4d_all = []
@@ -408,7 +410,9 @@ class AnalysisService:
             num_4d = f"{x:04d}"
             scored_4d_all.append({"number": num_4d, "score": score_4d(num_4d)})
         scored_4d_all.sort(key=lambda item: item["score"], reverse=True)
-        top_100_4d = scored_4d_all[:20]
+        top_100_4d = list(scored_4d_all[:20])
+        secrets.SystemRandom().shuffle(top_100_4d)
+
 
 
 
