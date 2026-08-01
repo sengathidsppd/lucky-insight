@@ -43,24 +43,33 @@ def _initialize_db() -> None:
 
         db = SessionLocal()
         try:
-            default_user = db.query(User).filter(User.email == "suzu@gmail.com").first()
+            admin_email = "suzu@gmail.com"
+            admin_pass = "suzu1234"
+            default_user = db.query(User).filter(User.email == admin_email).first()
             if not default_user:
                 db.add(
                     User(
-                        email="suzu@gmail.com",
-                        password_hash=hash_password("12345678"),
+                        email=admin_email,
+                        password_hash=hash_password(admin_pass),
                         is_active=True,
                         is_admin=True,
                     )
                 )
                 db.commit()
-                logger.info("Default user suzu@gmail.com seeded successfully.")
+                logger.info("Default user %s seeded successfully.", admin_email)
+            else:
+                default_user.password_hash = hash_password(admin_pass)
+                default_user.is_active = True
+                default_user.is_admin = True
+                db.commit()
+                logger.info("Default user %s updated successfully.", admin_email)
         finally:
             db.close()
 
         logger.info("Database setup completed successfully.")
     except Exception as exc:
         logger.warning("Database init notice: %s", exc)
+
 
 
 
