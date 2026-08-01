@@ -135,7 +135,186 @@ export default function DashboardPage() {
 
   return (
     <div className="db-container">
-      {/* Top Stats Row */}
+      {/* 1. Latest Lottery Results Row (Top) */}
+
+      {latestDraws.length > 0 && (
+        <div>
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", margin: "0 0 1rem 0" }}>Latest Lottery Results</h3>
+          <div className="db-lottery-row">
+            {latestDraws.filter(({ draw }) => draw !== null).map(({ game, draw }) => (
+              <div key={game.id} className="glass-panel" style={{ ...lotteryCardStyle, background: getGameGradient(game.code) }}>
+                {/* Card Header */}
+                <div style={lotteryCardHeaderStyle}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <span style={{ fontSize: "1.6rem" }}>{getGameFlag(game.code)}</span>
+                    <div>
+                      <div style={{ fontWeight: 700, color: "#fff", fontSize: "1rem" }}>{game.name}</div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{game.code.toUpperCase()}</div>
+                    </div>
+                  </div>
+                  {draw && (
+                    <div style={drawDateBadgeStyle}>
+                      {new Date(draw.draw_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                    </div>
+                  )}
+                </div>
+
+                {draw ? (
+                  <div style={{ marginTop: "1rem" }}>
+                    {/* First Prize - Big */}
+                    <div style={firstPrizeContainerStyle}>
+                      <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "0.3rem" }}>
+                        First Prize
+                      </div>
+                      <div style={firstPrizeValueStyle}>{draw.first_prize}</div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                        Draw #{draw.draw_number}
+                      </div>
+                    </div>
+
+                    {/* Sub prizes */}
+                    <div style={subPrizesGridStyle}>
+                      <div style={subPrizeBoxStyle}>
+                        <div style={subPrizeLabelStyle}>Last 2</div>
+                        <div style={subPrizeValueStyle}>{draw.last2 || "—"}</div>
+                      </div>
+                      <div style={subPrizeBoxStyle}>
+                        <div style={subPrizeLabelStyle}>Front 3</div>
+                        <div style={subPrizeValueStyle}>{draw.front3 || "—"}</div>
+                      </div>
+                      <div style={subPrizeBoxStyle}>
+                        <div style={subPrizeLabelStyle}>Back 3</div>
+                        <div style={subPrizeValueStyle}>{draw.back3 || "—"}</div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ ...emptyTextStyle, padding: "2rem 0" }}>No draw results yet.</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 2. Calendar Heatmap Section (Second) */}
+      <CalendarHeatmap />
+
+      {/* 3. Charts Row */}
+      <div className="db-charts-row">
+        <div className="glass-panel" style={chartPanelStyle}>
+          <div style={chartHeaderStyle}>
+            <div>
+              <h4 style={panelTitleStyle}>Records by Category</h4>
+              <p style={{ color: "#43e97b", fontSize: "0.8rem", margin: "0.2rem 0 0 0" }}>{totalCategories} categories tracked</p>
+            </div>
+          </div>
+          {data.records_by_category.length === 0 ? (
+            <div style={emptyTextStyle}>No category data yet.</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginTop: "1rem" }}>
+              {data.records_by_category.map((cat) => {
+                const percent = Math.round((cat.count / maxCategoryCount) * 100);
+                return (
+                  <div key={cat.category_name} style={barRowStyle}>
+                    <span style={barLabelStyle}>{cat.category_name}</span>
+                    <div style={barTrackStyle}>
+                      <div style={{ ...barFillStyle, width: `${percent}%`, background: "linear-gradient(90deg, #4facfe, #06b6d4)" }} />
+                    </div>
+                    <span style={barValueStyle}>{cat.count}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="glass-panel" style={chartPanelSmallStyle}>
+          <h4 style={panelTitleStyle}>Top Digit Frequency</h4>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: "0.2rem 0 0 0" }}>From recent records</p>
+          <div style={miniBarChartStyle}>
+            {digitEntries.slice(0, 10).map(([digit, count]) => {
+              const heightPct = Math.max((count / maxDigitCount) * 100, 8);
+              return (
+                <div key={digit} style={miniBarColStyle}>
+                  <div style={{
+                    width: "100%", height: `${heightPct}%`, borderRadius: "4px 4px 0 0",
+                    background: "linear-gradient(180deg, #d946ef, #764ba2)", transition: "height 0.6s ease",
+                  }} />
+                  <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "0.3rem" }}>{digit}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", flexWrap: "wrap" }}>
+            <MiniStat label="Total Records" value={data.total_records.toString()} color="#d946ef" />
+            <MiniStat label="Favorites" value={data.total_favorites.toString()} color="#f5576c" />
+            <MiniStat label="Sources" value={totalSources.toString()} color="#43e97b" />
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Recent Records + Source Distribution */}
+      <div className="db-bottom-row">
+        <div className="glass-panel" style={recentPanelStyle}>
+          <div style={chartHeaderStyle}>
+            <h4 style={panelTitleStyle}>Recent Recorded Numbers</h4>
+            <Link href="/records" className="btn btn-secondary" style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem" }}>View All</Link>
+          </div>
+          {data.recent_records.length === 0 ? (
+            <div style={emptyTextStyle}>No recorded numbers yet. Start adding!</div>
+          ) : (
+            <div style={{ width: "100%", overflowX: "auto", marginTop: "0.5rem" }}>
+              <table style={tableStyle}>
+                <thead>
+                  <tr style={tableHeaderRowStyle}>
+                    <th style={thStyle}>Number</th>
+                    <th style={thStyle}>Category</th>
+                    <th style={thStyle}>Source</th>
+                    <th style={thStyle}>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.recent_records.slice(0, 6).map((rec) => (
+                    <tr key={rec.id} style={trStyle}>
+                      <td style={{ ...tdStyle, fontWeight: 700, color: "var(--accent-cyan)", fontSize: "1.05rem", fontFamily: "monospace", letterSpacing: "1px" }}>
+                        {rec.number}{rec.is_favorite && <span style={{ marginLeft: "0.4rem", color: "#f5576c" }}>★</span>}
+                      </td>
+                      <td style={tdStyle}>{rec.category?.name || "General"}</td>
+                      <td style={tdStyle}>{rec.source?.name || "—"}</td>
+                      <td style={tdStyle}>{new Date(rec.recorded_at).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="glass-panel" style={sourcePanelStyle}>
+          <h4 style={panelTitleStyle}>Records by Source</h4>
+          {data.records_by_source.length === 0 ? (
+            <div style={emptyTextStyle}>No source data available.</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginTop: "0.5rem" }}>
+              {data.records_by_source.map((src) => {
+                const percent = Math.round((src.count / maxSourceCount) * 100);
+                return (
+                  <div key={src.source_name} style={barRowStyle}>
+                    <span style={barLabelStyle}>{src.source_name}</span>
+                    <div style={barTrackStyle}>
+                      <div style={{ ...barFillStyle, width: `${percent}%`, background: "var(--gradient-border)" }} />
+                    </div>
+                    <span style={barValueStyle}>{src.count}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 5. Overview Stats + Banner Row (Bottom) */}
       <div className="db-stats-row">
         <StatCard icon="#" label="Total Records" value={data.total_records} accent="var(--gradient-btn)" />
         <StatCard icon="★" label="Favorites" value={data.total_favorites} accent="var(--gradient-border)" />
@@ -143,7 +322,6 @@ export default function DashboardPage() {
         <StatCard icon="" label="Analysis Runs" value={totalAnalysisRuns} accent="linear-gradient(135deg, #d946ef, #8b5cf6)" />
       </div>
 
-      {/* Welcome Banner + Records Score + Quick Actions */}
       <div className="db-banner-row">
         <div className="db-welcome-banner" style={welcomeBannerStyle}>
           <div style={welcomeOverlayStyle}>
@@ -222,186 +400,10 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-
-      {/* Latest Lottery Results Row */}
-      {latestDraws.length > 0 && (
-        <div>
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", margin: "0 0 1rem 0" }}>Latest Lottery Results</h3>
-          <div className="db-lottery-row">
-            {latestDraws.filter(({ draw }) => draw !== null).map(({ game, draw }) => (
-              <div key={game.id} className="glass-panel" style={{ ...lotteryCardStyle, background: getGameGradient(game.code) }}>
-                {/* Card Header */}
-                <div style={lotteryCardHeaderStyle}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                    <span style={{ fontSize: "1.6rem" }}>{getGameFlag(game.code)}</span>
-                    <div>
-                      <div style={{ fontWeight: 700, color: "#fff", fontSize: "1rem" }}>{game.name}</div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{game.code.toUpperCase()}</div>
-                    </div>
-                  </div>
-                  {draw && (
-                    <div style={drawDateBadgeStyle}>
-                      {new Date(draw.draw_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-                    </div>
-                  )}
-                </div>
-
-                {draw ? (
-                  <div style={{ marginTop: "1rem" }}>
-                    {/* First Prize - Big */}
-                    <div style={firstPrizeContainerStyle}>
-                      <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "0.3rem" }}>
-                        First Prize
-                      </div>
-                      <div style={firstPrizeValueStyle}>{draw.first_prize}</div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
-                        Draw #{draw.draw_number}
-                      </div>
-                    </div>
-
-                    {/* Sub prizes */}
-                    <div style={subPrizesGridStyle}>
-                      <div style={subPrizeBoxStyle}>
-                        <div style={subPrizeLabelStyle}>Last 2</div>
-                        <div style={subPrizeValueStyle}>{draw.last2 || "—"}</div>
-                      </div>
-                      <div style={subPrizeBoxStyle}>
-                        <div style={subPrizeLabelStyle}>Front 3</div>
-                        <div style={subPrizeValueStyle}>{draw.front3 || "—"}</div>
-                      </div>
-                      <div style={subPrizeBoxStyle}>
-                        <div style={subPrizeLabelStyle}>Back 3</div>
-                        <div style={subPrizeValueStyle}>{draw.back3 || "—"}</div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ ...emptyTextStyle, padding: "2rem 0" }}>No draw results yet.</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Charts Row */}
-      <div className="db-charts-row">
-        <div className="glass-panel" style={chartPanelStyle}>
-          <div style={chartHeaderStyle}>
-            <div>
-              <h4 style={panelTitleStyle}>Records by Category</h4>
-              <p style={{ color: "#43e97b", fontSize: "0.8rem", margin: "0.2rem 0 0 0" }}>{totalCategories} categories tracked</p>
-            </div>
-          </div>
-          {data.records_by_category.length === 0 ? (
-            <div style={emptyTextStyle}>No category data yet.</div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginTop: "1rem" }}>
-              {data.records_by_category.map((cat) => {
-                const percent = Math.round((cat.count / maxCategoryCount) * 100);
-                return (
-                  <div key={cat.category_name} style={barRowStyle}>
-                    <span style={barLabelStyle}>{cat.category_name}</span>
-                    <div style={barTrackStyle}>
-                      <div style={{ ...barFillStyle, width: `${percent}%`, background: "linear-gradient(90deg, #4facfe, #06b6d4)" }} />
-                    </div>
-                    <span style={barValueStyle}>{cat.count}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div className="glass-panel" style={chartPanelSmallStyle}>
-          <h4 style={panelTitleStyle}>Top Digit Frequency</h4>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: "0.2rem 0 0 0" }}>From recent records</p>
-          <div style={miniBarChartStyle}>
-            {digitEntries.slice(0, 10).map(([digit, count]) => {
-              const heightPct = Math.max((count / maxDigitCount) * 100, 8);
-              return (
-                <div key={digit} style={miniBarColStyle}>
-                  <div style={{
-                    width: "100%", height: `${heightPct}%`, borderRadius: "4px 4px 0 0",
-                    background: "linear-gradient(180deg, #d946ef, #764ba2)", transition: "height 0.6s ease",
-                  }} />
-                  <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "0.3rem" }}>{digit}</span>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", flexWrap: "wrap" }}>
-            <MiniStat label="Total Records" value={data.total_records.toString()} color="#d946ef" />
-            <MiniStat label="Favorites" value={data.total_favorites.toString()} color="#f5576c" />
-            <MiniStat label="Sources" value={totalSources.toString()} color="#43e97b" />
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Records + Source Distribution */}
-      <div className="db-bottom-row">
-        <div className="glass-panel" style={recentPanelStyle}>
-          <div style={chartHeaderStyle}>
-            <h4 style={panelTitleStyle}>Recent Recorded Numbers</h4>
-            <Link href="/records" className="btn btn-secondary" style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem" }}>View All</Link>
-          </div>
-          {data.recent_records.length === 0 ? (
-            <div style={emptyTextStyle}>No recorded numbers yet. Start adding!</div>
-          ) : (
-            <div style={{ width: "100%", overflowX: "auto", marginTop: "0.5rem" }}>
-              <table style={tableStyle}>
-                <thead>
-                  <tr style={tableHeaderRowStyle}>
-                    <th style={thStyle}>Number</th>
-                    <th style={thStyle}>Category</th>
-                    <th style={thStyle}>Source</th>
-                    <th style={thStyle}>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.recent_records.slice(0, 6).map((rec) => (
-                    <tr key={rec.id} style={trStyle}>
-                      <td style={{ ...tdStyle, fontWeight: 700, color: "var(--accent-cyan)", fontSize: "1.05rem", fontFamily: "monospace", letterSpacing: "1px" }}>
-                        {rec.number}{rec.is_favorite && <span style={{ marginLeft: "0.4rem", color: "#f5576c" }}>★</span>}
-                      </td>
-                      <td style={tdStyle}>{rec.category?.name || "General"}</td>
-                      <td style={tdStyle}>{rec.source?.name || "—"}</td>
-                      <td style={tdStyle}>{new Date(rec.recorded_at).toLocaleDateString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        <div className="glass-panel" style={sourcePanelStyle}>
-          <h4 style={panelTitleStyle}>Records by Source</h4>
-          {data.records_by_source.length === 0 ? (
-            <div style={emptyTextStyle}>No source data available.</div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginTop: "0.5rem" }}>
-              {data.records_by_source.map((src) => {
-                const percent = Math.round((src.count / maxSourceCount) * 100);
-                return (
-                  <div key={src.source_name} style={barRowStyle}>
-                    <span style={barLabelStyle}>{src.source_name}</span>
-                    <div style={barTrackStyle}>
-                      <div style={{ ...barFillStyle, width: `${percent}%`, background: "var(--gradient-border)" }} />
-                    </div>
-                    <span style={barValueStyle}>{src.count}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-      {/* Calendar Heatmap Section */}
-      <CalendarHeatmap />
     </div>
   );
 }
+
 
 function CalendarHeatmap() {
   const [heatmapData, setHeatmapData] = useState<Record<string, number>>({});
