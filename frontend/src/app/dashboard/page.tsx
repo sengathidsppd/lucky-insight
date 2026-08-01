@@ -406,15 +406,20 @@ export default function DashboardPage() {
 
 
 function CalendarHeatmap() {
-  const [heatmapData, setHeatmapData] = useState<Record<string, number>>({});
+  const [heatmapData, setHeatmapData] = useState<Record<string, { last2: string; first_prize: string; game_name: string; draw_number: string }>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     apiRequest("/lotteries/heatmap?year=2026")
       .then((resp) => {
-        const map: Record<string, number> = {};
+        const map: Record<string, { last2: string; first_prize: string; game_name: string; draw_number: string }> = {};
         (resp.data || []).forEach((item: any) => {
-          map[item.date] = item.count;
+          map[item.date] = {
+            last2: item.last2,
+            first_prize: item.first_prize,
+            game_name: item.game_name,
+            draw_number: item.draw_number,
+          };
         });
         setHeatmapData(map);
       })
@@ -426,15 +431,17 @@ function CalendarHeatmap() {
 
   return (
     <div className="glass-panel" style={{ padding: "1.5rem", borderRadius: "12px", marginTop: "1rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
         <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", margin: 0 }}>
-          📅 Draw Frequency Calendar Heatmap (2026)
+          🇱🇦 Lao Lottery Results Calendar (2026)
         </h3>
-        <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Intensity by draw occurrences</span>
+        <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+          Showing 2-digit winning outcomes per draw day
+        </span>
       </div>
 
       {loading ? (
-        <div style={{ padding: "1rem", color: "var(--text-secondary)" }}>Loading heatmap...</div>
+        <div style={{ padding: "1rem", color: "var(--text-secondary)" }}>Loading calendar results...</div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem" }}>
           {months.map((m, mIdx) => {
@@ -448,26 +455,37 @@ function CalendarHeatmap() {
                   {Array.from({ length: daysInMonth }).map((_, dIdx) => {
                     const dayNum = dIdx + 1;
                     const dateStr = `2026-${String(mIdx + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
-                    const count = heatmapData[dateStr] || 0;
-                    const bg = count > 2 ? "var(--accent-cyan)" : count > 0 ? "rgba(6, 182, 212, 0.4)" : "rgba(255, 255, 255, 0.05)";
+                    const drawInfo = heatmapData[dateStr];
+                    const hasDraw = !!drawInfo;
+
                     return (
                       <div
-                        key={dIdx}
-                        title={`${dateStr}: ${count} draws`}
+                        key={dayNum}
+                        title={
+                          hasDraw
+                            ? `${dateStr}\n2D Result: ${drawInfo.last2}\n1st Prize: ${drawInfo.first_prize}`
+                            : `No draw on 2026-${mIdx + 1}-${dayNum}`
+                        }
                         style={{
-                          width: "100%",
                           aspectRatio: "1",
-                          borderRadius: "3px",
-                          background: bg,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          fontSize: "0.6rem",
-                          color: count > 0 ? "#000" : "rgba(255,255,255,0.3)",
-                          fontWeight: count > 0 ? 700 : 400,
+                          borderRadius: "4px",
+                          fontSize: "0.7rem",
+                          fontWeight: hasDraw ? 800 : 400,
+                          fontFamily: "monospace",
+                          letterSpacing: hasDraw ? "0.5px" : "normal",
+                          background: hasDraw
+                            ? "linear-gradient(135deg, rgba(6, 182, 212, 0.85), rgba(59, 130, 246, 0.85))"
+                            : "rgba(255, 255, 255, 0.03)",
+                          color: hasDraw ? "#ffffff" : "transparent",
+                          boxShadow: hasDraw ? "0 0 8px rgba(6, 182, 212, 0.4)" : "none",
+                          border: hasDraw ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
+                          cursor: hasDraw ? "pointer" : "default",
                         }}
                       >
-                        {dayNum}
+                        {hasDraw ? drawInfo.last2 : ""}
                       </div>
                     );
                   })}
@@ -478,6 +496,7 @@ function CalendarHeatmap() {
         </div>
       )}
     </div>
+
   );
 }
 

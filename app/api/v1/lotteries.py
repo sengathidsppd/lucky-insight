@@ -355,22 +355,37 @@ def get_draw_heatmap(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    """Return day-by-day frequency counts for calendar heatmap visualization."""
-    from collections import defaultdict
+    """Return day-by-day draw results for calendar heatmap visualization."""
     from sqlalchemy import extract
-    
-    results = db.query(LotteryResult).filter(
-        extract('year', LotteryResult.draw_date) == year
-    ).all()
-    
-    heatmap_counts: dict = defaultdict(int)
-    for r in results:
+    from app.models.lottery_game import LotteryGame
+    from app.models.lottery_result import LotteryResult
+
+    results = (
+        db.query(LotteryResult, LotteryGame)
+        .join(LotteryGame, LotteryResult.game_id == LotteryGame.id)
+        .filter(
+            extract("year", LotteryResult.draw_date) == year,
+            LotteryResult.deleted_at.is_(None),
+        )
+        .all()
+    )
+
+    data = []
+    for r, game in results:
         date_str = r.draw_date.strftime("%Y-%m-%d")
-        heatmap_counts[date_str] += 1
-        
-    data = [
-        {"date": date_str, "count": count, "intensity": min(4, count)}
-        for date_str, count in heatmap_counts.items()
-    ]
+        last2_val = r.last2
+        if not last2_val and r.first_prize:
+            cleaned = "".join([c for c in r.first_prize if c.isdigit()])
+            if len(cleaned) >= 2:
+                last2_val = cleaned[-2:]
+        data.append({
+            "date": date_str,
+            "game_code": game.code,
+            "game_name": game.name,
+            "last2": last2_val or "—",
+            "first_prize": r.first_prize,
+            "draw_number": r.draw_number,
+        })
     return {"success": True, "year": year, "data": data}
+
 
