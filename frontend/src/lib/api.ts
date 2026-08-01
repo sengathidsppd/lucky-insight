@@ -2,13 +2,12 @@
 
 export function getApiBaseUrl(): string {
   if (typeof window !== "undefined") {
-    const customUrl = localStorage.getItem("NEXT_PUBLIC_API_URL");
-    if (customUrl && !customUrl.includes("localhost")) return customUrl;
+    // Purge any stale custom URL stored in localStorage so it always routes via Cloudflare proxy
+    localStorage.removeItem("NEXT_PUBLIC_API_URL");
   }
-  // Use relative URL so requests go through Cloudflare Pages Function proxy
-  // instead of directly to Render (which may be unreachable from some regions)
-  return process.env.NEXT_PUBLIC_API_URL || "/api/v1";
+  return "/api/v1";
 }
+
 
 
 
