@@ -473,24 +473,9 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
 
               {/* 4-Digit Card */}
               {(() => {
-                const top4dItem = details.generated_4d_recommendations?.[0];
-                const top3dItem = details.generated_3d_recommendations?.[0]
-                  ? {
-                      ...details.generated_3d_recommendations[0],
-                      number: top4dItem?.number ? top4dItem.number.slice(-3) : details.generated_3d_recommendations[0].number,
-                    }
-                  : top4dItem
-                  ? { number: top4dItem.number.slice(-3), score: top4dItem.score }
-                  : null;
-
-                const top2dItem = details.generated_2d_recommendations?.[0]
-                  ? {
-                      ...details.generated_2d_recommendations[0],
-                      number: top4dItem?.number ? top4dItem.number.slice(-2) : details.generated_2d_recommendations[0].number,
-                    }
-                  : top4dItem
-                  ? { number: top4dItem.number.slice(-2), score: top4dItem.score }
-                  : null;
+                const top4dItem = details.generated_4d_recommendations?.[0] || null;
+                const top3dItem = details.generated_3d_recommendations?.[0] || null;
+                const top2dItem = details.generated_2d_recommendations?.[0] || null;
 
                 return (
                   <>
