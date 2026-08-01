@@ -66,8 +66,11 @@ def _initialize_db() -> None:
 
             # Remove extra seeded games if created by previous seed runs
             from app.models.lottery_game import LotteryGame
-            db.query(LotteryGame).filter(LotteryGame.code.in_(["THAI_GOV", "LAO_DEV"])).delete(synchronize_session=False)
+            db.query(LotteryGame).filter(
+                (LotteryGame.code.in_(["THAI_GOV", "LAO_DEV"])) | (LotteryGame.name.like("%(หวย%"))
+            ).delete(synchronize_session=False)
             db.commit()
+
         finally:
             db.close()
 
