@@ -134,6 +134,8 @@ export default function AnalysisPage() {
         selectedJobIds.map((id) =>
           apiRequest(`/analysis/${id}`, {
             method: "DELETE",
+          }).catch((err) => {
+            console.warn("Ignored deletion error for job", id, err);
           })
         )
       );
@@ -146,6 +148,7 @@ export default function AnalysisPage() {
       alert("Failed to delete selected items: " + err.message);
     }
   };
+
 
   return (
     <div style={containerStyle}>
