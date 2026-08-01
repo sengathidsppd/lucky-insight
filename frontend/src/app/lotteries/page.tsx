@@ -50,11 +50,18 @@ export default function LotteriesPage() {
     setError("");
     try {
       const gamesResp = await apiRequest("/lotteries/games");
-      setGames(gamesResp.data);
+      const fetchedGames: LotteryGame[] = gamesResp.data || [];
+      setGames(fetchedGames);
 
-      const selectedGame = gamesResp.data.find((g: any) => g.code === selectedGameCode);
-      if (selectedGame) {
-        // Fetch results for selected game code using its UUID
+      if (fetchedGames.length > 0) {
+        let selectedGame = fetchedGames.find(
+          (g) => g.code === selectedGameCode || g.code.startsWith(selectedGameCode)
+        );
+        if (!selectedGame) {
+          selectedGame = fetchedGames[0];
+          setSelectedGameCode(selectedGame.code);
+        }
+
         const resResp = await apiRequest("/lotteries/results", {
           params: { 
             game_id: selectedGame.id,
@@ -62,8 +69,8 @@ export default function LotteriesPage() {
             offset: currentPage * pageSize,
           },
         });
-        setResults(resResp.data);
-        setTotal(resResp.total);
+        setResults(resResp.data || []);
+        setTotal(resResp.total || 0);
       }
     } catch (err: any) {
       setError(err.message || "Failed to load lottery data.");
@@ -71,6 +78,7 @@ export default function LotteriesPage() {
       setIsLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchGamesAndResults();
@@ -149,7 +157,8 @@ export default function LotteriesPage() {
             onClick={() => { setSelectedGameCode(g.code); setCurrentPage(0); }}
             style={selectedGameCode === g.code ? activeTabStyle : tabStyle}
           >
-            {g.name} ({g.country})
+            {g.name}{g.country ? ` (${g.country})` : ""}
+
           </button>
         ))}
       </div>
