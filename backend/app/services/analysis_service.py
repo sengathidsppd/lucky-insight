@@ -402,6 +402,15 @@ class AnalysisService:
         scored_3d_all.sort(key=lambda item: item["score"], reverse=True)
         top_50_3d = scored_3d_all[:20]
 
+        # Directly score 4-digit combinations (0000-9999) for accurate 4D recommendations
+        scored_4d_all = []
+        for x in range(10000):
+            num_4d = f"{x:04d}"
+            scored_4d_all.append({"number": num_4d, "score": score_4d(num_4d)})
+        scored_4d_all.sort(key=lambda item: item["score"], reverse=True)
+        top_100_4d = scored_4d_all[:20]
+
+
 
 
         result_data = {
