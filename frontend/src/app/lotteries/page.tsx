@@ -42,7 +42,8 @@ export default function LotteriesPage() {
   const [newDrawDate, setNewDrawDate] = useState("");
   const [newDrawNumber, setNewDrawNumber] = useState("");
   const [newFirstPrize, setNewFirstPrize] = useState("");
-  const [newThreeDigits, setNewThreeDigits] = useState("");
+  const [newFront3, setNewFront3] = useState("");
+  const [newBack3, setNewBack3] = useState("");
   const [newTwoDigits, setNewTwoDigits] = useState("");
 
   const fetchGamesAndResults = async () => {
@@ -94,8 +95,9 @@ export default function LotteriesPage() {
         draw_date: new Date(newDrawDate).toISOString().slice(0, 10),
         draw_number: newDrawNumber || undefined,
         first_prize: newFirstPrize,
+        front3: newFront3 || undefined,
+        back3: newBack3 || undefined,
         last2: newTwoDigits || undefined,
-        back3: newThreeDigits || undefined,
       };
 
       await apiRequest("/lotteries/results", {
@@ -107,7 +109,8 @@ export default function LotteriesPage() {
       setNewDrawDate("");
       setNewDrawNumber("");
       setNewFirstPrize("");
-      setNewThreeDigits("");
+      setNewFront3("");
+      setNewBack3("");
       setNewTwoDigits("");
 
       // Refresh list
@@ -180,7 +183,6 @@ export default function LotteriesPage() {
           <div style={resultsGridStyle}>
             {results.map((res) => {
               const game = games.find((g) => g.id === res.game_id);
-              const threeDigits = [res.front3, res.back3].filter(Boolean).join(" / ") || "—";
               return (
                 <div key={res.id} className="glass-panel" style={cardStyle}>
                   <div style={cardHeaderStyle}>
@@ -222,15 +224,19 @@ export default function LotteriesPage() {
 
                   <div style={prizesGridStyle}>
                     <div style={prizeRowStyle}>
-                      <span style={prizeLabelStyle}>1st Prize</span>
+                      <span style={prizeLabelStyle}>1st Prize (รางวัลที่ 1)</span>
                       <span style={prizeValueStyle}>{res.first_prize || "—"}</span>
                     </div>
                     <div style={prizeRowStyle}>
-                      <span style={prizeLabelStyle}>3-Digit Prefix/Suffix</span>
-                      <span style={prizeValueStyle}>{threeDigits}</span>
+                      <span style={prizeLabelStyle}>Front 3-Digit (3 ตัวหน้า)</span>
+                      <span style={prizeValueStyle}>{res.front3 || "—"}</span>
                     </div>
                     <div style={prizeRowStyle}>
-                      <span style={prizeLabelStyle}>2-Digit Suffix</span>
+                      <span style={prizeLabelStyle}>Back 3-Digit (3 ตัวหลัง)</span>
+                      <span style={prizeValueStyle}>{res.back3 || "—"}</span>
+                    </div>
+                    <div style={prizeRowStyle}>
+                      <span style={prizeLabelStyle}>Last 2-Digit (2 ตัวท้าย)</span>
                       <span style={prizeValueStyle}>{res.last2 || "—"}</span>
                     </div>
                   </div>
@@ -306,7 +312,7 @@ export default function LotteriesPage() {
               </div>
 
               <div style={formColStyle}>
-                <label style={labelStyle}>1st Prize (6-Digit Number) *</label>
+                <label style={labelStyle}>1st Prize / รางวัลที่ 1 (6-Digit Number) *</label>
                 <input
                   type="text"
                   value={newFirstPrize}
@@ -317,23 +323,33 @@ export default function LotteriesPage() {
 
               <div style={formRowStyle}>
                 <div style={formColStyle}>
-                  <label style={labelStyle}>3-Digit Prize</label>
+                  <label style={labelStyle}>Front 3-Digit (เลข 3 ตัวหน้า)</label>
                   <input
                     type="text"
-                    value={newThreeDigits}
-                    onChange={(e) => setNewThreeDigits(e.target.value)}
-                    placeholder="e.g. 120, 340, 560"
+                    value={newFront3}
+                    onChange={(e) => setNewFront3(e.target.value)}
+                    placeholder="e.g. 120, 340"
                   />
                 </div>
                 <div style={formColStyle}>
-                  <label style={labelStyle}>2-Digit Prize</label>
+                  <label style={labelStyle}>Back 3-Digit (เลข 3 ตัวหลัง)</label>
                   <input
                     type="text"
-                    value={newTwoDigits}
-                    onChange={(e) => setNewTwoDigits(e.target.value)}
-                    placeholder="e.g. 84"
+                    value={newBack3}
+                    onChange={(e) => setNewBack3(e.target.value)}
+                    placeholder="e.g. 560, 780"
                   />
                 </div>
+              </div>
+
+              <div style={formColStyle}>
+                <label style={labelStyle}>Last 2-Digit (เลขท้าย 2 ตัว)</label>
+                <input
+                  type="text"
+                  value={newTwoDigits}
+                  onChange={(e) => setNewTwoDigits(e.target.value)}
+                  placeholder="e.g. 84"
+                />
               </div>
 
               <div style={modalButtonsContainerStyle}>
