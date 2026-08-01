@@ -90,15 +90,20 @@ export default function LotteriesPage() {
     try {
       if (!modalGameId) return;
 
+      const cleanFirstPrize = newFirstPrize.trim();
+      const autoBack3 = newBack3 || (cleanFirstPrize.length >= 3 ? cleanFirstPrize.slice(-3) : undefined);
+      const autoLast2 = newTwoDigits || (cleanFirstPrize.length >= 2 ? cleanFirstPrize.slice(-2) : undefined);
+
       const payload = {
         game_id: modalGameId,
         draw_date: new Date(newDrawDate).toISOString().slice(0, 10),
         draw_number: newDrawNumber || undefined,
         first_prize: newFirstPrize,
         front3: newFront3 || undefined,
-        back3: newBack3 || undefined,
-        last2: newTwoDigits || undefined,
+        back3: autoBack3,
+        last2: autoLast2,
       };
+
 
       await apiRequest("/lotteries/results", {
         method: "POST",
@@ -228,7 +233,7 @@ export default function LotteriesPage() {
                       <span style={prizeValueStyle}>{res.first_prize || "—"}</span>
                     </div>
 
-                    {game?.code === "THAI_NATIONAL" && (
+                    {game?.code === "THAI_NATIONAL" ? (
                       <>
                         <div style={prizeRowStyle}>
                           <span style={prizeLabelStyle}>Front 3-Digit (3 ตัวหน้า)</span>
@@ -238,14 +243,25 @@ export default function LotteriesPage() {
                           <span style={prizeLabelStyle}>Back 3-Digit (3 ตัวหลัง)</span>
                           <span style={prizeValueStyle}>{res.back3 || "—"}</span>
                         </div>
+                        <div style={prizeRowStyle}>
+                          <span style={prizeLabelStyle}>Last 2-Digit (2 ตัวท้าย)</span>
+                          <span style={prizeValueStyle}>{res.last2 || "—"}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div style={prizeRowStyle}>
+                          <span style={prizeLabelStyle}>3-Digit Prize (เลข 3 ตัว)</span>
+                          <span style={prizeValueStyle}>{res.back3 || (res.first_prize && res.first_prize.length >= 3 ? res.first_prize.slice(-3) : "—")}</span>
+                        </div>
+                        <div style={prizeRowStyle}>
+                          <span style={prizeLabelStyle}>2-Digit Prize (เลข 2 ตัว)</span>
+                          <span style={prizeValueStyle}>{res.last2 || (res.first_prize && res.first_prize.length >= 2 ? res.first_prize.slice(-2) : "—")}</span>
+                        </div>
                       </>
                     )}
-
-                    <div style={prizeRowStyle}>
-                      <span style={prizeLabelStyle}>{game?.code === "THAI_NATIONAL" ? "Last 2-Digit (2 ตัวท้าย)" : "2-Digit Suffix"}</span>
-                      <span style={prizeValueStyle}>{res.last2 || "—"}</span>
-                    </div>
                   </div>
+
                 </div>
               );
             })}
