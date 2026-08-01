@@ -39,11 +39,16 @@ export default function AnalysisPage() {
   const fetchLookups = async () => {
     try {
       const resp = await apiRequest("/lotteries/games");
-      setGames(resp.data);
+      const fetchedGames = resp.data || [];
+      setGames(fetchedGames);
+      if (fetchedGames.length > 0) {
+        setGameCode(fetchedGames[0].code);
+      }
     } catch (err) {
       console.error("Failed to load games lookup:", err);
     }
   };
+
 
   const fetchJobs = async () => {
     try {
@@ -170,8 +175,13 @@ export default function AnalysisPage() {
                 <div style={formColStyle}>
                   <label style={labelStyle}>Target Game</label>
                   <select value={gameCode} onChange={(e) => setGameCode(e.target.value)}>
-                    <option value="LAO">Lao Development Lottery</option>
+                    {games.map((g) => (
+                      <option key={g.id} value={g.code}>
+                        {g.name}
+                      </option>
+                    ))}
                   </select>
+
                 </div>
 
                 <div style={formColStyle}>
