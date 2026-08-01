@@ -224,19 +224,25 @@ export default function LotteriesPage() {
 
                   <div style={prizesGridStyle}>
                     <div style={prizeRowStyle}>
-                      <span style={prizeLabelStyle}>1st Prize (รางวัลที่ 1)</span>
+                      <span style={prizeLabelStyle}>{game?.code === "THAI_NATIONAL" ? "1st Prize (รางวัลที่ 1)" : "First Prize"}</span>
                       <span style={prizeValueStyle}>{res.first_prize || "—"}</span>
                     </div>
+
+                    {game?.code === "THAI_NATIONAL" && (
+                      <>
+                        <div style={prizeRowStyle}>
+                          <span style={prizeLabelStyle}>Front 3-Digit (3 ตัวหน้า)</span>
+                          <span style={prizeValueStyle}>{res.front3 || "—"}</span>
+                        </div>
+                        <div style={prizeRowStyle}>
+                          <span style={prizeLabelStyle}>Back 3-Digit (3 ตัวหลัง)</span>
+                          <span style={prizeValueStyle}>{res.back3 || "—"}</span>
+                        </div>
+                      </>
+                    )}
+
                     <div style={prizeRowStyle}>
-                      <span style={prizeLabelStyle}>Front 3-Digit (3 ตัวหน้า)</span>
-                      <span style={prizeValueStyle}>{res.front3 || "—"}</span>
-                    </div>
-                    <div style={prizeRowStyle}>
-                      <span style={prizeLabelStyle}>Back 3-Digit (3 ตัวหลัง)</span>
-                      <span style={prizeValueStyle}>{res.back3 || "—"}</span>
-                    </div>
-                    <div style={prizeRowStyle}>
-                      <span style={prizeLabelStyle}>Last 2-Digit (2 ตัวท้าย)</span>
+                      <span style={prizeLabelStyle}>{game?.code === "THAI_NATIONAL" ? "Last 2-Digit (2 ตัวท้าย)" : "2-Digit Suffix"}</span>
                       <span style={prizeValueStyle}>{res.last2 || "—"}</span>
                     </div>
                   </div>
@@ -321,29 +327,34 @@ export default function LotteriesPage() {
                 />
               </div>
 
-              <div style={formRowStyle}>
-                <div style={formColStyle}>
-                  <label style={labelStyle}>Front 3-Digit (เลข 3 ตัวหน้า)</label>
-                  <input
-                    type="text"
-                    value={newFront3}
-                    onChange={(e) => setNewFront3(e.target.value)}
-                    placeholder="e.g. 120, 340"
-                  />
+              {/* Show Front 3 & Back 3 fields ONLY for Thai National Lottery */}
+              {games.find((g) => g.id === modalGameId)?.code === "THAI_NATIONAL" && (
+                <div style={formRowStyle}>
+                  <div style={formColStyle}>
+                    <label style={labelStyle}>Front 3-Digit (เลข 3 ตัวหน้า)</label>
+                    <input
+                      type="text"
+                      value={newFront3}
+                      onChange={(e) => setNewFront3(e.target.value)}
+                      placeholder="e.g. 120, 340"
+                    />
+                  </div>
+                  <div style={formColStyle}>
+                    <label style={labelStyle}>Back 3-Digit (เลข 3 ตัวหลัง)</label>
+                    <input
+                      type="text"
+                      value={newBack3}
+                      onChange={(e) => setNewBack3(e.target.value)}
+                      placeholder="e.g. 560, 780"
+                    />
+                  </div>
                 </div>
-                <div style={formColStyle}>
-                  <label style={labelStyle}>Back 3-Digit (เลข 3 ตัวหลัง)</label>
-                  <input
-                    type="text"
-                    value={newBack3}
-                    onChange={(e) => setNewBack3(e.target.value)}
-                    placeholder="e.g. 560, 780"
-                  />
-                </div>
-              </div>
+              )}
 
               <div style={formColStyle}>
-                <label style={labelStyle}>Last 2-Digit (เลขท้าย 2 ตัว)</label>
+                <label style={labelStyle}>
+                  {games.find((g) => g.id === modalGameId)?.code === "THAI_NATIONAL" ? "Last 2-Digit (เลขท้าย 2 ตัว)" : "2-Digit Prize (เลข 2 ตัว)"}
+                </label>
                 <input
                   type="text"
                   value={newTwoDigits}
@@ -351,6 +362,7 @@ export default function LotteriesPage() {
                   placeholder="e.g. 84"
                 />
               </div>
+
 
               <div style={modalButtonsContainerStyle}>
                 <button
