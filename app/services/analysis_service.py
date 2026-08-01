@@ -106,8 +106,16 @@ class AnalysisService:
                     .order_by(LotteryResult.draw_date.desc())
                 )
 
-                results = self._lottery_result_repository._session.execute(stmt).scalars().all()
-                combined_records.extend([SimpleNamespace(number=r.first_prize) for r in results])
+                for r in results:
+                    if r.first_prize:
+                        combined_records.append(SimpleNamespace(number=r.first_prize))
+                    if r.last2:
+                        combined_records.append(SimpleNamespace(number=r.last2))
+                    if r.front3:
+                        combined_records.append(SimpleNamespace(number=r.front3))
+                    if r.back3:
+                        combined_records.append(SimpleNamespace(number=r.back3))
+
 
             if not combined_records:
                 raise ValueError(
@@ -377,30 +385,22 @@ class AnalysisService:
             final_score = weighted_total
             return round(final_score, 2)
 
-        scored_4d_all = []
-        for x in range(10000):
-            num_4d = f"{x:04d}"
-            scored_4d_all.append({"number": num_4d, "score": score_4d(num_4d)})
-        scored_4d_all.sort(key=lambda x: x["score"], reverse=True)
-        top_100_4d = scored_4d_all[:20]
-        secrets.SystemRandom().shuffle(top_100_4d)
+        # Directly score all 100 2-digit combinations (00-99) for accurate 2D recommendations
+        scored_2d_all = []
+        for x in range(100):
+            num_2d = f"{x:02d}"
+            scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
+        scored_2d_all.sort(key=lambda item: item["score"], reverse=True)
+        top_20_2d = scored_2d_all[:20]
 
-        # Derive 3D and 2D recommendations primarily from Top 4D recommendations
-        top_50_3d = []
-        seen_3d = set()
-        for item in top_100_4d:
-            num_3d = item["number"][-3:]
-            if num_3d not in seen_3d:
-                seen_3d.add(num_3d)
-                top_50_3d.append({"number": num_3d, "score": score_3d(num_3d)})
+        # Directly score all 1,000 3-digit combinations (000-999) for accurate 3D recommendations
+        scored_3d_all = []
+        for x in range(1000):
+            num_3d = f"{x:03d}"
+            scored_3d_all.append({"number": num_3d, "score": score_3d(num_3d)})
+        scored_3d_all.sort(key=lambda item: item["score"], reverse=True)
+        top_50_3d = scored_3d_all[:20]
 
-        top_20_2d = []
-        seen_2d = set()
-        for item in top_100_4d:
-            num_2d = item["number"][-2:]
-            if num_2d not in seen_2d:
-                seen_2d.add(num_2d)
-                top_20_2d.append({"number": num_2d, "score": score_2d(num_2d)})
 
 
         result_data = {
