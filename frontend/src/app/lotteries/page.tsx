@@ -46,7 +46,37 @@ export default function LotteriesPage() {
   const [newBack3, setNewBack3] = useState("");
   const [newTwoDigits, setNewTwoDigits] = useState("");
 
+  // Helper to calculate suggested next draw number and today's date
+  const updateNextDrawDefaults = (gameId: string) => {
+    const today = new Date().toISOString().slice(0, 10);
+    setNewDrawDate(today);
+
+    let maxDrawNum = 0;
+    results.forEach((r) => {
+      if (r.game_id === gameId && r.draw_number) {
+        const parsed = parseInt(r.draw_number.trim(), 10);
+        if (!isNaN(parsed) && parsed > maxDrawNum) {
+          maxDrawNum = parsed;
+        }
+      }
+    });
+
+    if (maxDrawNum > 0) {
+      setNewDrawNumber((maxDrawNum + 1).toString());
+    } else {
+      setNewDrawNumber("");
+    }
+  };
+
+  const handleOpenAdminModal = (gameId?: string) => {
+    const targetGameId = gameId || activeGame?.id || (games[0]?.id ?? "");
+    setModalGameId(targetGameId);
+    updateNextDrawDefaults(targetGameId);
+    setIsAdminOpen(true);
+  };
+
   const fetchGamesAndResults = async () => {
+
     setIsLoading(true);
     setError("");
     try {
@@ -151,7 +181,7 @@ export default function LotteriesPage() {
         </div>
         
         {user?.is_admin && (
-          <button onClick={() => { setModalGameId(activeGame?.id || (games[0]?.id ?? "")); setIsAdminOpen(true); }} className="btn btn-primary">
+          <button onClick={() => handleOpenAdminModal()} className="btn btn-primary">
             Add Draw Result (Admin)
           </button>
         )}
@@ -304,7 +334,11 @@ export default function LotteriesPage() {
                 <label style={labelStyle}>Lottery Game *</label>
                 <select
                   value={modalGameId}
-                  onChange={(e) => setModalGameId(e.target.value)}
+                  onChange={(e) => {
+                    const gId = e.target.value;
+                    setModalGameId(gId);
+                    updateNextDrawDefaults(gId);
+                  }}
                   required
                 >
                   {games.map((g) => (
