@@ -374,7 +374,15 @@ export default function LotteriesPage() {
                 <input
                   type="text"
                   value={newFirstPrize}
-                  onChange={(e) => setNewFirstPrize(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setNewFirstPrize(val);
+                    // Auto-fill 2D for Lao Development Lottery
+                    const isLao = games.find((g) => g.id === modalGameId)?.code !== "THAI_NATIONAL";
+                    if (isLao && val.trim().length >= 2) {
+                      setNewTwoDigits(val.trim().slice(-2));
+                    }
+                  }}
                   placeholder="e.g. 096592"
                 />
               </div>
@@ -405,13 +413,15 @@ export default function LotteriesPage() {
 
               <div style={formColStyle}>
                 <label style={labelStyle}>
-                  {games.find((g) => g.id === modalGameId)?.code === "THAI_NATIONAL" ? "Last 2-Digit (เลขท้าย 2 ตัว)" : "2-Digit Prize (เลข 2 ตัว)"}
+                  {games.find((g) => g.id === modalGameId)?.code === "THAI_NATIONAL" ? "Last 2-Digit (เลขท้าย 2 ตัว)" : "2-Digit Prize (เลข 2 ตัว) — auto-filled"}
                 </label>
                 <input
                   type="text"
                   value={newTwoDigits}
                   onChange={(e) => setNewTwoDigits(e.target.value)}
+                  readOnly={games.find((g) => g.id === modalGameId)?.code !== "THAI_NATIONAL"}
                   placeholder="e.g. 84"
+                  style={games.find((g) => g.id === modalGameId)?.code !== "THAI_NATIONAL" ? { opacity: 0.7, cursor: "default" } : {}}
                 />
               </div>
 
