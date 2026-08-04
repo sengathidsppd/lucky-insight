@@ -112,6 +112,8 @@ class AnalysisService:
                         combined_records.append(SimpleNamespace(number=r.first_prize))
                     if r.last2:
                         combined_records.append(SimpleNamespace(number=r.last2))
+                    if r.last4:
+                        combined_records.append(SimpleNamespace(number=r.last4))
                     if r.front3:
                         combined_records.append(SimpleNamespace(number=r.front3))
                     if r.back3:

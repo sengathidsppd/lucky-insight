@@ -61,6 +61,7 @@ def map_result_to_response(result: LotteryResult) -> LotteryResultResponse:
         draw_number=result.draw_number,
         first_prize=result.first_prize,
         last2=result.last2,
+        last4=result.last4,
         front3=result.front3,
         back3=result.back3,
         created_at=result.created_at,
@@ -174,6 +175,7 @@ def create_result(
             payload.draw_date,
             payload.first_prize,
             last2=payload.last2,
+            last4=payload.last4,
             front3=payload.front3,
             back3=payload.back3,
             draw_number=payload.draw_number,
@@ -300,6 +302,7 @@ def update_result(
             draw_number=payload.draw_number,
             first_prize=payload.first_prize,
             last2=payload.last2,
+            last4=payload.last4,
             front3=payload.front3,
             back3=payload.back3,
         )

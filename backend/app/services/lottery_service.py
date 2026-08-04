@@ -136,6 +136,7 @@ class LotteryService:
         first_prize: str,
         *,
         last2: str | None = None,
+        last4: str | None = None,
         front3: str | None = None,
         back3: str | None = None,
         draw_number: str | None = None,
@@ -160,6 +161,7 @@ class LotteryService:
             draw_number=draw_number,
             first_prize=first_prize,
             last2=last2,
+            last4=last4,
             front3=front3,
             back3=back3,
         )
@@ -180,6 +182,7 @@ class LotteryService:
         draw_number: str | None = None,
         first_prize: str | None = None,
         last2: str | None = None,
+        last4: str | None = None,
         front3: str | None = None,
         back3: str | None = None,
     ) -> LotteryResult:
@@ -203,6 +206,9 @@ class LotteryService:
 
         if last2 is not None:
             result.last2 = last2
+
+        if last4 is not None:
+            result.last4 = last4
 
         if front3 is not None:
             result.front3 = front3

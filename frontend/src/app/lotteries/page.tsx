@@ -19,6 +19,7 @@ interface LotteryResult {
   draw_number: string | null;
   first_prize: string;
   last2: string | null;
+  last4: string | null;
   front3: string | null;
   back3: string | null;
   created_at: string;
@@ -45,6 +46,7 @@ export default function LotteriesPage() {
   const [newFront3, setNewFront3] = useState("");
   const [newBack3, setNewBack3] = useState("");
   const [newTwoDigits, setNewTwoDigits] = useState("");
+  const [newFourDigits, setNewFourDigits] = useState("");
 
   // Helper to calculate suggested next draw number and today's date
   const updateNextDrawDefaults = (gameId: string) => {
@@ -123,6 +125,7 @@ export default function LotteriesPage() {
       const cleanFirstPrize = newFirstPrize.trim();
       const autoBack3 = newBack3 || (cleanFirstPrize.length >= 3 ? cleanFirstPrize.slice(-3) : undefined);
       const autoLast2 = newTwoDigits || (cleanFirstPrize.length >= 2 ? cleanFirstPrize.slice(-2) : undefined);
+      const autoLast4 = newFourDigits || (cleanFirstPrize.length >= 4 ? cleanFirstPrize.slice(-4) : undefined);
 
       const payload = {
         game_id: modalGameId,
@@ -132,6 +135,7 @@ export default function LotteriesPage() {
         front3: newFront3 || undefined,
         back3: autoBack3,
         last2: autoLast2,
+        last4: autoLast4,
       };
 
 
@@ -147,6 +151,7 @@ export default function LotteriesPage() {
       setNewFront3("");
       setNewBack3("");
       setNewTwoDigits("");
+      setNewFourDigits("");
 
       // Refresh list
       fetchGamesAndResults();
@@ -281,6 +286,10 @@ export default function LotteriesPage() {
                     ) : (
                       <>
                         <div style={prizeRowStyle}>
+                          <span style={prizeLabelStyle}>4-Digit Prize (เลข 4 ตัว)</span>
+                          <span style={prizeValueStyle}>{res.last4 || (res.first_prize && res.first_prize.length >= 4 ? res.first_prize.slice(-4) : "—")}</span>
+                        </div>
+                        <div style={prizeRowStyle}>
                           <span style={prizeLabelStyle}>3-Digit Prize (เลข 3 ตัว)</span>
                           <span style={prizeValueStyle}>{res.back3 || (res.first_prize && res.first_prize.length >= 3 ? res.first_prize.slice(-3) : "—")}</span>
                         </div>
@@ -377,10 +386,13 @@ export default function LotteriesPage() {
                   onChange={(e) => {
                     const val = e.target.value;
                     setNewFirstPrize(val);
-                    // Auto-fill 2D for Lao Development Lottery
+                    // Auto-fill 2D and 4D for Lao Development Lottery
                     const isLao = games.find((g) => g.id === modalGameId)?.code !== "THAI_NATIONAL";
                     if (isLao && val.trim().length >= 2) {
                       setNewTwoDigits(val.trim().slice(-2));
+                    }
+                    if (isLao && val.trim().length >= 4) {
+                      setNewFourDigits(val.trim().slice(-4));
                     }
                   }}
                   placeholder="e.g. 096592"
@@ -424,6 +436,21 @@ export default function LotteriesPage() {
                   style={games.find((g) => g.id === modalGameId)?.code !== "THAI_NATIONAL" ? { opacity: 0.7, cursor: "default" } : {}}
                 />
               </div>
+
+              {/* Show 4D field for Lao lottery (auto-filled, read-only) */}
+              {games.find((g) => g.id === modalGameId)?.code !== "THAI_NATIONAL" && (
+                <div style={formColStyle}>
+                  <label style={labelStyle}>4-Digit Prize (เลข 4 ตัว) — auto-filled</label>
+                  <input
+                    type="text"
+                    value={newFourDigits}
+                    onChange={(e) => setNewFourDigits(e.target.value)}
+                    readOnly
+                    placeholder="e.g. 6592"
+                    style={{ opacity: 0.7, cursor: "default" }}
+                  />
+                </div>
+              )}
 
 
               <div style={modalButtonsContainerStyle}>

@@ -44,6 +44,11 @@ class LotteryResult(BaseEntity):
         nullable=True,
         default=None,
     )
+    last4: Mapped[str | None] = mapped_column(
+        String(10),
+        nullable=True,
+        default=None,
+    )
     front3: Mapped[str | None] = mapped_column(
         String(50),
         nullable=True,
@@ -81,6 +86,18 @@ class LotteryResult(BaseEntity):
             return None
         if len(val_strip) > 10:
             raise ValueError("last2 must be 10 characters or fewer")
+        return val_strip
+
+    @validates("last4")
+    def validate_last4(self, key: str, value: str | None) -> str | None:
+        """Ensure last4 is valid if provided."""
+        if value is None:
+            return None
+        val_strip = value.strip()
+        if not val_strip:
+            return None
+        if len(val_strip) > 10:
+            raise ValueError("last4 must be 10 characters or fewer")
         return val_strip
 
     @validates("front3")

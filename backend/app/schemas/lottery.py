@@ -46,6 +46,7 @@ class CreateLotteryResultRequest(BaseModel):
     draw_number: str | None = Field(default=None, max_length=50)
     first_prize: str = Field(min_length=1, max_length=20)
     last2: str | None = Field(default=None, min_length=1, max_length=10)
+    last4: str | None = Field(default=None, min_length=1, max_length=10)
     front3: str | None = Field(default=None, min_length=1, max_length=50)
     back3: str | None = Field(default=None, min_length=1, max_length=50)
 
@@ -58,6 +59,7 @@ class UpdateLotteryResultRequest(BaseModel):
     draw_number: str | None = Field(default=None, max_length=50)
     first_prize: str | None = Field(default=None, min_length=1, max_length=20)
     last2: str | None = Field(default=None, min_length=1, max_length=10)
+    last4: str | None = Field(default=None, min_length=1, max_length=10)
     front3: str | None = Field(default=None, min_length=1, max_length=50)
     back3: str | None = Field(default=None, min_length=1, max_length=50)
 
@@ -71,6 +73,7 @@ class LotteryResultResponse(BaseModel):
     draw_number: str | None = None
     first_prize: str
     last2: str | None = None
+    last4: str | None = None
     front3: str | None = None
     back3: str | None = None
     created_at: datetime
