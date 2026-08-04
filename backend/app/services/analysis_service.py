@@ -316,10 +316,13 @@ class AnalysisService:
 
         scored_6d.sort(key=lambda x: x["score"], reverse=True)
 
-        # Select top 20 mathematically without shuffling (pure highest score order)
-        best_100_6d = scored_6d[:20]
+        import secrets
 
-        # Generate exactly 1 smart recommendation (Hot Pick - highest score):
+        # Select top 10 elite 6D candidates mathematically and shuffle for dynamic lucky pick
+        best_100_6d = scored_6d[:10]
+        secrets.SystemRandom().shuffle(best_100_6d)
+
+        # Generate exactly 1 smart recommendation (Hot Pick):
         pick_1_str = best_100_6d[0]["number"] if best_100_6d else "000000"
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
@@ -384,29 +387,32 @@ class AnalysisService:
             final_score = weighted_total
             return round(final_score, 2)
 
-        # Directly score all 100 2-digit combinations (00-99) for pure score ranking
+        # 2D: Filter to Top 5 elite candidates, then shuffle for dynamic lucky pick
         scored_2d_all = []
         for x in range(100):
             num_2d = f"{x:02d}"
             scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
         scored_2d_all.sort(key=lambda item: item["score"], reverse=True)
-        top_20_2d = list(scored_2d_all[:20])
+        top_20_2d = list(scored_2d_all[:5])
+        secrets.SystemRandom().shuffle(top_20_2d)
 
-        # Directly score all 1,000 3-digit combinations (000-999) for pure score ranking
+        # 3D: Filter to Top 10 elite candidates, then shuffle for dynamic lucky pick
         scored_3d_all = []
         for x in range(1000):
             num_3d = f"{x:03d}"
             scored_3d_all.append({"number": num_3d, "score": score_3d(num_3d)})
         scored_3d_all.sort(key=lambda item: item["score"], reverse=True)
-        top_50_3d = list(scored_3d_all[:20])
+        top_50_3d = list(scored_3d_all[:10])
+        secrets.SystemRandom().shuffle(top_50_3d)
 
-        # Directly score 4-digit combinations (0000-9999) for pure score ranking
+        # 4D: Filter to Top 10 elite candidates, then shuffle for dynamic lucky pick
         scored_4d_all = []
         for x in range(10000):
             num_4d = f"{x:04d}"
             scored_4d_all.append({"number": num_4d, "score": score_4d(num_4d)})
         scored_4d_all.sort(key=lambda item: item["score"], reverse=True)
-        top_100_4d = list(scored_4d_all[:20])
+        top_100_4d = list(scored_4d_all[:10])
+        secrets.SystemRandom().shuffle(top_100_4d)
 
 
 
