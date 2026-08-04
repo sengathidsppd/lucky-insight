@@ -119,7 +119,7 @@ export default function NavigationShell({ children }: { children: React.ReactNod
             border-left: none !important;
             border-top: 1px solid var(--border-light) !important;
             overflow-x: auto !important;
-            z-index: 1000 !important;
+            z-index: 100 !important;
             /* Hide scrollbar for cleaner look */
             -ms-overflow-style: none;  /* IE and Edge */
             scrollbar-width: none;  /* Firefox */
