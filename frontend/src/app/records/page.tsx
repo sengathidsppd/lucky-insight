@@ -1038,8 +1038,8 @@ const modalBackdropStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  zIndex: 1000,
-  padding: "1rem",
+  zIndex: 9999,
+  padding: "1rem 1rem 5rem 1rem",
 };
 
 const modalContentStyle: React.CSSProperties = {

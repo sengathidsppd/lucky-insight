@@ -652,26 +652,26 @@ const modalBackdropStyle: React.CSSProperties = {
   left: 0,
   right: 0,
   bottom: 0,
-  background: "rgba(5, 4, 9, 0.75)",
+  background: "rgba(5, 4, 9, 0.85)",
   backdropFilter: "blur(8px)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  zIndex: 1000,
-  padding: "1rem",
+  zIndex: 9999,
+  padding: "1rem 1rem 5rem 1rem",
   overflowY: "auto",
 };
 
 const modalContentStyle: React.CSSProperties = {
   width: "100%",
   maxWidth: "500px",
-  maxHeight: "88vh",
+  maxHeight: "82vh",
   overflowY: "auto",
-  padding: "1.75rem",
+  padding: "1.75rem 1.75rem 2.5rem 1.75rem",
   display: "flex",
   flexDirection: "column",
   gap: "1.25rem",
-  boxShadow: "0 24px 64px rgba(0,0,0,0.8)",
+  boxShadow: "0 24px 64px rgba(0,0,0,0.9)",
   WebkitOverflowScrolling: "touch",
 };
 
