@@ -264,37 +264,37 @@ export default function LotteriesPage() {
 
                   <div style={prizesGridStyle}>
                     <div style={prizeRowStyle}>
-                      <span style={prizeLabelStyle}>{game?.code === "THAI_NATIONAL" ? "1st Prize (รางวัลที่ 1)" : "First Prize"}</span>
+                      <span style={prizeLabelStyle}>1st Prize</span>
                       <span style={prizeValueStyle}>{res.first_prize || "—"}</span>
                     </div>
 
                     {game?.code === "THAI_NATIONAL" ? (
                       <>
                         <div style={prizeRowStyle}>
-                          <span style={prizeLabelStyle}>Front 3-Digit (3 ตัวหน้า)</span>
+                          <span style={prizeLabelStyle}>Front 3-Digit</span>
                           <span style={prizeValueStyle}>{res.front3 || "—"}</span>
                         </div>
                         <div style={prizeRowStyle}>
-                          <span style={prizeLabelStyle}>Back 3-Digit (3 ตัวหลัง)</span>
+                          <span style={prizeLabelStyle}>Back 3-Digit</span>
                           <span style={prizeValueStyle}>{res.back3 || "—"}</span>
                         </div>
                         <div style={prizeRowStyle}>
-                          <span style={prizeLabelStyle}>Last 2-Digit (2 ตัวท้าย)</span>
+                          <span style={prizeLabelStyle}>Last 2-Digit</span>
                           <span style={prizeValueStyle}>{res.last2 || "—"}</span>
                         </div>
                       </>
                     ) : (
                       <>
                         <div style={prizeRowStyle}>
-                          <span style={prizeLabelStyle}>4-Digit Prize (เลข 4 ตัว)</span>
+                          <span style={prizeLabelStyle}>4-Digit Prize</span>
                           <span style={prizeValueStyle}>{res.last4 || (res.first_prize && res.first_prize.length >= 4 ? res.first_prize.slice(-4) : "—")}</span>
                         </div>
                         <div style={prizeRowStyle}>
-                          <span style={prizeLabelStyle}>3-Digit Prize (เลข 3 ตัว)</span>
+                          <span style={prizeLabelStyle}>3-Digit Prize</span>
                           <span style={prizeValueStyle}>{res.back3 || (res.first_prize && res.first_prize.length >= 3 ? res.first_prize.slice(-3) : "—")}</span>
                         </div>
                         <div style={prizeRowStyle}>
-                          <span style={prizeLabelStyle}>2-Digit Prize (เลข 2 ตัว)</span>
+                          <span style={prizeLabelStyle}>2-Digit Prize</span>
                           <span style={prizeValueStyle}>{res.last2 || (res.first_prize && res.first_prize.length >= 2 ? res.first_prize.slice(-2) : "—")}</span>
                         </div>
                       </>
@@ -379,7 +379,7 @@ export default function LotteriesPage() {
               </div>
 
               <div style={formColStyle}>
-                <label style={labelStyle}>1st Prize / รางวัลที่ 1 (6-Digit Number) *</label>
+                <label style={labelStyle}>1st Prize (6-Digit Number) *</label>
                 <input
                   type="text"
                   value={newFirstPrize}
@@ -403,7 +403,7 @@ export default function LotteriesPage() {
               {games.find((g) => g.id === modalGameId)?.code === "THAI_NATIONAL" && (
                 <div style={formRowStyle}>
                   <div style={formColStyle}>
-                    <label style={labelStyle}>Front 3-Digit (เลข 3 ตัวหน้า)</label>
+                    <label style={labelStyle}>Front 3-Digit</label>
                     <input
                       type="text"
                       value={newFront3}
@@ -412,7 +412,7 @@ export default function LotteriesPage() {
                     />
                   </div>
                   <div style={formColStyle}>
-                    <label style={labelStyle}>Back 3-Digit (เลข 3 ตัวหลัง)</label>
+                    <label style={labelStyle}>Back 3-Digit</label>
                     <input
                       type="text"
                       value={newBack3}
@@ -425,7 +425,7 @@ export default function LotteriesPage() {
 
               <div style={formColStyle}>
                 <label style={labelStyle}>
-                  {games.find((g) => g.id === modalGameId)?.code === "THAI_NATIONAL" ? "Last 2-Digit (เลขท้าย 2 ตัว)" : "2-Digit Prize (เลข 2 ตัว) — auto-filled"}
+                  {games.find((g) => g.id === modalGameId)?.code === "THAI_NATIONAL" ? "Last 2-Digit" : "2-Digit Prize — Auto-filled"}
                 </label>
                 <input
                   type="text"
@@ -440,7 +440,7 @@ export default function LotteriesPage() {
               {/* Show 4D field for Lao lottery (auto-filled, read-only) */}
               {games.find((g) => g.id === modalGameId)?.code !== "THAI_NATIONAL" && (
                 <div style={formColStyle}>
-                  <label style={labelStyle}>4-Digit Prize (เลข 4 ตัว) — auto-filled</label>
+                  <label style={labelStyle}>4-Digit Prize — Auto-filled</label>
                   <input
                     type="text"
                     value={newFourDigits}

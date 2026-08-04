@@ -207,7 +207,7 @@ export default function AnalysisPage() {
               </div>
 
               <div style={{ fontSize: "0.8rem", color: "var(--accent-cyan)", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                <span>💡</span> <span>โควต้าการสุ่มวิเคราะห์: สูงสุด 2 ครั้งต่อวัน (Limit: 2 runs/day)</span>
+                <span>💡</span> <span>Daily Analysis Quota: Max 2 runs per day</span>
               </div>
 
               <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
