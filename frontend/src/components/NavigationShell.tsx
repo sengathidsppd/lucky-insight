@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import DrawCountdown from "./DrawCountdown";
 
 export default function NavigationShell({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, logout, user } = useAuth();
@@ -61,6 +62,7 @@ export default function NavigationShell({ children }: { children: React.ReactNod
   return (
     <div className="app-wrapper" style={appWrapperStyle}>
       <main className="main-area" style={mainAreaStyle}>
+        <DrawCountdown />
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
           <NotificationBell />
         </div>
