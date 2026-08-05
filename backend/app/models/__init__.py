@@ -17,6 +17,7 @@ from app.models.number_tag import NumberTag
 from app.models.password_reset_token import PasswordResetToken
 from app.models.record_tag import record_tags
 from app.models.user import User
+from app.models.user_ticket import UserTicket
 
 __all__ = [
     "AnalysisJob",
@@ -31,5 +32,6 @@ __all__ = [
     "NumberTag",
     "PasswordResetToken",
     "User",
+    "UserTicket",
     "record_tags",
 ]

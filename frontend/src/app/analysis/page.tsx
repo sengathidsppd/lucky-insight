@@ -129,6 +129,24 @@ export default function AnalysisPage() {
     }
   };
 
+  const handleSaveToTracker = async (numberCode: string, category: string) => {
+    try {
+      await apiRequest("/tickets", {
+        method: "POST",
+        body: JSON.stringify({
+          number_code: numberCode,
+          category: category,
+          lottery_type: gameCode || "LAO",
+          amount_spent: 0,
+          status: "PENDING",
+        }),
+      });
+      alert(`📌 Number ${numberCode} (${category}) saved to your Personal Tracker!`);
+    } catch (err: any) {
+      alert("Failed to save to Tracker: " + err.message);
+    }
+  };
+
   const handleBulkDelete = async () => {
     if (selectedJobIds.length === 0) return;
     if (!confirm(`Are you sure you want to delete all ${selectedJobIds.length} selected analysis histories?`)) {
