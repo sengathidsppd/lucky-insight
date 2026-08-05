@@ -498,8 +498,8 @@ export default function TrackerPage() {
                       onChange={(e) => setAddLotteryType(e.target.value)}
                       style={inputStyle}
                     >
-                      <option value="LAO">LAO (หวยลาวพัฒนา)</option>
-                      <option value="THAI">THAI (หวยรัฐบาลไทย)</option>
+                      <option value="LAO">LAO (Lao Development Lottery)</option>
+                      <option value="THAI">THAI (Thai National Lottery)</option>
                     </select>
                   </div>
                 </div>
