@@ -85,23 +85,22 @@ def create_analysis(
     current_user: User = Depends(get_current_active_user),
     service: AnalysisService = Depends(get_analysis_service),
 ) -> AnalysisJobDetailResponse:
-    # Check daily limit of 2 analysis runs per day per user (non-admins)
-    if not current_user.is_admin:
-        from datetime import datetime, timezone
-        start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-        daily_count = (
-            db.query(AnalysisJob)
-            .filter(
-                AnalysisJob.user_id == current_user.id,
-                AnalysisJob.created_at >= start_of_today,
-            )
-            .count()
+    # Check daily limit of 2 analysis runs per day for ALL users (including admins)
+    from datetime import datetime, timezone
+    start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    daily_count = (
+        db.query(AnalysisJob)
+        .filter(
+            AnalysisJob.user_id == current_user.id,
+            AnalysisJob.created_at >= start_of_today,
         )
-        if daily_count >= 2:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="คุณสุ่มวิเคราะห์ครบโควต้า 2 ครั้งสำหรับวันนี้แล้ว โปรดกลับมาใหม่ในวันพรุ่งนี้! (Daily limit reached: 2 runs/day)",
-            )
+        .count()
+    )
+    if daily_count >= 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Daily analysis quota reached: 2 runs per day. Please try again tomorrow!",
+        )
 
     try:
         job = service.create_and_run_analysis(
