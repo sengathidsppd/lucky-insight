@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.api.dependencies.auth import get_current_active_user
+from app.core.database import get_db
 from app.models.user import User
 from app.models.user_ticket import UserTicket
 from app.schemas.ticket import (
@@ -21,7 +22,7 @@ router = APIRouter()
 def get_user_tickets(
     status_filter: Optional[str] = Query(None, alias="status"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
 ):
     """Retrieve all ticket entries for the currently authenticated user."""
     stmt = (
@@ -39,7 +40,7 @@ def get_user_tickets(
 @router.get("/tickets/summary/", response_model=UserTicketSummary, include_in_schema=False)
 def get_user_ticket_summary(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
 ):
     """Calculate summary statistics (total spent, total won, net profit/loss, win rate) for the logged-in user."""
     stmt = select(UserTicket).where(UserTicket.user_id == current_user.id)
@@ -66,7 +67,7 @@ def get_user_ticket_summary(
 def create_user_ticket(
     ticket_in: UserTicketCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
 ):
     """Create a new ticket entry for the logged in user."""
     db_ticket = UserTicket(
@@ -90,7 +91,7 @@ def update_user_ticket(
     ticket_id: uuid.UUID,
     ticket_in: UserTicketUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
 ):
     """Update a ticket entry (e.g. fill amount spent, notes, or winning status)."""
     stmt = select(UserTicket).where(
@@ -120,7 +121,7 @@ def update_user_ticket(
 def delete_user_ticket(
     ticket_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
 ):
     """Delete a ticket entry."""
     stmt = select(UserTicket).where(

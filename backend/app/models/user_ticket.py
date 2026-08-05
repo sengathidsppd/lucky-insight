@@ -4,7 +4,7 @@ from sqlalchemy import Column, String, Float, DateTime, Date, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from app.db.base_class import Base
+from app.models.base import Base
 
 class UserTicket(Base):
     __tablename__ = "user_tickets"
