@@ -260,7 +260,8 @@ class AnalysisService:
             if gaps:
                 curr_gap = gaps[0]
                 avg_gap = sum(gaps) / len(gaps)
-                recovery_indices[d_str] = round(curr_gap / avg_gap if avg_gap > 0 else 1.0, 4)
+                raw_ratio = curr_gap / avg_gap if avg_gap > 0 else 1.0
+                recovery_indices[d_str] = round(min(1.5, raw_ratio), 4)
             else:
                 recovery_indices[d_str] = 1.0
 
@@ -268,23 +269,24 @@ class AnalysisService:
         def score_number(num_str: str) -> tuple[float, dict[str, Any]]:
             # 1. Position Frequency Component (Weight 40%)
             pos_score = sum(pos_freq_data[i].get(char, 0) for i, char in enumerate(num_str)) / 6
-            # Normalize pos_score (maximum possible is 1.0, typical top is ~0.3)
-            pos_score_norm = min(100.0, pos_score * 300.0)
+            pos_score_norm = min(100.0, pos_score * 350.0)
 
             # 2. Recovery / Gaps Overdue Component (Weight 30%)
             gap_score = sum(recovery_indices.get(char, 1.0) for char in num_str) / 6
-            # Reward numbers that have overdue digits
-            gap_score_norm = min(100.0, gap_score * 50.0)
+            gap_score_norm = min(100.0, gap_score * 40.0)
 
             # 3. Digit distribution balance (Weight 30%)
             odds = sum(1 for c in num_str if int(c) % 2 != 0)
             highs = sum(1 for c in num_str if int(c) >= 5)
-            # Ideal distributions (e.g. 3:3 split) get maximum points
             dist_score = 100.0 - (abs(odds - 3) * 15.0) - (abs(highs - 3) * 15.0)
 
-            weighted_total = (0.4 * pos_score_norm) + (0.3 * gap_score_norm) + (0.3 * dist_score)
+            # Repetition Penalty (deduct for unnatural 3+ repeating digits)
+            d_counts = Counter(num_str)
+            max_rep = max(d_counts.values()) if d_counts else 1
+            rep_penalty = 15.0 if max_rep >= 4 else (8.0 if max_rep == 3 else 0.0)
 
-            final_score = weighted_total
+            weighted_total = (0.4 * pos_score_norm) + (0.3 * gap_score_norm) + (0.3 * dist_score) - rep_penalty
+            final_score = max(0.0, weighted_total)
 
             audit = {
                 "position_frequency": {
