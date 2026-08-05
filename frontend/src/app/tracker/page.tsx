@@ -150,6 +150,20 @@ export default function TrackerPage() {
     }
   };
 
+  const [isChecking, setIsChecking] = useState(false);
+
+  const handleCheckTickets = async () => {
+    setIsChecking(true);
+    try {
+      await apiRequest("/tickets/check", { method: "POST" });
+      await fetchTrackerData();
+    } catch (err: any) {
+      console.error("Check tickets failed:", err);
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
   return (
     <div style={{ maxWidth: "1200px", margin: "0 auto", color: "#fff" }}>
         {/* Title Header */}
@@ -162,25 +176,46 @@ export default function TrackerPage() {
               Track your tickets, spent amounts, winnings, and profit/loss in real-time.
             </p>
           </div>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            style={{
-              padding: "0.75rem 1.25rem",
-              background: "linear-gradient(135deg, var(--accent-cyan), #0284c7)",
-              color: "#000",
-              fontWeight: 800,
-              fontSize: "0.9rem",
-              borderRadius: "10px",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              boxShadow: "0 4px 12px rgba(14, 165, 233, 0.4)",
-            }}
-          >
-            ➕ Add Ticket
-          </button>
+          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+            <button
+              onClick={handleCheckTickets}
+              disabled={isChecking}
+              style={{
+                padding: "0.75rem 1.25rem",
+                background: "rgba(234, 179, 8, 0.15)",
+                border: "1px solid rgba(234, 179, 8, 0.4)",
+                color: "#facc15",
+                fontWeight: 800,
+                fontSize: "0.9rem",
+                borderRadius: "10px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+              }}
+            >
+              {isChecking ? "🔄 Checking..." : "⚡ Check Results"}
+            </button>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              style={{
+                padding: "0.75rem 1.25rem",
+                background: "linear-gradient(135deg, var(--accent-cyan), #0284c7)",
+                color: "#000",
+                fontWeight: 800,
+                fontSize: "0.9rem",
+                borderRadius: "10px",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                boxShadow: "0 4px 12px rgba(14, 165, 233, 0.4)",
+              }}
+            >
+              + Add Ticket
+            </button>
+          </div>
         </div>
 
         {/* Summary Dashboard Cards */}

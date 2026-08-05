@@ -17,6 +17,68 @@ from app.schemas.ticket import (
 
 router = APIRouter()
 
+from app.models.lottery_game import LotteryGame
+from app.models.lottery_result import LotteryResult
+
+def auto_check_pending_tickets(db: Session, user_id: Optional[uuid.UUID] = None):
+    """Automatically check PENDING tickets against official draw results in lottery_results table."""
+    try:
+        stmt = select(UserTicket).where(UserTicket.status == "PENDING")
+        if user_id:
+            stmt = stmt.where(UserTicket.user_id == user_id)
+        
+        pending_tickets = db.execute(stmt).scalars().all()
+        if not pending_tickets:
+            return
+
+        for ticket in pending_tickets:
+            # Find matching result for game and draw_date
+            res_stmt = (
+                select(LotteryResult)
+                .join(LotteryGame, LotteryResult.game_id == LotteryGame.id)
+                .where(
+                    func.upper(LotteryGame.code) == ticket.lottery_type.upper(),
+                    LotteryResult.draw_date == ticket.draw_date,
+                )
+            )
+            result = db.execute(res_stmt).scalar_one_or_none()
+            if not result:
+                continue
+
+            first_prize = result.first_prize.strip() if result.first_prize else ""
+            last4 = result.last4.strip() if result.last4 else (first_prize[-4:] if len(first_prize) >= 4 else "")
+            back3 = result.back3.strip() if result.back3 else (first_prize[-3:] if len(first_prize) >= 3 else "")
+            last2 = result.last2.strip() if result.last2 else (first_prize[-2:] if len(first_prize) >= 2 else "")
+            front3 = result.front3.strip() if result.front3 else (first_prize[:3] if len(first_prize) >= 3 else "")
+
+            raw_numbers = [n.strip() for n in ticket.number_code.replace(" ", "").split(",") if n.strip()]
+
+            is_won = False
+            for num in raw_numbers:
+                length = len(num)
+                if length == 6 and num == first_prize:
+                    is_won = True
+                    break
+                elif length == 4 and (num == last4 or num == first_prize[-4:]):
+                    is_won = True
+                    break
+                elif length == 3 and (num == back3 or num == front3 or num == first_prize[-3:]):
+                    is_won = True
+                    break
+                elif length == 2 and (num == last2 or num == first_prize[-2:]):
+                    is_won = True
+                    break
+
+            if is_won:
+                ticket.status = "WON"
+            else:
+                ticket.status = "MISSED"
+
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        print(f"Auto-check tickets error: {exc}")
+
 @router.get("/tickets", response_model=List[UserTicketResponse])
 @router.get("/tickets/", response_model=List[UserTicketResponse], include_in_schema=False)
 def get_user_tickets(
@@ -25,6 +87,9 @@ def get_user_tickets(
     current_user: User = Depends(get_current_active_user),
 ):
     """Retrieve all ticket entries for the currently authenticated user."""
+    # Automatically check pending tickets against draw results
+    auto_check_pending_tickets(db, user_id=current_user.id)
+
     stmt = (
         select(UserTicket)
         .where(UserTicket.user_id == current_user.id)
@@ -43,6 +108,8 @@ def get_user_ticket_summary(
     current_user: User = Depends(get_current_active_user),
 ):
     """Calculate summary statistics (total spent, total won, net profit/loss, win rate) for the logged-in user."""
+    auto_check_pending_tickets(db, user_id=current_user.id)
+
     stmt = select(UserTicket).where(UserTicket.user_id == current_user.id)
     tickets = db.execute(stmt).scalars().all()
 
@@ -61,6 +128,16 @@ def get_user_ticket_summary(
         total_won_tickets=won_tickets,
         win_rate=win_rate,
     )
+
+@router.post("/tickets/check", response_model=UserTicketSummary)
+@router.post("/tickets/check/", response_model=UserTicketSummary, include_in_schema=False)
+def check_user_tickets_endpoint(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Manually trigger auto-check for pending tickets of current user."""
+    auto_check_pending_tickets(db, user_id=current_user.id)
+    return get_user_ticket_summary(db=db, current_user=current_user)
 
 @router.post("/tickets", response_model=UserTicketResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/tickets/", response_model=UserTicketResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)

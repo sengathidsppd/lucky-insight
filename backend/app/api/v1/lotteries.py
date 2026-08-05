@@ -181,6 +181,14 @@ def create_result(
             draw_number=payload.draw_number,
         )
         db.commit()
+        
+        # Trigger auto check for pending tickets
+        try:
+            from app.api.v1.tickets import auto_check_pending_tickets
+            auto_check_pending_tickets(db)
+        except Exception as auto_err:
+            print("Failed to auto check tickets after new result creation:", auto_err)
+
         return LotteryResultDetailResponse(
             message="Draw result submitted successfully.",
             data=map_result_to_response(result),
