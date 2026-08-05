@@ -9,13 +9,15 @@ export function getNextLaoDrawDate(now: Date = new Date()): Date {
   const target = new Date(current);
   target.setHours(20, 0, 0, 0);
 
-  if ((day === 1 || day === 3 || day === 5) && current.getTime() < target.getTime()) {
+  // Monday to Friday before 20:00 -> target is today 20:00
+  if (day >= 1 && day <= 5 && current.getTime() < target.getTime()) {
     return target;
   }
 
+  // Find next draw day (next weekday Mon-Fri)
   let daysToAdd = 1;
   let nextDay = (day + daysToAdd) % 7;
-  while (nextDay !== 1 && nextDay !== 3 && nextDay !== 5) {
+  while (nextDay < 1 || nextDay > 5) {
     daysToAdd++;
     nextDay = (day + daysToAdd) % 7;
   }
@@ -120,7 +122,7 @@ export default function DrawCountdown() {
           <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", gap: "0.5rem" }}>
             ⏱️ Next Draw Countdown
             <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", fontWeight: 500 }}>
-              ({selectedGame === "LAO" ? "Mon, Wed, Fri at 8:00 PM" : "1st & 16th at 3:30 PM"})
+              ({selectedGame === "LAO" ? "Mon - Fri at 8:00 PM" : "1st & 16th at 3:30 PM"})
             </span>
           </div>
         </div>
