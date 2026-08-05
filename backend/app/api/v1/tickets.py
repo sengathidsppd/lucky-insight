@@ -160,6 +160,9 @@ def create_user_ticket(
     )
     db.add(db_ticket)
     db.commit()
+    
+    # Auto-evaluate against official draw result if already exists
+    auto_check_pending_tickets(db, user_id=current_user.id)
     db.refresh(db_ticket)
     return db_ticket
 
@@ -191,6 +194,15 @@ def update_user_ticket(
                 setattr(ticket, field, value)
 
     db.commit()
+    
+    # Auto-evaluate if draw date or status was modified
+    if "draw_date" in update_data or "number_code" in update_data:
+        # Reset to PENDING if date changed so auto-check can re-evaluate
+        if ticket.status in ["WON", "MISSED"]:
+            ticket.status = "PENDING"
+            db.commit()
+        auto_check_pending_tickets(db, user_id=current_user.id)
+
     db.refresh(ticket)
     return ticket
 

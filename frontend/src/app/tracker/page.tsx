@@ -490,6 +490,9 @@ export default function TrackerPage() {
                     <option value="WON">🟢 WON (Prize Winner)</option>
                     <option value="MISSED">🔴 MISSED (Not Won)</option>
                   </select>
+                  <div style={{ fontSize: "0.75rem", color: "var(--accent-cyan)", marginTop: "0.3rem" }}>
+                    ⚡ Status auto-evaluates against official draw results upon saving
+                  </div>
                 </div>
 
                 <div style={{ marginBottom: "1.5rem" }}>
