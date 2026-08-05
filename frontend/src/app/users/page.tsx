@@ -150,6 +150,20 @@ export default function UsersPage() {
     }
   };
 
+  const handleResetQuota = async (userId: string, email: string) => {
+    if (!confirm(`Reset daily analysis quota for ${email}?`)) {
+      return;
+    }
+    try {
+      await apiRequest(`/users/${userId}/reset-analysis-quota`, {
+        method: "POST",
+      });
+      alert(`Successfully reset daily analysis quota for ${email}!`);
+    } catch (err: any) {
+      alert("Failed to reset quota: " + err.message);
+    }
+  };
+
   if (isAuthLoading || (isAuthenticated && !user?.is_admin && !error)) {
     return (
       <div style={containerStyle}>
@@ -274,6 +288,34 @@ export default function UsersPage() {
                           }}
                         >
                           🔑 Reset PW
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleResetQuota(u.id, u.email)}
+                          style={{
+                            padding: "0.4rem 0.8rem",
+                            background: "rgba(14, 165, 233, 0.08)",
+                            border: "1px solid rgba(14, 165, 233, 0.25)",
+                            borderRadius: "6px",
+                            color: "var(--accent-cyan)",
+                            cursor: "pointer",
+                            fontSize: "0.8rem",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.3rem",
+                            transition: "all 0.2s",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = "var(--accent-cyan)";
+                            e.currentTarget.style.background = "rgba(14, 165, 233, 0.2)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = "rgba(14, 165, 233, 0.25)";
+                            e.currentTarget.style.background = "rgba(14, 165, 233, 0.08)";
+                          }}
+                          title="Reset daily analysis quota to 0 for this user"
+                        >
+                          🔄 Reset Quota
                         </button>
                         <button
                           type="button"

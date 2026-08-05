@@ -180,7 +180,35 @@ def admin_reset_password(
             last_name=None,
             is_active=u.is_active,
             is_admin=u.is_admin,
-            created_at=u.created_at,
             updated_at=u.updated_at,
         )
     )
+
+
+@router.post(
+    "/{user_id}/reset-analysis-quota",
+    status_code=status.HTTP_200_OK,
+    summary="Reset a user's daily analysis quota (Admin only)",
+)
+def reset_user_analysis_quota(
+    user_id: uuid.UUID,
+    current_admin: User = Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
+):
+    from datetime import datetime, timezone
+    from app.models.analysis_job import AnalysisJob
+    start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    jobs = (
+        db.query(AnalysisJob)
+        .filter(
+            AnalysisJob.user_id == user_id,
+            AnalysisJob.created_at >= start_of_today,
+        )
+        .all()
+    )
+    for job in jobs:
+        db.delete(job)
+    db.commit()
+
+    return {"success": True, "message": "Successfully reset daily analysis quota."}
