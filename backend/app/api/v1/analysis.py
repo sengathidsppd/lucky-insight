@@ -67,10 +67,36 @@ def map_job_to_response(job: AnalysisJob, db: Session) -> AnalysisJobResponse:
         game_code=game_code,
         parameters=job.parameters,
         error_message=job.error_message,
-        created_at=job.created_at,
-        updated_at=job.updated_at,
         result=result_data,
     )
+
+
+@router.get("/quota", summary="Get remaining daily analysis quota for current user")
+@router.get("/quota/", include_in_schema=False)
+def get_user_quota(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    from datetime import datetime, timezone
+    start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    daily_count = (
+        db.query(AnalysisJob)
+        .filter(
+            AnalysisJob.user_id == current_user.id,
+            AnalysisJob.created_at >= start_of_today,
+        )
+        .count()
+    )
+    daily_limit = 2
+    used = daily_count
+    remaining = max(0, daily_limit - used)
+
+    return {
+        "success": True,
+        "daily_limit": daily_limit,
+        "used_today": used,
+        "remaining": remaining,
+    }
 
 
 @router.post(

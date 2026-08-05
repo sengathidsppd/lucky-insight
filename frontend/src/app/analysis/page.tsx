@@ -36,6 +36,12 @@ export default function AnalysisPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const [quotaInfo, setQuotaInfo] = useState<{ remaining: number; daily_limit: number; used_today: number }>({
+    remaining: 2,
+    daily_limit: 2,
+    used_today: 0,
+  });
+
   const fetchLookups = async () => {
     try {
       const resp = await apiRequest("/lotteries/games");
@@ -49,6 +55,20 @@ export default function AnalysisPage() {
     }
   };
 
+  const fetchQuota = async () => {
+    try {
+      const resp = await apiRequest("/analysis/quota");
+      if (resp && resp.remaining !== undefined) {
+        setQuotaInfo({
+          remaining: resp.remaining,
+          daily_limit: resp.daily_limit,
+          used_today: resp.used_today,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load quota:", err);
+    }
+  };
 
   const fetchJobs = async () => {
     try {
@@ -65,6 +85,7 @@ export default function AnalysisPage() {
   useEffect(() => {
     fetchLookups();
     fetchJobs();
+    fetchQuota();
   }, []);
 
   const handleStartAnalysis = async (e: React.FormEvent) => {
@@ -78,8 +99,8 @@ export default function AnalysisPage() {
         analysis_type: analysisType,
         parameters: {
           game_id: selectedGame?.id || undefined,
-          date_from: startDate ? new Date(startDate + "T00:00:00").toISOString() : undefined,
-          date_to: endDate ? new Date(endDate + "T23:59:59").toISOString() : undefined,
+          start_date: startDate || undefined,
+          end_date: endDate || undefined,
         },
       };
 
@@ -88,8 +109,9 @@ export default function AnalysisPage() {
         body: JSON.stringify(payload),
       });
 
-      // Reload jobs
+      // Reload jobs and quota
       await fetchJobs();
+      await fetchQuota();
 
       // Automatically select the newly created job
       const newJob = resp.data;
@@ -98,6 +120,7 @@ export default function AnalysisPage() {
       }
     } catch (err: any) {
       setError(err.message || "Failed to start analysis job.");
+      await fetchQuota();
     } finally {
       setIsSubmitting(false);
     }
@@ -224,12 +247,32 @@ export default function AnalysisPage() {
                 </div>
               </div>
 
-              <div style={{ fontSize: "0.8rem", color: "var(--accent-cyan)", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                <span>💡</span> <span>Daily Analysis Quota: Max 2 runs per day</span>
+              <div style={{ fontSize: "0.85rem", fontWeight: 600, margin: "0.5rem 0", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                {quotaInfo.remaining > 0 ? (
+                  <span style={{ color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    <span>💡</span> <span>Daily Analysis Quota: <strong>{quotaInfo.remaining} / {quotaInfo.daily_limit}</strong> runs remaining today</span>
+                  </span>
+                ) : (
+                  <span style={{ color: "#f87171", display: "flex", alignItems: "center", gap: "0.4rem", background: "rgba(239, 68, 68, 0.12)", padding: "0.4rem 0.8rem", borderRadius: "8px", border: "1px solid rgba(239, 68, 68, 0.3)", width: "100%" }}>
+                    <span>🔒</span> <span>Daily Quota Reached: <strong>0 / {quotaInfo.daily_limit}</strong> runs remaining today</span>
+                  </span>
+                )}
               </div>
 
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? "Calculating..." : " Analyze Data"}
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isSubmitting || quotaInfo.remaining <= 0}
+                style={{
+                  opacity: quotaInfo.remaining <= 0 ? 0.5 : 1,
+                  cursor: quotaInfo.remaining <= 0 ? "not-allowed" : "pointer",
+                }}
+              >
+                {isSubmitting
+                  ? "Calculating..."
+                  : quotaInfo.remaining <= 0
+                  ? "🔒 Quota Limit Reached (2/2)"
+                  : " Analyze Data"}
               </button>
             </form>
           </div>
