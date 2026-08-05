@@ -208,11 +208,15 @@ class AnalysisService:
             num_str = r.number.strip()
             cleaned_num = "".join([c for c in num_str if c.isdigit()])
 
-            # Position-specific & Single frequencies
-            for pos, char in enumerate(cleaned_num):
+            # Position-specific & Single frequencies (right-align digits to match true draw positions)
+            num_len = len(cleaned_num)
+            start_pos = 6 - num_len if num_len <= 6 else 0
+
+            for i, char in enumerate(cleaned_num):
                 all_digits.append(char)
-                if pos < 6:
-                    position_counts[pos][char] += 1
+                target_pos = start_pos + i
+                if 0 <= target_pos < 6:
+                    position_counts[target_pos][char] += 1
 
             # Endings
             for length in range(1, 7):
@@ -300,11 +304,6 @@ class AnalysisService:
             }
             return round(final_score, 2), audit
 
-        # Score and rank unique 6-digit combinations + random candidates for dynamic results
-        unique_6d = set(endings_map[6])
-        import random
-
-        random.seed(42)
         # Inject 10,000 random combinations to find high-scoring unseen numbers
         for _ in range(10000):
             unique_6d.add(f"{random.randint(0, 999999):06d}")
