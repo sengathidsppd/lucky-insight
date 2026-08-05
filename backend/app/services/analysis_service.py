@@ -318,12 +318,10 @@ class AnalysisService:
 
         import secrets
 
-        # Pure random shuffle of scored 6D candidates for fresh random recommendations
-        best_100_6d = list(scored_6d[:20])
+        # 6D: Filter to Top 10 highest mathematical scoring candidates, then shuffle for dynamic lucky pick
+        best_100_6d = list(scored_6d[:10])
         secrets.SystemRandom().shuffle(best_100_6d)
-
-        # Generate 1 smart recommendation (Hot Pick):
-        pick_1_str = f"{secrets.SystemRandom().randint(0, 999999):06d}"
+        pick_1_str = best_100_6d[0]["number"] if best_100_6d else "000000"
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
@@ -387,23 +385,32 @@ class AnalysisService:
             final_score = weighted_total
             return round(final_score, 2)
 
-        # Pure random selection for 2D recommendations
-        rand_2d_set = set()
-        while len(rand_2d_set) < 10:
-            rand_2d_set.add(f"{secrets.SystemRandom().randint(0, 99):02d}")
-        top_20_2d = [{"number": num, "score": score_2d(num)} for num in rand_2d_set]
+        # 2D: Score all 100 numbers, filter Top 10 highest mathematical scores, then shuffle
+        scored_2d_all = []
+        for x in range(100):
+            num_2d = f"{x:02d}"
+            scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
+        scored_2d_all.sort(key=lambda item: item["score"], reverse=True)
+        top_20_2d = list(scored_2d_all[:10])
+        secrets.SystemRandom().shuffle(top_20_2d)
 
-        # Pure random selection for 3D recommendations
-        rand_3d_set = set()
-        while len(rand_3d_set) < 10:
-            rand_3d_set.add(f"{secrets.SystemRandom().randint(0, 999):03d}")
-        top_50_3d = [{"number": num, "score": score_3d(num)} for num in rand_3d_set]
+        # 3D: Score all 1,000 numbers, filter Top 10 highest mathematical scores, then shuffle
+        scored_3d_all = []
+        for x in range(1000):
+            num_3d = f"{x:03d}"
+            scored_3d_all.append({"number": num_3d, "score": score_3d(num_3d)})
+        scored_3d_all.sort(key=lambda item: item["score"], reverse=True)
+        top_50_3d = list(scored_3d_all[:10])
+        secrets.SystemRandom().shuffle(top_50_3d)
 
-        # Pure random selection for 4D recommendations
-        rand_4d_set = set()
-        while len(rand_4d_set) < 10:
-            rand_4d_set.add(f"{secrets.SystemRandom().randint(0, 9999):04d}")
-        top_100_4d = [{"number": num, "score": score_4d(num)} for num in rand_4d_set]
+        # 4D: Score all 10,000 numbers, filter Top 10 highest mathematical scores, then shuffle
+        scored_4d_all = []
+        for x in range(10000):
+            num_4d = f"{x:04d}"
+            scored_4d_all.append({"number": num_4d, "score": score_4d(num_4d)})
+        scored_4d_all.sort(key=lambda item: item["score"], reverse=True)
+        top_100_4d = list(scored_4d_all[:10])
+        secrets.SystemRandom().shuffle(top_100_4d)
 
 
 
