@@ -20,30 +20,41 @@ router = APIRouter()
 from app.models.lottery_game import LotteryGame
 from app.models.lottery_result import LotteryResult
 
-def auto_check_pending_tickets(db: Session, user_id: Optional[uuid.UUID] = None):
-    """Automatically check PENDING tickets against official draw results in lottery_results table."""
+def auto_check_pending_tickets(db: Session, user_id: Optional[uuid.UUID] = None, recheck_all: bool = False):
+    """Automatically check tickets against official draw results in lottery_results table.
+    
+    If recheck_all=True, evaluates ALL tickets (including WON/MISSED).
+    If a draw result was deleted and no result exists for a draw_date, status reverts to PENDING.
+    """
     try:
-        stmt = select(UserTicket).where(UserTicket.status == "PENDING")
+        stmt = select(UserTicket)
+        if not recheck_all:
+            stmt = stmt.where(UserTicket.status == "PENDING")
         if user_id:
             stmt = stmt.where(UserTicket.user_id == user_id)
         
-        pending_tickets = db.execute(stmt).scalars().all()
-        if not pending_tickets:
+        tickets = db.execute(stmt).scalars().all()
+        if not tickets:
             return
 
-        for ticket in pending_tickets:
-            # Find matching result for game and draw_date
+        for ticket in tickets:
+            # Find matching result for game and draw_date (excluding soft-deleted results)
             res_stmt = (
                 select(LotteryResult)
                 .join(LotteryGame, LotteryResult.game_id == LotteryGame.id)
                 .where(
                     func.upper(LotteryGame.code) == ticket.lottery_type.upper(),
                     LotteryResult.draw_date == ticket.draw_date,
+                    LotteryResult.deleted_at.is_(None),
                 )
                 .order_by(LotteryResult.created_at.desc())
             )
             result = db.execute(res_stmt).scalars().first()
             if not result:
+                # If no active draw result exists for this date, revert status back to PENDING!
+                if ticket.status in ["WON", "MISSED"]:
+                    ticket.status = "PENDING"
+                    ticket.prize_won = 0.0
                 continue
 
             first_prize = result.first_prize.strip() if result.first_prize else ""
@@ -88,8 +99,8 @@ def get_user_tickets(
     current_user: User = Depends(get_current_active_user),
 ):
     """Retrieve all ticket entries for the currently authenticated user."""
-    # Automatically check pending tickets against draw results
-    auto_check_pending_tickets(db, user_id=current_user.id)
+    # Automatically check pending & re-evaluate tickets against draw results
+    auto_check_pending_tickets(db, user_id=current_user.id, recheck_all=True)
 
     stmt = (
         select(UserTicket)
@@ -109,7 +120,7 @@ def get_user_ticket_summary(
     current_user: User = Depends(get_current_active_user),
 ):
     """Calculate summary statistics (total spent, total won, net profit/loss, win rate) for the logged-in user."""
-    auto_check_pending_tickets(db, user_id=current_user.id)
+    auto_check_pending_tickets(db, user_id=current_user.id, recheck_all=True)
 
     stmt = select(UserTicket).where(UserTicket.user_id == current_user.id)
     tickets = db.execute(stmt).scalars().all()
@@ -137,7 +148,7 @@ def check_user_tickets_endpoint(
     current_user: User = Depends(get_current_active_user),
 ):
     """Manually trigger auto-check for pending tickets of current user."""
-    auto_check_pending_tickets(db, user_id=current_user.id)
+    auto_check_pending_tickets(db, user_id=current_user.id, recheck_all=True)
     return get_user_ticket_summary(db=db, current_user=current_user)
 
 @router.post("/tickets", response_model=UserTicketResponse, status_code=status.HTTP_201_CREATED)

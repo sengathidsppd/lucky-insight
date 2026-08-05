@@ -348,6 +348,14 @@ def delete_result(
     try:
         service.delete_result(result_id)
         db.commit()
+
+        # Trigger ticket re-evaluation (reverts tickets to PENDING if result was removed)
+        try:
+            from app.api.v1.tickets import auto_check_pending_tickets
+            auto_check_pending_tickets(db, recheck_all=True)
+        except Exception as auto_err:
+            print("Failed to re-check tickets after result deletion:", auto_err)
+
         return DeleteResponse(message="Draw result deleted successfully.")
     except EntityNotFoundError as exc:
         raise HTTPException(
