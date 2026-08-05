@@ -14,7 +14,7 @@ class UserTicket(Base):
     
     draw_date = Column(Date, nullable=False, default=date.today)
     lottery_type = Column(String(50), nullable=False, default="LAO")  # e.g. "LAO", "THAI"
-    number_code = Column(String(20), nullable=False)  # e.g. "932479", "59"
+    number_code = Column(String(255), nullable=False)  # e.g. "932479", "748338, 4358, 488, 18"
     category = Column(String(10), nullable=False, default="6D")  # "6D", "4D", "3D", "2D"
     
     amount_spent = Column(Float, nullable=False, default=0.0)  # Amount spent in LAK Kip or THB
