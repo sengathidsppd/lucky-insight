@@ -77,8 +77,8 @@ def get_user_quota(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    from datetime import datetime, timezone
-    start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    from datetime import datetime
+    start_of_today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     daily_count = (
         db.query(AnalysisJob)
         .filter(
@@ -112,8 +112,8 @@ def create_analysis(
     service: AnalysisService = Depends(get_analysis_service),
 ) -> AnalysisJobDetailResponse:
     # Check daily limit of 2 analysis runs per day for ALL users (including admins)
-    from datetime import datetime, timezone
-    start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    from datetime import datetime
+    start_of_today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     daily_count = (
         db.query(AnalysisJob)
         .filter(
