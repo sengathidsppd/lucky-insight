@@ -322,10 +322,11 @@ class AnalysisService:
 
         import secrets
 
-        # 6D: Filter to Top 100 highest mathematical scoring candidates, then shuffle for dynamic lucky pick
-        best_100_6d = list(scored_6d[:100])
-        secrets.SystemRandom().shuffle(best_100_6d)
-        pick_1_str = best_100_6d[0]["number"] if best_100_6d else "000000"
+        # 6D: Filter Top 100 candidates by score, then randomly pick 1 candidate from the Top 100 pool
+        top_100_6d_raw = list(scored_6d[:100])
+        chosen_6d = secrets.SystemRandom().choice(top_100_6d_raw) if top_100_6d_raw else {"number": "000000"}
+        pick_1_str = chosen_6d["number"]
+        best_100_6d = [chosen_6d] + [x for x in top_100_6d_raw if x["number"] != pick_1_str]
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
@@ -389,32 +390,35 @@ class AnalysisService:
             final_score = weighted_total
             return round(final_score, 2)
 
-        # 2D: Score all 100 numbers, filter Top 30 highest mathematical scores, then shuffle
+        # 2D: Filter Top 30 candidates by score, then randomly pick 1 candidate from the pool
         scored_2d_all = []
         for x in range(100):
             num_2d = f"{x:02d}"
             scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
         scored_2d_all.sort(key=lambda item: item["score"], reverse=True)
-        top_20_2d = list(scored_2d_all[:30])
-        secrets.SystemRandom().shuffle(top_20_2d)
+        top_30_2d_raw = list(scored_2d_all[:30])
+        chosen_2d = secrets.SystemRandom().choice(top_30_2d_raw) if top_30_2d_raw else {"number": "00"}
+        top_20_2d = [chosen_2d] + [x for x in top_30_2d_raw if x["number"] != chosen_2d["number"]]
 
-        # 3D: Score all 1,000 numbers, filter Top 100 highest mathematical scores, then shuffle
+        # 3D: Filter Top 100 candidates by score, then randomly pick 1 candidate from the pool
         scored_3d_all = []
         for x in range(1000):
             num_3d = f"{x:03d}"
             scored_3d_all.append({"number": num_3d, "score": score_3d(num_3d)})
         scored_3d_all.sort(key=lambda item: item["score"], reverse=True)
-        top_50_3d = list(scored_3d_all[:100])
-        secrets.SystemRandom().shuffle(top_50_3d)
+        top_100_3d_raw = list(scored_3d_all[:100])
+        chosen_3d = secrets.SystemRandom().choice(top_100_3d_raw) if top_100_3d_raw else {"number": "000"}
+        top_50_3d = [chosen_3d] + [x for x in top_100_3d_raw if x["number"] != chosen_3d["number"]]
 
-        # 4D: Score all 10,000 numbers, filter Top 100 highest mathematical scores, then shuffle
+        # 4D: Filter Top 100 candidates by score, then randomly pick 1 candidate from the pool
         scored_4d_all = []
         for x in range(10000):
             num_4d = f"{x:04d}"
             scored_4d_all.append({"number": num_4d, "score": score_4d(num_4d)})
         scored_4d_all.sort(key=lambda item: item["score"], reverse=True)
-        top_100_4d = list(scored_4d_all[:100])
-        secrets.SystemRandom().shuffle(top_100_4d)
+        top_100_4d_raw = list(scored_4d_all[:100])
+        chosen_4d = secrets.SystemRandom().choice(top_100_4d_raw) if top_100_4d_raw else {"number": "0000"}
+        top_100_4d = [chosen_4d] + [x for x in top_100_4d_raw if x["number"] != chosen_4d["number"]]
 
 
 
