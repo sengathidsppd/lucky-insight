@@ -315,8 +315,25 @@ export default function TrackerPage() {
                       </span>
                     </div>
 
-                    <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "#fff", letterSpacing: "2px", fontFamily: "monospace" }}>
-                      {t.number_code}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", margin: "0.4rem 0" }}>
+                      {t.number_code.split(",").map((num, idx) => (
+                        <span
+                          key={idx}
+                          style={{
+                            fontSize: "1.2rem",
+                            fontWeight: 800,
+                            color: "var(--accent-cyan)",
+                            letterSpacing: "2px",
+                            fontFamily: "monospace",
+                            background: "rgba(14, 165, 233, 0.1)",
+                            border: "1px solid rgba(14, 165, 233, 0.25)",
+                            padding: "0.2rem 0.6rem",
+                            borderRadius: "6px",
+                          }}
+                        >
+                          {num.trim()}
+                        </span>
+                      ))}
                     </div>
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginTop: "0.75rem", background: "rgba(255,255,255,0.02)", padding: "0.6rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.04)" }}>
