@@ -47,6 +47,7 @@ export default function TrackerPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Edit form state
+  const [editDrawDate, setEditDrawDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [editAmountSpent, setEditAmountSpent] = useState<string>("0");
   const [editPrizeWon, setEditPrizeWon] = useState<string>("0");
   const [editStatus, setEditStatus] = useState<string>("PENDING");
@@ -65,14 +66,14 @@ export default function TrackerPage() {
     setLoading(true);
     setError(null);
     try {
-      const summaryData = await apiRequest("/tickets/summary");
-      setSummary(summaryData);
+      const summaryResp = await apiRequest<TicketSummary>("/tickets/summary");
+      setSummary(summaryResp);
 
-      const url = statusFilter !== "ALL" ? `/tickets?status=${statusFilter}` : "/tickets";
-      const ticketsData = await apiRequest(url);
-      setTickets(ticketsData);
+      const params = statusFilter !== "ALL" ? { status: statusFilter } : undefined;
+      const ticketsResp = await apiRequest<Ticket[]>("/tickets", { params });
+      setTickets(ticketsResp);
     } catch (err: any) {
-      setError(err.message || "Failed to load ticket tracker data.");
+      setError(err.message || "Failed to load tracker data");
     } finally {
       setLoading(false);
     }
@@ -84,6 +85,7 @@ export default function TrackerPage() {
 
   const handleOpenEditModal = (ticket: Ticket) => {
     setSelectedTicket(ticket);
+    setEditDrawDate(ticket.draw_date || new Date().toISOString().split("T")[0]);
     setEditAmountSpent(ticket.amount_spent.toString());
     setEditPrizeWon(ticket.prize_won.toString());
     setEditStatus(ticket.status);
@@ -98,6 +100,7 @@ export default function TrackerPage() {
       await apiRequest(`/tickets/${selectedTicket.id}`, {
         method: "PATCH",
         body: JSON.stringify({
+          draw_date: editDrawDate,
           amount_spent: parseFloat(editAmountSpent) || 0,
           prize_won: parseFloat(editPrizeWon) || 0,
           status: editStatus,
@@ -409,6 +412,16 @@ export default function TrackerPage() {
                 ✏️ Update Ticket - {selectedTicket.number_code}
               </h2>
               <form onSubmit={handleSaveEditTicket}>
+                <div style={{ marginBottom: "1rem" }}>
+                  <label style={labelStyle}>Draw Date</label>
+                  <input
+                    type="date"
+                    value={editDrawDate}
+                    onChange={(e) => setEditDrawDate(e.target.value)}
+                    style={inputStyle}
+                  />
+                </div>
+
                 <div style={{ marginBottom: "1rem" }}>
                   <label style={labelStyle}>Amount Spent (Kip / THB)</label>
                   <input
