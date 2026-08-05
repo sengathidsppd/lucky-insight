@@ -16,8 +16,8 @@ from app.schemas.ticket import (
 
 router = APIRouter()
 
-@router.get("", response_model=List[UserTicketResponse])
-@router.get("/", response_model=List[UserTicketResponse], include_in_schema=False)
+@router.get("/tickets", response_model=List[UserTicketResponse])
+@router.get("/tickets/", response_model=List[UserTicketResponse], include_in_schema=False)
 def get_user_tickets(
     status_filter: Optional[str] = Query(None, alias="status"),
     db: Session = Depends(get_db),
@@ -35,8 +35,8 @@ def get_user_tickets(
     tickets = db.execute(stmt).scalars().all()
     return tickets
 
-@router.get("/summary", response_model=UserTicketSummary)
-@router.get("/summary/", response_model=UserTicketSummary, include_in_schema=False)
+@router.get("/tickets/summary", response_model=UserTicketSummary)
+@router.get("/tickets/summary/", response_model=UserTicketSummary, include_in_schema=False)
 def get_user_ticket_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -61,8 +61,8 @@ def get_user_ticket_summary(
         win_rate=win_rate,
     )
 
-@router.post("", response_model=UserTicketResponse, status_code=status.HTTP_201_CREATED)
-@router.post("/", response_model=UserTicketResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
+@router.post("/tickets", response_model=UserTicketResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/tickets/", response_model=UserTicketResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def create_user_ticket(
     ticket_in: UserTicketCreate,
     db: Session = Depends(get_db),
@@ -85,7 +85,7 @@ def create_user_ticket(
     db.refresh(db_ticket)
     return db_ticket
 
-@router.patch("/{ticket_id}", response_model=UserTicketResponse)
+@router.patch("/tickets/{ticket_id}", response_model=UserTicketResponse)
 def update_user_ticket(
     ticket_id: uuid.UUID,
     ticket_in: UserTicketUpdate,
@@ -116,7 +116,7 @@ def update_user_ticket(
     db.refresh(ticket)
     return ticket
 
-@router.delete("/{ticket_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/tickets/{ticket_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user_ticket(
     ticket_id: uuid.UUID,
     db: Session = Depends(get_db),
