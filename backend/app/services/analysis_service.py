@@ -304,6 +304,9 @@ class AnalysisService:
             }
             return round(final_score, 2), audit
 
+        import random
+
+        unique_6d = set(endings_map[6])
         # Inject 10,000 random combinations to find high-scoring unseen numbers
         for _ in range(10000):
             unique_6d.add(f"{random.randint(0, 999999):06d}")
