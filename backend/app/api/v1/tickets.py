@@ -17,6 +17,7 @@ from app.schemas.ticket import (
 router = APIRouter()
 
 @router.get("", response_model=List[UserTicketResponse])
+@router.get("/", response_model=List[UserTicketResponse], include_in_schema=False)
 def get_user_tickets(
     status_filter: Optional[str] = Query(None, alias="status"),
     db: Session = Depends(get_db),
@@ -35,6 +36,7 @@ def get_user_tickets(
     return tickets
 
 @router.get("/summary", response_model=UserTicketSummary)
+@router.get("/summary/", response_model=UserTicketSummary, include_in_schema=False)
 def get_user_ticket_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -60,6 +62,7 @@ def get_user_ticket_summary(
     )
 
 @router.post("", response_model=UserTicketResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=UserTicketResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def create_user_ticket(
     ticket_in: UserTicketCreate,
     db: Session = Depends(get_db),
