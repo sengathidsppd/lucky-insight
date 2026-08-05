@@ -67,6 +67,8 @@ def map_job_to_response(job: AnalysisJob, db: Session) -> AnalysisJobResponse:
         game_code=game_code,
         parameters=job.parameters,
         error_message=job.error_message,
+        created_at=job.created_at,
+        updated_at=job.updated_at,
         result=result_data,
     )
 
