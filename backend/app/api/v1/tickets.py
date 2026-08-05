@@ -40,8 +40,9 @@ def auto_check_pending_tickets(db: Session, user_id: Optional[uuid.UUID] = None)
                     func.upper(LotteryGame.code) == ticket.lottery_type.upper(),
                     LotteryResult.draw_date == ticket.draw_date,
                 )
+                .order_by(LotteryResult.created_at.desc())
             )
-            result = db.execute(res_stmt).scalar_one_or_none()
+            result = db.execute(res_stmt).scalars().first()
             if not result:
                 continue
 
