@@ -454,6 +454,24 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
     setIsSet1Visible(false);
   }, [job.id]);
 
+  const handleSaveToTracker = async (numberCode: string, category: string) => {
+    try {
+      await apiRequest("/tickets", {
+        method: "POST",
+        body: JSON.stringify({
+          number_code: numberCode,
+          category: category,
+          lottery_type: job.game_code || "LAO",
+          amount_spent: 0,
+          status: "PENDING",
+        }),
+      });
+      alert(`📌 Number ${numberCode} (${category}) saved to your Personal Tracker!`);
+    } catch (err: any) {
+      alert("Failed to save to Tracker: " + err.message);
+    }
+  };
+
   if (!result) return null;
   const details = result.result_data;
 
@@ -487,8 +505,26 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                   <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "4px" }}>
                     {details.best_analyzed_6d[0].number}
                   </div>
-                  <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", minWidth: "100px", textAlign: "right" }}>
-                    Score: {details.best_analyzed_6d[0].score}
+                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                    <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "right" }}>
+                      Score: {details.best_analyzed_6d[0].score}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSaveToTracker(details.best_analyzed_6d[0].number, "6D")}
+                      style={{
+                        padding: "0.4rem 0.8rem",
+                        background: "rgba(14, 165, 233, 0.15)",
+                        border: "1px solid rgba(14, 165, 233, 0.4)",
+                        borderRadius: "6px",
+                        color: "var(--accent-cyan)",
+                        fontWeight: 700,
+                        fontSize: "0.8rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      📌 Save to Tracker
+                    </button>
                   </div>
                 </div>
               )}
@@ -511,8 +547,26 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                         <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "4px" }}>
                           {top4dItem.number}
                         </div>
-                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", minWidth: "100px", textAlign: "right" }}>
-                          Score: {top4dItem.score}
+                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                          <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "right" }}>
+                            Score: {top4dItem.score}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleSaveToTracker(top4dItem.number, "4D")}
+                            style={{
+                              padding: "0.4rem 0.8rem",
+                              background: "rgba(14, 165, 233, 0.15)",
+                              border: "1px solid rgba(14, 165, 233, 0.4)",
+                              borderRadius: "6px",
+                              color: "var(--accent-cyan)",
+                              fontWeight: 700,
+                              fontSize: "0.8rem",
+                              cursor: "pointer",
+                            }}
+                          >
+                            📌 Save to Tracker
+                          </button>
                         </div>
                       </div>
                     )}
@@ -525,8 +579,26 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                         <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "4px" }}>
                           {top3dItem.number}
                         </div>
-                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", minWidth: "100px", textAlign: "right" }}>
-                          Score: {top3dItem.score}
+                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                          <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "right" }}>
+                            Score: {top3dItem.score}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleSaveToTracker(top3dItem.number, "3D")}
+                            style={{
+                              padding: "0.4rem 0.8rem",
+                              background: "rgba(14, 165, 233, 0.15)",
+                              border: "1px solid rgba(14, 165, 233, 0.4)",
+                              borderRadius: "6px",
+                              color: "var(--accent-cyan)",
+                              fontWeight: 700,
+                              fontSize: "0.8rem",
+                              cursor: "pointer",
+                            }}
+                          >
+                            📌 Save to Tracker
+                          </button>
                         </div>
                       </div>
                     )}
@@ -539,8 +611,26 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                         <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "4px" }}>
                           {top2dItem.number}
                         </div>
-                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", minWidth: "100px", textAlign: "right" }}>
-                          Score: {top2dItem.score}
+                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                          <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "right" }}>
+                            Score: {top2dItem.score}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleSaveToTracker(top2dItem.number, "2D")}
+                            style={{
+                              padding: "0.4rem 0.8rem",
+                              background: "rgba(14, 165, 233, 0.15)",
+                              border: "1px solid rgba(14, 165, 233, 0.4)",
+                              borderRadius: "6px",
+                              color: "var(--accent-cyan)",
+                              fontWeight: 700,
+                              fontSize: "0.8rem",
+                              cursor: "pointer",
+                            }}
+                          >
+                            📌 Save to Tracker
+                          </button>
                         </div>
                       </div>
                     )}
