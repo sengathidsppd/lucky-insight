@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import NavigationShell from "@/components/NavigationShell";
 import { apiRequest } from "@/lib/api";
 
 interface TicketSummary {
@@ -152,8 +151,7 @@ export default function TrackerPage() {
   };
 
   return (
-    <NavigationShell>
-      <div style={{ maxWidth: "1200px", margin: "0 auto", color: "#fff" }}>
+    <div style={{ maxWidth: "1200px", margin: "0 auto", color: "#fff" }}>
         {/* Title Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
           <div>
@@ -574,7 +572,6 @@ export default function TrackerPage() {
           </div>
         )}
       </div>
-    </NavigationShell>
   );
 }
 
