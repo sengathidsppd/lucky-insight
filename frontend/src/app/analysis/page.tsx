@@ -520,12 +520,6 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
     if (details.best_analyzed_6d?.[0]?.number) {
       numbers.push(details.best_analyzed_6d[0].number);
     }
-    if (details.generated_4d_recommendations?.[0]?.number) {
-      numbers.push(details.generated_4d_recommendations[0].number);
-    }
-    if (details.generated_3d_recommendations?.[0]?.number) {
-      numbers.push(details.generated_3d_recommendations[0].number);
-    }
     if (details.generated_2d_recommendations?.[0]?.number) {
       numbers.push(details.generated_2d_recommendations[0].number);
     }
@@ -562,7 +556,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
 
       {job.analysis_type === "FREQUENCY" && details.top_single_digits && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-          {/* Recommended Picks (6D, 4D, 3D, 2D) */}
+          {/* Recommended Picks (6D, 2D) */}
           <div
             className="glass-panel"
             style={{
@@ -632,79 +626,12 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 </div>
               )}
 
-              {/* 4-Digit Card */}
+              {/* 2-Digit Card */}
               {(() => {
-                const top4dItem = details.generated_4d_recommendations?.[0] || null;
-
-                const top3dItem = details.generated_3d_recommendations?.[0] || null;
                 const top2dItem = details.generated_2d_recommendations?.[0] || null;
-
 
                 return (
                   <>
-                    {top4dItem && (
-                      <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
-                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                          4-Digit Pick (Top 4D)
-                        </div>
-                        <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "4px" }}>
-                          {top4dItem.number}
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                          <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "right" }}>
-                            Score: {top4dItem.score}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleSaveToTracker(top4dItem.number, "4D")}
-                            style={{
-                              padding: "0.4rem 0.8rem",
-                              background: "rgba(14, 165, 233, 0.15)",
-                              border: "1px solid rgba(14, 165, 233, 0.4)",
-                              borderRadius: "6px",
-                              color: "var(--accent-cyan)",
-                              fontWeight: 700,
-                              fontSize: "0.8rem",
-                              cursor: "pointer",
-                            }}
-                          >
-                            📌 Save to Tracker
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {top3dItem && (
-                      <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
-                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                          3-Digit Pick (Top 3D)
-                        </div>
-                        <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "4px" }}>
-                          {top3dItem.number}
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                          <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "right" }}>
-                            Score: {top3dItem.score}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleSaveToTracker(top3dItem.number, "3D")}
-                            style={{
-                              padding: "0.4rem 0.8rem",
-                              background: "rgba(14, 165, 233, 0.15)",
-                              border: "1px solid rgba(14, 165, 233, 0.4)",
-                              borderRadius: "6px",
-                              color: "var(--accent-cyan)",
-                              fontWeight: 700,
-                              fontSize: "0.8rem",
-                              cursor: "pointer",
-                            }}
-                          >
-                            📌 Save to Tracker
-                          </button>
-                        </div>
-                      </div>
-                    )}
 
                     {top2dItem && (
                       <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
