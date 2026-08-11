@@ -230,9 +230,6 @@ export default function AnalysisPage() {
                   <select value={analysisType} onChange={(e) => setAnalysisType(e.target.value)}>
                     <option value="FREQUENCY">Digit Frequency</option>
                     <option value="MONTE_CARLO">Monte Carlo Simulation (100k Runs)</option>
-                    <option value="PAIR">Winning Pairs</option>
-                    <option value="TRIPLE">Winning Triplets</option>
-                    <option value="DISTRIBUTION">Distribution (Odd/Even, High/Low)</option>
                   </select>
                 </div>
               </div>
