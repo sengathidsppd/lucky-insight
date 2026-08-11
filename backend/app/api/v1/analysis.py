@@ -89,7 +89,7 @@ def get_user_quota(
         )
         .count()
     )
-    daily_limit = 2
+    daily_limit = 1
     used = daily_count
     remaining = max(0, daily_limit - used)
 
@@ -113,7 +113,7 @@ def create_analysis(
     current_user: User = Depends(get_current_active_user),
     service: AnalysisService = Depends(get_analysis_service),
 ) -> AnalysisJobDetailResponse:
-    # Check daily limit of 2 analysis runs per day for ALL users (including admins)
+    # Check daily limit of 1 analysis run per day for ALL users (including admins)
     from datetime import datetime
     start_of_today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     daily_count = (
@@ -124,10 +124,10 @@ def create_analysis(
         )
         .count()
     )
-    if daily_count >= 2:
+    if daily_count >= 1:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Daily analysis quota reached: 2 runs per day. Please try again tomorrow!",
+            detail="Daily analysis quota reached: 1 run per day. Please try again tomorrow!",
         )
 
     try:

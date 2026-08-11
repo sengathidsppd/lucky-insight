@@ -37,8 +37,8 @@ export default function AnalysisPage() {
   const [error, setError] = useState("");
 
   const [quotaInfo, setQuotaInfo] = useState<{ remaining: number; daily_limit: number; used_today: number }>({
-    remaining: 2,
-    daily_limit: 2,
+    remaining: 1,
+    daily_limit: 1,
     used_today: 0,
   });
 
@@ -268,7 +268,7 @@ export default function AnalysisPage() {
                 {isSubmitting
                   ? "Calculating..."
                   : quotaInfo.remaining <= 0
-                  ? "🔒 Quota Limit Reached (2/2)"
+                  ? `🔒 Quota Limit Reached (${quotaInfo.daily_limit}/${quotaInfo.daily_limit})`
                   : " Analyze Data"}
               </button>
             </form>
