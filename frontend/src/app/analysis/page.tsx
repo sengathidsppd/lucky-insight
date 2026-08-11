@@ -229,7 +229,6 @@ export default function AnalysisPage() {
                   <label style={labelStyle}>Model Type</label>
                   <select value={analysisType} onChange={(e) => setAnalysisType(e.target.value)}>
                     <option value="FREQUENCY">Digit Frequency</option>
-                    <option value="MONTE_CARLO">Monte Carlo Simulation (100k Runs)</option>
                   </select>
                 </div>
               </div>
