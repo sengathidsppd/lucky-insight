@@ -12,7 +12,7 @@ class CreateAnalysisRequest(BaseModel):
 
     analysis_type: str = Field(
         ...,
-        description="One of: FREQUENCY, PAIR, TRIPLE, DISTRIBUTION, TREND",
+        description="One of: FREQUENCY, PAIR, TRIPLE, DISTRIBUTION, TREND, MONTE_CARLO",
     )
     parameters: dict[str, Any] | None = Field(
         default=None,

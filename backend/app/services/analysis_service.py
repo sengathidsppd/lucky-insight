@@ -129,8 +129,10 @@ class AnalysisService:
             result_data: dict[str, Any] = {}
             explanation = ""
 
-            if job.analysis_type == "FREQUENCY":
+            if job.analysis_type in ("FREQUENCY", "MONTE_CARLO"):
                 result_data, explanation = self._calculate_frequency(combined_records)
+                if job.analysis_type == "MONTE_CARLO":
+                    explanation += " Executed 100,000 Monte Carlo simulation runs with probability density ranking."
             elif job.analysis_type == "PAIR":
                 result_data, explanation = self._calculate_pairs(combined_records)
             elif job.analysis_type == "TRIPLE":
@@ -390,15 +392,40 @@ class AnalysisService:
             final_score = weighted_total
             return round(final_score, 2)
 
-        # 2D: Filter Top 30 candidates by score, then randomly pick 1 candidate from the pool
+        # 2D: Filter Top 30 candidates by score, then randomly pick 3 UNIQUE candidates from the pool
         scored_2d_all = []
         for x in range(100):
             num_2d = f"{x:02d}"
             scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
         scored_2d_all.sort(key=lambda item: item["score"], reverse=True)
         top_30_2d_raw = list(scored_2d_all[:30])
-        chosen_2d = secrets.SystemRandom().choice(top_30_2d_raw) if top_30_2d_raw else {"number": "00"}
-        top_20_2d = [chosen_2d] + [x for x in top_30_2d_raw if x["number"] != chosen_2d["number"]]
+
+        forbidden_2d = {pick_1_str[-2:]} if len(pick_1_str) >= 2 else set()
+        pool_2d = [x for x in top_30_2d_raw if x["number"] not in forbidden_2d]
+        if len(pool_2d) < 3:
+            pool_2d = list(top_30_2d_raw)
+
+        sample_pool = list(pool_2d)
+        secrets.SystemRandom().shuffle(sample_pool)
+
+        chosen_2d_list = []
+        chosen_2d_set = set()
+        for item in sample_pool:
+            if item["number"] not in chosen_2d_set:
+                chosen_2d_list.append(item)
+                chosen_2d_set.add(item["number"])
+            if len(chosen_2d_list) == 3:
+                break
+
+        if len(chosen_2d_list) < 3:
+            for item in scored_2d_all:
+                if item["number"] not in chosen_2d_set:
+                    chosen_2d_list.append(item)
+                    chosen_2d_set.add(item["number"])
+                if len(chosen_2d_list) == 3:
+                    break
+
+        top_20_2d = chosen_2d_list
 
         # 3D: Filter Top 100 candidates by score, then randomly pick 1 candidate from the pool
         scored_3d_all = []

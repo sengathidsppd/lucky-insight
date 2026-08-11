@@ -229,6 +229,7 @@ export default function AnalysisPage() {
                   <label style={labelStyle}>Model Type</label>
                   <select value={analysisType} onChange={(e) => setAnalysisType(e.target.value)}>
                     <option value="FREQUENCY">Digit Frequency</option>
+                    <option value="MONTE_CARLO">Monte Carlo Simulation (100k Runs)</option>
                     <option value="PAIR">Winning Pairs</option>
                     <option value="TRIPLE">Winning Triplets</option>
                     <option value="DISTRIBUTION">Distribution (Odd/Even, High/Low)</option>
@@ -520,8 +521,11 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
     if (details.best_analyzed_6d?.[0]?.number) {
       numbers.push(details.best_analyzed_6d[0].number);
     }
-    if (details.generated_2d_recommendations?.[0]?.number) {
-      numbers.push(details.generated_2d_recommendations[0].number);
+    const top2dItems = (details.generated_2d_recommendations || []).slice(0, 3);
+    for (const item of top2dItems) {
+      if (item?.number) {
+        numbers.push(item.number);
+      }
     }
 
     if (numbers.length === 0) {
@@ -554,7 +558,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
     <div style={resultsBodyStyle}>
 
 
-      {job.analysis_type === "FREQUENCY" && details.top_single_digits && (
+      {(job.analysis_type === "FREQUENCY" || job.analysis_type === "MONTE_CARLO") && details.top_single_digits && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
           {/* Recommended Picks (6D, 2D) */}
           <div
@@ -626,46 +630,55 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 </div>
               )}
 
-              {/* 2-Digit Card */}
+              {/* 2-Digit Cards (3 Unique Picks) */}
               {(() => {
-                const top2dItem = details.generated_2d_recommendations?.[0] || null;
+                const top2dList = (details.generated_2d_recommendations || []).slice(0, 3);
 
-                return (
-                  <>
-
-                    {top2dItem && (
-                      <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
-                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                          2-Digit Pick (Top 2D)
-                        </div>
-                        <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "4px" }}>
-                          {top2dItem.number}
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                          <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "right" }}>
-                            Score: {top2dItem.score}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleSaveToTracker(top2dItem.number, "2D")}
-                            style={{
-                              padding: "0.4rem 0.8rem",
-                              background: "rgba(14, 165, 233, 0.15)",
-                              border: "1px solid rgba(14, 165, 233, 0.4)",
-                              borderRadius: "6px",
-                              color: "var(--accent-cyan)",
-                              fontWeight: 700,
-                              fontSize: "0.8rem",
-                              cursor: "pointer",
-                            }}
-                          >
-                            📌 Save to Tracker
-                          </button>
-                        </div>
+                return top2dList.map((item: any, idx: number) => (
+                  <div
+                    key={item.number + idx}
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
+                      gap: "1rem",
+                      background: "rgba(255, 255, 255, 0.02)",
+                      border: "1px solid rgba(255, 255, 255, 0.05)",
+                      borderRadius: "8px",
+                      padding: "1rem 1.5rem",
+                    }}
+                  >
+                    <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
+                      2-Digit Pick #{idx + 1} (Top 2D)
+                    </div>
+                    <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "4px" }}>
+                      {item.number}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                      <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "right" }}>
+                        Score: {item.score}
                       </div>
-                    )}
-                  </>
-                );
+                      <button
+                        type="button"
+                        onClick={() => handleSaveToTracker(item.number, "2D")}
+                        style={{
+                          padding: "0.4rem 0.8rem",
+                          background: "rgba(14, 165, 233, 0.15)",
+                          border: "1px solid rgba(14, 165, 233, 0.4)",
+                          borderRadius: "6px",
+                          color: "var(--accent-cyan)",
+                          fontWeight: 700,
+                          fontSize: "0.8rem",
+                          cursor: "pointer",
+                        }}
+                      >
+                        📌 Save to Tracker
+                      </button>
+                    </div>
+                  </div>
+                ));
               })()}
             </div>
           </div>
