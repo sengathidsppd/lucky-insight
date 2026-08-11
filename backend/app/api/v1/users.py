@@ -180,6 +180,7 @@ def admin_reset_password(
             last_name=None,
             is_active=u.is_active,
             is_admin=u.is_admin,
+            created_at=u.created_at,
             updated_at=u.updated_at,
         )
     )
