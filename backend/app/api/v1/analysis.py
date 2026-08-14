@@ -94,9 +94,11 @@ def get_user_quota(
         .all()
     )
 
-    target_game_id = str(game_id) if game_id else None
-    if not target_game_id and game_code:
-        g = db.query(LotteryGame).filter(LotteryGame.code == game_code.strip().upper()).first()
+    target_game_id = None
+    if game_id and str(game_id).strip() not in ("undefined", "null", ""):
+        target_game_id = str(game_id).strip()
+    elif game_code and str(game_code).strip() not in ("undefined", "null", ""):
+        g = db.query(LotteryGame).filter(LotteryGame.code == str(game_code).strip().upper()).first()
         if g:
             target_game_id = str(g.id)
 
@@ -107,8 +109,6 @@ def get_user_quota(
             j_gid = str(params.get("game_id")) if params.get("game_id") else None
             if j_gid == target_game_id:
                 used_today += 1
-    else:
-        used_today = len(jobs_today)
 
     daily_limit = 1
     remaining = max(0, daily_limit - used_today)
@@ -138,7 +138,7 @@ def create_analysis(
     from app.models.lottery_game import LotteryGame
 
     game_id = (payload.parameters or {}).get("game_id")
-    target_game_id = str(game_id) if game_id else None
+    target_game_id = str(game_id).strip() if (game_id and str(game_id).strip() not in ("undefined", "null", "")) else None
 
     start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     jobs_today = (
@@ -161,12 +161,6 @@ def create_analysis(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Daily analysis quota reached for {g_name}: 1 run per day. Please try again tomorrow or analyze a different game!",
-            )
-    else:
-        if len(jobs_today) >= 1:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Daily analysis quota reached: 1 run per day. Please try again tomorrow!",
             )
 
     try:

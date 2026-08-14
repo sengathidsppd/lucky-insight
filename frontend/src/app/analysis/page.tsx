@@ -42,20 +42,27 @@ export default function AnalysisPage() {
     used_today: 0,
   });
 
+  const isLaoGame = (g: any) => {
+    if (!g) return false;
+    const code = (g.code || "").toUpperCase();
+    const name = (g.name || "").toUpperCase();
+    return code.includes("LAO") || name.includes("LAO") || name.includes("ลาว");
+  };
+
   const fetchLookups = async () => {
     try {
       const resp = await apiRequest("/lotteries/games");
       const fetchedGames = resp.data || [];
       const sortedGames = [...fetchedGames].sort((a, b) => {
-        const aIsLao = a.code === "LAO" || a.code.includes("LAO") || (a.name || "").includes("ลาว");
-        const bIsLao = b.code === "LAO" || b.code.includes("LAO") || (b.name || "").includes("ลาว");
+        const aIsLao = isLaoGame(a);
+        const bIsLao = isLaoGame(b);
         if (aIsLao && !bIsLao) return -1;
         if (!aIsLao && bIsLao) return 1;
         return (a.name || "").localeCompare(b.name || "");
       });
       setGames(sortedGames);
       if (sortedGames.length > 0) {
-        const defaultGame = sortedGames.find((g) => g.code === "LAO" || g.code.includes("LAO")) || sortedGames[0];
+        const defaultGame = sortedGames.find(isLaoGame) || sortedGames[0];
         setGameCode(defaultGame.code);
         fetchQuota(defaultGame.code, sortedGames);
       }
