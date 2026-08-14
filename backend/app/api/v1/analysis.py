@@ -76,27 +76,47 @@ def map_job_to_response(job: AnalysisJob, db: Session) -> AnalysisJobResponse:
 @router.get("/quota", summary="Get remaining daily analysis quota for current user")
 @router.get("/quota/", include_in_schema=False)
 def get_user_quota(
+    game_id: str | None = Query(None),
+    game_code: str | None = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    from datetime import datetime
-    start_of_today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    daily_count = (
+    from datetime import datetime, timezone
+    from app.models.lottery_game import LotteryGame
+
+    start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    jobs_today = (
         db.query(AnalysisJob)
         .filter(
             AnalysisJob.user_id == current_user.id,
             AnalysisJob.created_at >= start_of_today,
         )
-        .count()
+        .all()
     )
+
+    target_game_id = str(game_id) if game_id else None
+    if not target_game_id and game_code:
+        g = db.query(LotteryGame).filter(LotteryGame.code == game_code.strip().upper()).first()
+        if g:
+            target_game_id = str(g.id)
+
+    used_today = 0
+    if target_game_id:
+        for j in jobs_today:
+            params = j.parameters or {}
+            j_gid = str(params.get("game_id")) if params.get("game_id") else None
+            if j_gid == target_game_id:
+                used_today += 1
+    else:
+        used_today = len(jobs_today)
+
     daily_limit = 1
-    used = daily_count
-    remaining = max(0, daily_limit - used)
+    remaining = max(0, daily_limit - used_today)
 
     return {
         "success": True,
         "daily_limit": daily_limit,
-        "used_today": used,
+        "used_today": used_today,
         "remaining": remaining,
     }
 
@@ -113,22 +133,41 @@ def create_analysis(
     current_user: User = Depends(get_current_active_user),
     service: AnalysisService = Depends(get_analysis_service),
 ) -> AnalysisJobDetailResponse:
-    # Check daily limit of 1 analysis run per day for ALL users (including admins)
-    from datetime import datetime
-    start_of_today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    daily_count = (
+    # Check daily limit of 1 analysis run per day PER GAME for ALL users (including admins)
+    from datetime import datetime, timezone
+    from app.models.lottery_game import LotteryGame
+
+    game_id = (payload.parameters or {}).get("game_id")
+    target_game_id = str(game_id) if game_id else None
+
+    start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    jobs_today = (
         db.query(AnalysisJob)
         .filter(
             AnalysisJob.user_id == current_user.id,
             AnalysisJob.created_at >= start_of_today,
         )
-        .count()
+        .all()
     )
-    if daily_count >= 1:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Daily analysis quota reached: 1 run per day. Please try again tomorrow!",
+
+    if target_game_id:
+        used_for_game = sum(
+            1 for j in jobs_today
+            if str((j.parameters or {}).get("game_id")) == target_game_id
         )
+        if used_for_game >= 1:
+            g = db.query(LotteryGame).filter(LotteryGame.id == game_id).first()
+            g_name = g.name if g else "this lottery game"
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Daily analysis quota reached for {g_name}: 1 run per day. Please try again tomorrow or analyze a different game!",
+            )
+    else:
+        if len(jobs_today) >= 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Daily analysis quota reached: 1 run per day. Please try again tomorrow!",
+            )
 
     try:
         job = service.create_and_run_analysis(

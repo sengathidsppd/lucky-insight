@@ -46,18 +46,32 @@ export default function AnalysisPage() {
     try {
       const resp = await apiRequest("/lotteries/games");
       const fetchedGames = resp.data || [];
-      setGames(fetchedGames);
-      if (fetchedGames.length > 0) {
-        setGameCode(fetchedGames[0].code);
+      const sortedGames = [...fetchedGames].sort((a, b) => {
+        const aIsLao = a.code === "LAO" || a.code.includes("LAO") || (a.name || "").includes("ลาว");
+        const bIsLao = b.code === "LAO" || b.code.includes("LAO") || (b.name || "").includes("ลาว");
+        if (aIsLao && !bIsLao) return -1;
+        if (!aIsLao && bIsLao) return 1;
+        return (a.name || "").localeCompare(b.name || "");
+      });
+      setGames(sortedGames);
+      if (sortedGames.length > 0) {
+        const defaultGame = sortedGames.find((g) => g.code === "LAO" || g.code.includes("LAO")) || sortedGames[0];
+        setGameCode(defaultGame.code);
+        fetchQuota(defaultGame.code, sortedGames);
       }
     } catch (err) {
       console.error("Failed to load games lookup:", err);
     }
   };
 
-  const fetchQuota = async () => {
+  const fetchQuota = async (targetGameCode = gameCode, currentGames = games) => {
     try {
-      const resp = await apiRequest("/analysis/quota");
+      const activeGames = currentGames.length > 0 ? currentGames : games;
+      const selectedGame = activeGames.find((g) => g.code === targetGameCode);
+      const param = selectedGame?.id
+        ? `?game_id=${selectedGame.id}`
+        : `?game_code=${targetGameCode}`;
+      const resp = await apiRequest(`/analysis/quota${param}`);
       if (resp && resp.remaining !== undefined) {
         setQuotaInfo({
           remaining: resp.remaining,
@@ -215,7 +229,14 @@ export default function AnalysisPage() {
               <div style={formRowStyle}>
                 <div style={formColStyle}>
                   <label style={labelStyle}>Target Game</label>
-                  <select value={gameCode} onChange={(e) => setGameCode(e.target.value)}>
+                  <select
+                    value={gameCode}
+                    onChange={(e) => {
+                      const newCode = e.target.value;
+                      setGameCode(newCode);
+                      fetchQuota(newCode);
+                    }}
+                  >
                     {games.map((g) => (
                       <option key={g.id} value={g.code}>
                         {g.name}
@@ -247,11 +268,11 @@ export default function AnalysisPage() {
               <div style={{ fontSize: "0.85rem", fontWeight: 600, margin: "0.5rem 0", display: "flex", alignItems: "center", gap: "0.4rem" }}>
                 {quotaInfo.remaining > 0 ? (
                   <span style={{ color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                    <span>💡</span> <span>Daily Analysis Quota: <strong>{quotaInfo.remaining} / {quotaInfo.daily_limit}</strong> runs remaining today</span>
+                    <span>💡</span> <span>Daily Analysis Quota for <strong>{games.find((g) => g.code === gameCode)?.name || gameCode}</strong>: <strong>{quotaInfo.remaining} / {quotaInfo.daily_limit}</strong> run remaining today</span>
                   </span>
                 ) : (
                   <span style={{ color: "#f87171", display: "flex", alignItems: "center", gap: "0.4rem", background: "rgba(239, 68, 68, 0.12)", padding: "0.4rem 0.8rem", borderRadius: "8px", border: "1px solid rgba(239, 68, 68, 0.3)", width: "100%" }}>
-                    <span>🔒</span> <span>Daily Quota Reached: <strong>0 / {quotaInfo.daily_limit}</strong> runs remaining today</span>
+                    <span>🔒</span> <span>Daily Quota Reached for <strong>{games.find((g) => g.code === gameCode)?.name || gameCode}</strong>: <strong>0 / {quotaInfo.daily_limit}</strong> runs remaining today</span>
                   </span>
                 )}
               </div>
