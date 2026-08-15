@@ -193,11 +193,14 @@ def admin_reset_password(
 )
 def reset_user_analysis_quota(
     user_id: uuid.UUID,
+    game_id: str | None = Query(None),
     current_admin: User = Depends(get_current_admin_user),
     db: Session = Depends(get_db),
 ):
     from datetime import datetime, timezone
     from app.models.analysis_job import AnalysisJob
+    from sqlalchemy.orm.attributes import flag_modified
+
     start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
 
     jobs = (
@@ -209,7 +212,12 @@ def reset_user_analysis_quota(
         .all()
     )
     for job in jobs:
-        db.delete(job)
+        params = dict(job.parameters or {})
+        if not game_id or str(params.get("game_id")) == str(game_id):
+            params["quota_reset"] = True
+            job.parameters = params
+            flag_modified(job, "parameters")
+
     db.commit()
 
-    return {"success": True, "message": "Successfully reset daily analysis quota."}
+    return {"success": True, "message": "Successfully reset daily analysis quota without deleting history."}

@@ -106,6 +106,8 @@ def get_user_quota(
     if target_game_id:
         for j in jobs_today:
             params = j.parameters or {}
+            if params.get("quota_reset"):
+                continue
             j_gid = str(params.get("game_id")) if params.get("game_id") else None
             if j_gid == target_game_id:
                 used_today += 1
@@ -153,7 +155,7 @@ def create_analysis(
     if target_game_id:
         used_for_game = sum(
             1 for j in jobs_today
-            if str((j.parameters or {}).get("game_id")) == target_game_id
+            if not (j.parameters or {}).get("quota_reset") and str((j.parameters or {}).get("game_id")) == target_game_id
         )
         if used_for_game >= 1:
             g = db.query(LotteryGame).filter(LotteryGame.id == game_id).first()
