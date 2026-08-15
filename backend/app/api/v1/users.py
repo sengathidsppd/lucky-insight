@@ -1,7 +1,7 @@
 """User API endpoints (v1)."""
 
 import uuid
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
