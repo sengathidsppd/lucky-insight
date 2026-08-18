@@ -392,7 +392,7 @@ class AnalysisService:
             final_score = weighted_total
             return round(final_score, 2)
 
-        # 2D: Filter Top 30 candidates by score, then pick 1 candidate
+        # 2D: Filter Top 30 candidates by score, then pick 2 UNIQUE candidates from the pool
         scored_2d_all = []
         for x in range(100):
             num_2d = f"{x:02d}"
@@ -402,13 +402,32 @@ class AnalysisService:
 
         forbidden_2d = {pick_1_str[-2:]} if len(pick_1_str) >= 2 else set()
         pool_2d = [x for x in top_30_2d_raw if x["number"] not in forbidden_2d]
-        if not pool_2d:
+        if len(pool_2d) < 2:
             pool_2d = list(top_30_2d_raw)
 
-        chosen_2d = secrets.SystemRandom().choice(pool_2d) if pool_2d else {"number": "00", "score": 0.0}
-        top_1_2d = [chosen_2d]
+        sample_pool_2d = list(pool_2d)
+        secrets.SystemRandom().shuffle(sample_pool_2d)
 
-        # 3D: Filter Top 100 candidates by score, then randomly pick 2 UNIQUE candidates from the pool
+        chosen_2d_list = []
+        chosen_2d_set = set()
+        for item in sample_pool_2d:
+            if item["number"] not in chosen_2d_set:
+                chosen_2d_list.append(item)
+                chosen_2d_set.add(item["number"])
+            if len(chosen_2d_list) == 2:
+                break
+
+        if len(chosen_2d_list) < 2:
+            for item in scored_2d_all:
+                if item["number"] not in chosen_2d_set:
+                    chosen_2d_list.append(item)
+                    chosen_2d_set.add(item["number"])
+                if len(chosen_2d_list) == 2:
+                    break
+
+        top_2_2d = chosen_2d_list
+
+        # 3D: Filter Top 100 candidates by score, then randomly pick 1 candidate from the pool
         scored_3d_all = []
         for x in range(1000):
             num_3d = f"{x:03d}"
@@ -418,30 +437,11 @@ class AnalysisService:
 
         forbidden_3d = {pick_1_str[-3:]} if len(pick_1_str) >= 3 else set()
         pool_3d = [x for x in top_100_3d_raw if x["number"] not in forbidden_3d]
-        if len(pool_3d) < 2:
+        if not pool_3d:
             pool_3d = list(top_100_3d_raw)
 
-        sample_pool_3d = list(pool_3d)
-        secrets.SystemRandom().shuffle(sample_pool_3d)
-
-        chosen_3d_list = []
-        chosen_3d_set = set()
-        for item in sample_pool_3d:
-            if item["number"] not in chosen_3d_set:
-                chosen_3d_list.append(item)
-                chosen_3d_set.add(item["number"])
-            if len(chosen_3d_list) == 2:
-                break
-
-        if len(chosen_3d_list) < 2:
-            for item in scored_3d_all:
-                if item["number"] not in chosen_3d_set:
-                    chosen_3d_list.append(item)
-                    chosen_3d_set.add(item["number"])
-                if len(chosen_3d_list) == 2:
-                    break
-
-        top_2_3d = chosen_3d_list
+        chosen_3d = secrets.SystemRandom().choice(pool_3d) if pool_3d else {"number": "000", "score": 0.0}
+        top_1_3d = [chosen_3d]
 
         # 4D: Filter Top 100 candidates by score, then randomly pick 1 candidate from the pool
         scored_4d_all = []
@@ -453,10 +453,6 @@ class AnalysisService:
         chosen_4d = secrets.SystemRandom().choice(top_100_4d_raw) if top_100_4d_raw else {"number": "0000"}
         top_100_4d = [chosen_4d] + [x for x in top_100_4d_raw if x["number"] != chosen_4d["number"]]
 
-
-
-
-
         result_data = {
             "total_records_analyzed": total_records,
             "top_single_digits": top_digits,
@@ -464,8 +460,8 @@ class AnalysisService:
             "best_analyzed_6d": best_100_6d,
             "generated_recommendations": [pick_1_str],
             "generated_4d_recommendations": top_100_4d,
-            "generated_3d_recommendations": top_2_3d,
-            "generated_2d_recommendations": top_1_2d,
+            "generated_3d_recommendations": top_1_3d,
+            "generated_2d_recommendations": top_2_2d,
             "recent_draws": [r.number for r in records[:30]],
         }
 
