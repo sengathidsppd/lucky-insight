@@ -15,15 +15,16 @@ export const metadata: Metadata = {
   title: "SUSU Lucky — Advanced Lottery Statistical Intelligence",
   description:
     "Unlock mathematical insights from your lucky numbers and compare against official lottery draws with SUSU Lucky.",
-  manifest: "/manifest.json",
+  manifest: "/manifest.json?v=3",
   icons: {
     icon: [
-      { url: "/app-logo.jpg", type: "image/jpeg" },
-      { url: "/favicon.ico" },
+      { url: "/favicon-32x32.png?v=3", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png?v=3", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png?v=3", sizes: "512x512", type: "image/png" },
     ],
-    shortcut: ["/app-logo.jpg"],
+    shortcut: ["/icon-192.png?v=3"],
     apple: [
-      { url: "/app-logo.jpg", sizes: "180x180", type: "image/jpeg" },
+      { url: "/apple-touch-icon.png?v=3", sizes: "180x180", type: "image/png" },
     ],
   },
   appleWebApp: {
@@ -38,9 +39,9 @@ export const metadata: Metadata = {
     siteName: "SUSU Lucky",
     images: [
       {
-        url: "/app-logo.jpg",
-        width: 1024,
-        height: 1024,
+        url: "/icon-512.png?v=3",
+        width: 512,
+        height: 512,
         alt: "SUSU Lucky",
       },
     ],
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
     title: "SUSU Lucky — Advanced Lottery Statistical Intelligence",
     description:
       "Unlock mathematical insights from your lucky numbers with SUSU Lucky.",
-    images: ["/app-logo.jpg"],
+    images: ["/icon-512.png?v=3"],
   },
 };
 
@@ -64,13 +65,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="apple-touch-icon" href="/app-logo.jpg" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/app-logo.jpg" />
-        <link rel="icon" type="image/jpeg" href="/app-logo.jpg" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3" />
+        <link rel="manifest" href="/manifest.json?v=3" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="SUSU Lucky" />
         <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="SUSU Lucky" />
+        <meta name="theme-color" content="#08080c" />
       </head>
       <body>
         <AuthProvider>
