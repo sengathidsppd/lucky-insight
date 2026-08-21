@@ -531,17 +531,12 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
               {/* 6-Digit Card */}
               {details.best_analyzed_6d?.[0] && (
-                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1rem 1.5rem" }}>
-                  <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
+                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.12)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
+                  <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
                     6-Digit Pick (Top 6D)
                   </div>
-                  <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "4px" }}>
+                  <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#ffd700", letterSpacing: "5px", textShadow: "0 0 15px rgba(255, 215, 0, 0.4)" }}>
                     {details.best_analyzed_6d[0].number}
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                    <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "right" }}>
-                      Score: {details.best_analyzed_6d[0].score}
-                    </div>
                   </div>
                 </div>
               )}
@@ -558,7 +553,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                   for (const ending of details.top_2digit_endings) {
                     if (top2dList.length >= 3) break;
                     if (ending?.combination && !existingSet.has(ending.combination)) {
-                      top2dList.push({ number: ending.combination, score: Math.round(ending.count * 8.5 * 10) / 10 });
+                      top2dList.push({ number: ending.combination });
                       existingSet.add(ending.combination);
                     }
                   }
@@ -568,7 +563,6 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
 
                 return display2dList.map((item: any, idx: number) => {
                   const numStr = typeof item === "string" ? item : item?.number || "00";
-                  const scoreVal = typeof item === "object" && item?.score !== undefined ? item.score : "N/A";
 
                   return (
                     <div
@@ -580,22 +574,17 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                         justifyContent: "space-between",
                         flexWrap: "wrap",
                         gap: "1rem",
-                        background: "rgba(255, 255, 255, 0.02)",
-                        border: "1px solid rgba(255, 255, 255, 0.05)",
-                        borderRadius: "8px",
-                        padding: "1rem 1.5rem",
+                        background: "rgba(255, 215, 0, 0.03)",
+                        border: "1px solid rgba(255, 215, 0, 0.12)",
+                        borderRadius: "10px",
+                        padding: "1.1rem 1.8rem",
                       }}
                     >
-                      <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
+                      <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
                         2-Digit Pick #{idx + 1} (Top 2D)
                       </div>
-                      <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-purple)", letterSpacing: "4px" }}>
+                      <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#f59e0b", letterSpacing: "5px", textShadow: "0 0 15px rgba(245, 158, 11, 0.4)" }}>
                         {numStr}
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "right" }}>
-                          Score: {scoreVal}
-                        </div>
                       </div>
                     </div>
                   );
