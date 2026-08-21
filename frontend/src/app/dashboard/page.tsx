@@ -321,8 +321,9 @@ function CalendarHeatmap() {
       ) : (
         <div style={{
           display: "grid",
-          gridTemplateColumns: selectedMonth === "ALL" ? "repeat(auto-fit, minmax(240px, 1fr))" : "1fr",
+          gridTemplateColumns: selectedMonth === "ALL" ? "repeat(auto-fit, minmax(290px, 1fr))" : "1fr",
           gap: "1.2rem",
+          width: "100%",
         }}>
           {displayedMonths.map(({ name: mName, idx: mIdx }) => {
             const daysInMonth = new Date(2026, mIdx + 1, 0).getDate();
@@ -337,6 +338,9 @@ function CalendarHeatmap() {
                   padding: isSingleMonthView ? "1.5rem" : "1rem",
                   borderRadius: "12px",
                   border: "1px solid rgba(255, 255, 255, 0.06)",
+                  boxSizing: "border-box",
+                  width: "100%",
+                  overflow: "hidden",
                 }}
               >
                 {/* Month Title */}
@@ -371,10 +375,11 @@ function CalendarHeatmap() {
                 {/* Day of Week Headers */}
                 <div style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(7, 1fr)",
-                  gap: isSingleMonthView ? "8px" : "4px",
+                  gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+                  gap: isSingleMonthView ? "6px" : "3px",
                   textAlign: "center",
                   marginBottom: "6px",
+                  width: "100%",
                 }}>
                   {weekDays.map((wd, wdIdx) => {
                     const isDrawDayHeader = wdIdx === 1 || wdIdx === 3 || wdIdx === 5; // Mon, Wed, Fri
@@ -382,7 +387,7 @@ function CalendarHeatmap() {
                       <div
                         key={wd}
                         style={{
-                          fontSize: isSingleMonthView ? "0.8rem" : "0.7rem",
+                          fontSize: isSingleMonthView ? "0.8rem" : "0.68rem",
                           fontWeight: isDrawDayHeader ? 800 : 500,
                           color: isDrawDayHeader ? "var(--accent-cyan)" : "var(--text-muted)",
                           paddingBottom: "2px",
@@ -397,12 +402,13 @@ function CalendarHeatmap() {
                 {/* Days Grid */}
                 <div style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(7, 1fr)",
-                  gap: isSingleMonthView ? "8px" : "4px",
+                  gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+                  gap: isSingleMonthView ? "6px" : "3px",
+                  width: "100%",
                 }}>
                   {/* Empty offset slots for previous month overflow */}
                   {Array.from({ length: startDayOfWeek }).map((_, emptyIdx) => (
-                    <div key={`empty-${emptyIdx}`} style={{ aspectRatio: "1" }} />
+                    <div key={`empty-${emptyIdx}`} style={{ aspectRatio: "1", minWidth: 0 }} />
                   ))}
 
                   {/* Day Cells */}
@@ -429,34 +435,39 @@ function CalendarHeatmap() {
                         }}
                         style={{
                           aspectRatio: "1",
+                          minWidth: 0,
+                          width: "100%",
+                          boxSizing: "border-box",
+                          overflow: "hidden",
                           display: "flex",
                           flexDirection: "column",
                           alignItems: "center",
                           justifyContent: "space-between",
-                          borderRadius: isSingleMonthView ? "8px" : "6px",
-                          padding: isSingleMonthView ? "6px 4px" : "3px 2px",
+                          borderRadius: isSingleMonthView ? "8px" : "5px",
+                          padding: isSingleMonthView ? "6px 4px" : "2px 1px",
                           background: hasDraw
-                            ? "linear-gradient(135deg, rgba(6, 182, 212, 0.9), rgba(59, 130, 246, 0.9))"
+                            ? "linear-gradient(135deg, rgba(6, 182, 212, 0.95), rgba(59, 130, 246, 0.95))"
                             : isOfficialDrawDay
                             ? "rgba(255, 255, 255, 0.04)"
                             : "rgba(255, 255, 255, 0.015)",
                           border: hasDraw
-                            ? "1px solid rgba(255, 255, 255, 0.4)"
+                            ? "1px solid rgba(255, 255, 255, 0.45)"
                             : isOfficialDrawDay
                             ? "1px dashed rgba(6, 182, 212, 0.2)"
                             : "1px solid rgba(255, 255, 255, 0.02)",
-                          boxShadow: hasDraw ? "0 2px 10px rgba(6, 182, 212, 0.35)" : "none",
+                          boxShadow: hasDraw ? "0 2px 8px rgba(6, 182, 212, 0.35)" : "none",
                           cursor: hasDraw ? "pointer" : "default",
-                          transition: "all 0.2s ease",
+                          transition: "all 0.15s ease",
                         }}
                       >
                         {/* Top: Day number */}
                         <span style={{
-                          fontSize: isSingleMonthView ? "0.75rem" : "0.62rem",
+                          fontSize: isSingleMonthView ? "0.75rem" : "0.58rem",
                           fontWeight: hasDraw ? 800 : 500,
                           color: hasDraw ? "#ffffff" : isOfficialDrawDay ? "rgba(255,255,255,0.7)" : "rgba(255, 255, 255, 0.3)",
                           alignSelf: "flex-start",
                           marginLeft: isSingleMonthView ? "4px" : "2px",
+                          lineHeight: 1,
                         }}>
                           {dayNum}
                         </span>
@@ -464,12 +475,13 @@ function CalendarHeatmap() {
                         {/* Center: Winning 2D number or empty indicator */}
                         {hasDraw ? (
                           <span style={{
-                            fontSize: isSingleMonthView ? "1.4rem" : "0.85rem",
+                            fontSize: isSingleMonthView ? "1.4rem" : "0.78rem",
                             fontWeight: 900,
                             fontFamily: "monospace",
-                            letterSpacing: "0.5px",
+                            letterSpacing: "0.2px",
                             color: "#ffffff",
                             textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+                            lineHeight: 1,
                           }}>
                             {drawInfo.last2}
                           </span>
@@ -483,11 +495,12 @@ function CalendarHeatmap() {
                             fontSize: "0.65rem",
                             color: "rgba(255,255,255,0.85)",
                             fontFamily: "monospace",
+                            lineHeight: 1,
                           }}>
                             1st: {drawInfo.first_prize}
                           </span>
                         )}
-                        {(!isSingleMonthView || !hasDraw) && <div style={{ height: "2px" }} />}
+                        {(!isSingleMonthView || !hasDraw) && <div style={{ height: "1px" }} />}
                       </div>
                     );
                   })}
