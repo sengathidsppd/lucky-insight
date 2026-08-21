@@ -104,15 +104,15 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                 width: "44px",
                 height: "44px",
                 borderRadius: "12px",
-                background: "linear-gradient(135deg, var(--accent-cyan), #8b5cf6, #d946ef)",
+                background: "linear-gradient(135deg, #ffd700, #f59e0b, #d97706)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: "1.4rem",
-                boxShadow: "0 0 20px rgba(6, 182, 212, 0.5)",
+                boxShadow: "0 0 22px rgba(245, 158, 11, 0.55)",
               }}
             >
-              ✨
+              👑
             </div>
             <div>
               <span
@@ -120,10 +120,10 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                   fontSize: "1.35rem",
                   fontWeight: 900,
                   letterSpacing: "2px",
-                  background: "linear-gradient(135deg, #ffffff 40%, var(--accent-cyan) 100%)",
+                  background: "linear-gradient(135deg, #ffffff 30%, #ffd700 80%, #f59e0b 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
-                  filter: "drop-shadow(0 2px 8px rgba(6, 182, 212, 0.3))",
+                  filter: "drop-shadow(0 2px 10px rgba(245, 158, 11, 0.4))",
                 }}
               >
                 LUCKY INSIGHT
@@ -137,11 +137,11 @@ export default function NavigationShell({ children }: { children: React.ReactNod
               display: "flex",
               alignItems: "center",
               gap: "0.6rem",
-              background: "rgba(255, 255, 255, 0.04)",
+              background: "rgba(255, 215, 0, 0.04)",
               padding: "0.4rem 0.6rem",
               borderRadius: "16px",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              boxShadow: "inset 0 2px 6px rgba(0, 0, 0, 0.3)",
+              border: "1px solid rgba(255, 215, 0, 0.12)",
+              boxShadow: "inset 0 2px 8px rgba(0, 0, 0, 0.5)",
             }}
           >
             {navItems.map((item) => {
@@ -161,13 +161,13 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                     fontWeight: isActive ? 900 : 600,
                     color: isActive ? "#ffffff" : "var(--text-secondary)",
                     background: isActive
-                      ? "linear-gradient(135deg, rgba(6, 182, 212, 0.35), rgba(139, 92, 246, 0.35))"
+                      ? "linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(245, 158, 11, 0.3))"
                       : "transparent",
                     border: isActive
-                      ? "1.5px solid var(--accent-cyan)"
+                      ? "1.5px solid #ffd700"
                       : "1.5px solid transparent",
                     boxShadow: isActive
-                      ? "0 0 20px rgba(6, 182, 212, 0.45), inset 0 0 10px rgba(6, 182, 212, 0.2)"
+                      ? "0 0 22px rgba(255, 215, 0, 0.5), inset 0 0 10px rgba(255, 215, 0, 0.25)"
                       : "none",
                     transform: isActive ? "scale(1.04)" : "scale(1)",
                     transition: "all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)",
@@ -192,8 +192,8 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                   gap: "0.6rem",
                   padding: "0.45rem 1rem",
                   borderRadius: "24px",
-                  background: "rgba(255, 255, 255, 0.04)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  background: "rgba(255, 215, 0, 0.05)",
+                  border: "1px solid rgba(255, 215, 0, 0.15)",
                 }}
               >
                 <div
@@ -201,14 +201,14 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                     width: "28px",
                     height: "28px",
                     borderRadius: "50%",
-                    background: "linear-gradient(135deg, #d946ef, #8b5cf6)",
+                    background: "linear-gradient(135deg, #ffd700, #d97706)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "0.85rem",
                     fontWeight: 900,
-                    color: "#fff",
-                    boxShadow: "0 0 10px rgba(217, 70, 239, 0.4)",
+                    color: "#000",
+                    boxShadow: "0 0 12px rgba(255, 215, 0, 0.5)",
                   }}
                 >
                   {(user.first_name || user.email || "U")[0].toUpperCase()}

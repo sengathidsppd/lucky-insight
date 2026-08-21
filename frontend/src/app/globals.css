@@ -6,36 +6,37 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  /* Quantitative Analyst / Bloomberg Dark Palette */
-  --bg-deep: #0b0c10;       /* Stealth Charcoal Deep Black */
-  --bg-dark: #131722;       /* Slate Dark Gray */
-  --bg-panel: #1c2030;      /* Solid Flat Card Panel */
-  --bg-panel-hover: #222638;
+  /* Luxury Midnight Gold Palette */
+  --bg-deep: #08080c;       /* Deep Obsidian Midnight Black */
+  --bg-dark: #0e0f14;       /* Slate Dark Gold */
+  --bg-panel: #12131a;      /* Rich Card Panel */
+  --bg-panel-hover: #191a24;
 
-  --accent-primary: #0ea5e9;   /* High-tech Cyan/Blue */
-  --accent-secondary: #10b981; /* Quantitative Green */
-  --accent-cyan: #38bdf8;      /* High-tech Sky Blue */
-  --accent-purple: #8b5cf6;    /* Analytical Purple */
-  --accent-gradient: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%);
+  --accent-primary: #f59e0b;   /* Royal Amber Gold */
+  --accent-secondary: #d97706; /* Deep Bronze Gold */
+  --accent-cyan: #fbbf24;      /* Shimmer Bright Gold */
+  --accent-gold: #ffd700;      /* Pure Imperial Gold */
+  --accent-purple: #f59e0b;    /* Warm Gold Accent */
   
-  --gradient-btn: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
-  --gradient-border: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(16, 185, 129, 0.2));
+  --accent-gradient: linear-gradient(135deg, #ffd700 0%, #f59e0b 50%, #d97706 100%);
+  --gradient-btn: linear-gradient(135deg, #ffd700 0%, #f59e0b 50%, #d97706 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #fffbeb 0%, #ffd700 50%, #f59e0b 100%);
+  --gradient-border: linear-gradient(135deg, rgba(255, 215, 0, 0.4), rgba(245, 158, 11, 0.2));
   
   --text-primary: #ffffff;
-  --text-secondary: #94a3b8; /* Professional Slate Gray */
+  --text-secondary: #cbd5e1; /* Elegant Silver Slate */
   --text-muted: #64748b;
 
-  --border-light: #222533; /* Clean dark panel border */
-  --border-focus: #0ea5e9;
+  --border-light: rgba(255, 215, 0, 0.08); /* Subtle Gold border */
+  --border-focus: #ffd700;
 
-  --shadow-premium: 0 4px 20px 0 rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 15px rgba(14, 165, 233, 0.12);
-  --shadow-glow-cyan: 0 0 15px rgba(16, 185, 129, 0.12);
+  --shadow-premium: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 25px rgba(245, 158, 11, 0.25);
+  --shadow-glow-cyan: 0 0 25px rgba(255, 215, 0, 0.3);
 
   --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --radius-lg: 12px;
-  --radius-md: 6px;
+  --radius-lg: 14px;
+  --radius-md: 8px;
 }
 
 * {
@@ -46,10 +47,11 @@
 
 body {
   background-color: var(--bg-deep);
-  /* Flat dark professional design with subtle deep teal radial highlights */
+  /* Luxury Gold Ambient Dust Background */
   background-image: 
-    radial-gradient(circle at 10% 40%, rgba(14, 165, 233, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 90% 20%, rgba(16, 185, 129, 0.03) 0%, transparent 45%);
+    radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.07) 0%, transparent 45%),
+    radial-gradient(circle at 90% 10%, rgba(255, 215, 0, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, rgba(217, 119, 6, 0.04) 0%, transparent 50%);
   background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-sans);

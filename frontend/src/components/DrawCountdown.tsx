@@ -94,9 +94,9 @@ export default function DrawCountdown() {
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%)",
-        border: "1px solid rgba(14, 165, 233, 0.2)",
-        borderRadius: "12px",
+        background: "linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(245, 158, 11, 0.05) 100%)",
+        border: "1px solid rgba(255, 215, 0, 0.25)",
+        borderRadius: "14px",
         padding: "0.75rem 1.25rem",
         marginBottom: "1.5rem",
         display: "flex",
@@ -104,7 +104,8 @@ export default function DrawCountdown() {
         justifyContent: "space-between",
         flexWrap: "wrap",
         gap: "1rem",
-        backdropFilter: "blur(10px)",
+        backdropFilter: "blur(12px)",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
@@ -113,15 +114,15 @@ export default function DrawCountdown() {
             width: "10px",
             height: "10px",
             borderRadius: "50%",
-            background: timeLeft.isLive ? "#ef4444" : "var(--accent-cyan)",
-            boxShadow: timeLeft.isLive ? "0 0 10px #ef4444" : "0 0 10px var(--accent-cyan)",
+            background: timeLeft.isLive ? "#ef4444" : "#ffd700",
+            boxShadow: timeLeft.isLive ? "0 0 10px #ef4444" : "0 0 12px rgba(255, 215, 0, 0.8)",
             animation: "pulse 1.5s infinite",
           }}
         />
         <div>
-          <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "#fff", display: "flex", alignItems: "center", gap: "0.5rem" }}>
             ⏱️ Next Draw Countdown
-            <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", fontWeight: 500 }}>
+            <span style={{ fontSize: "0.75rem", color: "var(--accent-cyan)", fontWeight: 600 }}>
               ({selectedGame === "LAO" ? "Mon - Fri at 8:30 PM" : "1st & 16th at 3:30 PM"})
             </span>
           </div>
@@ -130,19 +131,21 @@ export default function DrawCountdown() {
 
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
         {/* Game selector pills */}
-        <div style={{ display: "flex", background: "rgba(0,0,0,0.2)", padding: "2px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.05)" }}>
+        <div style={{ display: "flex", background: "rgba(255,215,0,0.05)", padding: "3px", borderRadius: "8px", border: "1px solid rgba(255,215,0,0.15)" }}>
           <button
             type="button"
             onClick={() => setSelectedGame("LAO")}
             style={{
-              padding: "0.25rem 0.6rem",
-              borderRadius: "4px",
+              padding: "0.25rem 0.65rem",
+              borderRadius: "6px",
               border: "none",
-              background: selectedGame === "LAO" ? "rgba(14, 165, 233, 0.3)" : "transparent",
-              color: selectedGame === "LAO" ? "var(--accent-cyan)" : "var(--text-secondary)",
-              fontWeight: selectedGame === "LAO" ? 700 : 500,
+              background: selectedGame === "LAO" ? "linear-gradient(135deg, #ffd700, #f59e0b)" : "transparent",
+              color: selectedGame === "LAO" ? "#000" : "var(--text-secondary)",
+              fontWeight: selectedGame === "LAO" ? 800 : 500,
               fontSize: "0.75rem",
               cursor: "pointer",
+              boxShadow: selectedGame === "LAO" ? "0 0 10px rgba(255, 215, 0, 0.4)" : "none",
+              transition: "all 0.2s ease",
             }}
           >
             🇱🇦 Lao
@@ -151,14 +154,16 @@ export default function DrawCountdown() {
             type="button"
             onClick={() => setSelectedGame("THAI")}
             style={{
-              padding: "0.25rem 0.6rem",
-              borderRadius: "4px",
+              padding: "0.25rem 0.65rem",
+              borderRadius: "6px",
               border: "none",
-              background: selectedGame === "THAI" ? "rgba(139, 92, 246, 0.3)" : "transparent",
-              color: selectedGame === "THAI" ? "var(--accent-purple)" : "var(--text-secondary)",
-              fontWeight: selectedGame === "THAI" ? 700 : 500,
+              background: selectedGame === "THAI" ? "linear-gradient(135deg, #ffd700, #f59e0b)" : "transparent",
+              color: selectedGame === "THAI" ? "#000" : "var(--text-secondary)",
+              fontWeight: selectedGame === "THAI" ? 800 : 500,
               fontSize: "0.75rem",
               cursor: "pointer",
+              boxShadow: selectedGame === "THAI" ? "0 0 10px rgba(255, 215, 0, 0.4)" : "none",
+              transition: "all 0.2s ease",
             }}
           >
             🇹🇭 Thai

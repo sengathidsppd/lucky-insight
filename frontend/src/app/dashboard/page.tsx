@@ -105,8 +105,8 @@ export default function DashboardPage() {
 
   const getGameGradient = (code: string) => {
     const c = code.toLowerCase();
-    if (c.includes("thai") || c.includes("th")) return "linear-gradient(135deg, rgba(217, 70, 239, 0.2), rgba(6, 182, 212, 0.2))";
-    if (c.includes("lao") || c.includes("la")) return "linear-gradient(135deg, rgba(217, 70, 239, 0.2), rgba(6, 182, 212, 0.2))";
+    if (c.includes("thai") || c.includes("th")) return "linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%)";
+    if (c.includes("lao") || c.includes("la")) return "linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%)";
     return "var(--bg-panel)";
   };
 
@@ -115,21 +115,23 @@ export default function DashboardPage() {
       {/* 1. Latest Lottery Results Row (Top) */}
       {latestDraws.length > 0 && (
         <div>
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", margin: "0 0 1rem 0" }}>Latest Lottery Results</h3>
+          <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#fff", margin: "0 0 1rem 0", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span>🏆</span> Latest Lottery Results
+          </h3>
           <div className="db-lottery-row">
             {latestDraws.filter(({ draw }) => draw !== null).map(({ game, draw }) => (
-              <div key={game.id} className="glass-panel" style={{ ...lotteryCardStyle, background: getGameGradient(game.code) }}>
+              <div key={game.id} className="glass-panel" style={{ ...lotteryCardStyle, background: getGameGradient(game.code), border: "1px solid rgba(255, 215, 0, 0.15)" }}>
                 {/* Card Header */}
                 <div style={lotteryCardHeaderStyle}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                     <span style={{ fontSize: "1.6rem" }}>{getGameFlag(game.code)}</span>
                     <div>
-                      <div style={{ fontWeight: 700, color: "#fff", fontSize: "1rem" }}>{game.name}</div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{game.code.toUpperCase()}</div>
+                      <div style={{ fontWeight: 800, color: "#fff", fontSize: "1.05rem" }}>{game.name}</div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--accent-cyan)", fontWeight: 700 }}>{game.code.toUpperCase()}</div>
                     </div>
                   </div>
                   {draw && (
-                    <div style={drawDateBadgeStyle}>
+                    <div style={{ ...drawDateBadgeStyle, background: "rgba(255, 215, 0, 0.08)", border: "1px solid rgba(255, 215, 0, 0.2)", color: "#ffd700" }}>
                       {new Date(draw.draw_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                     </div>
                   )}
@@ -138,29 +140,31 @@ export default function DashboardPage() {
                 {draw ? (
                   <div style={{ marginTop: "1rem" }}>
                     {/* First Prize - Big */}
-                    <div style={firstPrizeContainerStyle}>
-                      <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "0.3rem" }}>
+                    <div style={{ ...firstPrizeContainerStyle, background: "rgba(0, 0, 0, 0.3)", border: "1px solid rgba(255, 215, 0, 0.15)" }}>
+                      <div style={{ fontSize: "0.75rem", color: "var(--accent-cyan)", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "0.3rem", fontWeight: 800 }}>
                         First Prize
                       </div>
-                      <div style={firstPrizeValueStyle}>{draw.first_prize}</div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                      <div style={{ ...firstPrizeValueStyle, background: "linear-gradient(135deg, #ffffff 10%, #ffd700 60%, #f59e0b 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", filter: "drop-shadow(0 2px 12px rgba(255, 215, 0, 0.45))" }}>
+                        {draw.first_prize}
+                      </div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
                         Draw #{draw.draw_number}
                       </div>
                     </div>
 
                     {/* Sub prizes */}
                     <div style={subPrizesGridStyle}>
-                      <div style={subPrizeBoxStyle}>
+                      <div style={{ ...subPrizeBoxStyle, background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.08)" }}>
                         <div style={subPrizeLabelStyle}>Last 2</div>
-                        <div style={subPrizeValueStyle}>{draw.last2 || "—"}</div>
+                        <div style={{ ...subPrizeValueStyle, color: "#ffd700" }}>{draw.last2 || "—"}</div>
                       </div>
-                      <div style={subPrizeBoxStyle}>
+                      <div style={{ ...subPrizeBoxStyle, background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.08)" }}>
                         <div style={subPrizeLabelStyle}>Front 3</div>
-                        <div style={subPrizeValueStyle}>{draw.front3 || "—"}</div>
+                        <div style={{ ...subPrizeValueStyle, color: "#ffd700" }}>{draw.front3 || "—"}</div>
                       </div>
-                      <div style={subPrizeBoxStyle}>
+                      <div style={{ ...subPrizeBoxStyle, background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.08)" }}>
                         <div style={subPrizeLabelStyle}>Back 3</div>
-                        <div style={subPrizeValueStyle}>{draw.back3 || "—"}</div>
+                        <div style={{ ...subPrizeValueStyle, color: "#ffd700" }}>{draw.back3 || "—"}</div>
                       </div>
                     </div>
                   </div>
@@ -212,7 +216,7 @@ function CalendarHeatmap() {
     : [{ name: months[selectedMonth], idx: selectedMonth }];
 
   return (
-    <div className="glass-panel" style={{ padding: "1.5rem", borderRadius: "16px", marginTop: "1rem" }}>
+    <div className="glass-panel" style={{ padding: "1.5rem", borderRadius: "16px", marginTop: "1rem", border: "1px solid rgba(255, 215, 0, 0.12)" }}>
       {/* Header & Controls */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
@@ -225,18 +229,19 @@ function CalendarHeatmap() {
         </div>
 
         {/* Month Selector Tabs */}
-        <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap", background: "rgba(255, 255, 255, 0.03)", padding: "0.3rem", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
+        <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap", background: "rgba(255, 215, 0, 0.04)", padding: "0.3rem", borderRadius: "12px", border: "1px solid rgba(255, 215, 0, 0.12)" }}>
           <button
             type="button"
             onClick={() => setSelectedMonth("ALL")}
             style={{
-              padding: "0.35rem 0.75rem",
+              padding: "0.4rem 0.85rem",
               borderRadius: "8px",
               border: "none",
-              fontSize: "0.75rem",
-              fontWeight: selectedMonth === "ALL" ? 800 : 500,
-              background: selectedMonth === "ALL" ? "linear-gradient(135deg, var(--accent-cyan), #0284c7)" : "transparent",
+              fontSize: "0.78rem",
+              fontWeight: selectedMonth === "ALL" ? 900 : 600,
+              background: selectedMonth === "ALL" ? "linear-gradient(135deg, #ffd700, #f59e0b)" : "transparent",
               color: selectedMonth === "ALL" ? "#000" : "var(--text-secondary)",
+              boxShadow: selectedMonth === "ALL" ? "0 0 15px rgba(255, 215, 0, 0.45)" : "none",
               cursor: "pointer",
               transition: "all 0.2s ease",
             }}
@@ -249,13 +254,14 @@ function CalendarHeatmap() {
               type="button"
               onClick={() => setSelectedMonth(mIdx)}
               style={{
-                padding: "0.35rem 0.6rem",
+                padding: "0.4rem 0.7rem",
                 borderRadius: "8px",
                 border: "none",
-                fontSize: "0.75rem",
-                fontWeight: selectedMonth === mIdx ? 800 : 500,
-                background: selectedMonth === mIdx ? "linear-gradient(135deg, var(--accent-cyan), #0284c7)" : "transparent",
+                fontSize: "0.78rem",
+                fontWeight: selectedMonth === mIdx ? 900 : 600,
+                background: selectedMonth === mIdx ? "linear-gradient(135deg, #ffd700, #f59e0b)" : "transparent",
                 color: selectedMonth === mIdx ? "#000" : "var(--text-secondary)",
+                boxShadow: selectedMonth === mIdx ? "0 0 15px rgba(255, 215, 0, 0.45)" : "none",
                 cursor: "pointer",
                 transition: "all 0.2s ease",
               }}
@@ -269,44 +275,46 @@ function CalendarHeatmap() {
       {/* Active Draw Detail Callout (when hovered/selected) */}
       {activeHoverDraw && (
         <div style={{
-          background: "linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15))",
-          border: "1px solid rgba(6, 182, 212, 0.3)",
-          borderRadius: "10px",
-          padding: "0.75rem 1.2rem",
+          background: "linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(245, 158, 11, 0.12))",
+          border: "1px solid rgba(255, 215, 0, 0.35)",
+          borderRadius: "12px",
+          padding: "0.85rem 1.4rem",
           marginBottom: "1.2rem",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           flexWrap: "wrap",
           gap: "1rem",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.4)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <span style={{ fontSize: "1.2rem" }}>🇱🇦</span>
+            <span style={{ fontSize: "1.4rem" }}>🇱🇦</span>
             <div>
               <div style={{ fontWeight: 800, color: "#fff", fontSize: "0.95rem" }}>
                 Draw Date: {new Date(activeHoverDraw.date).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
               </div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+              <div style={{ fontSize: "0.75rem", color: "var(--accent-cyan)", fontWeight: 700 }}>
                 Draw #{activeHoverDraw.draw_number || "—"}
               </div>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
             <div>
-              <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase" }}>1st Prize (6D): </span>
-              <span style={{ fontFamily: "monospace", fontSize: "1.1rem", fontWeight: 800, color: "#ffd700", letterSpacing: "2px" }}>
+              <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: 700 }}>1st Prize (6D): </span>
+              <span style={{ fontFamily: "monospace", fontSize: "1.2rem", fontWeight: 900, color: "#ffd700", letterSpacing: "2px", textShadow: "0 0 10px rgba(255, 215, 0, 0.5)" }}>
                 {activeHoverDraw.first_prize || "—"}
               </span>
             </div>
             <div style={{
-              background: "linear-gradient(135deg, var(--accent-cyan), #0284c7)",
+              background: "linear-gradient(135deg, #ffd700, #f59e0b)",
               color: "#000",
               fontWeight: 900,
-              fontSize: "1.1rem",
-              padding: "0.2rem 0.8rem",
-              borderRadius: "6px",
+              fontSize: "1.15rem",
+              padding: "0.3rem 0.9rem",
+              borderRadius: "8px",
               fontFamily: "monospace",
               letterSpacing: "1px",
+              boxShadow: "0 0 15px rgba(255, 215, 0, 0.4)",
             }}>
               2D: {activeHoverDraw.last2}
             </div>
@@ -334,10 +342,10 @@ function CalendarHeatmap() {
               <div
                 key={mName}
                 style={{
-                  background: "rgba(255, 255, 255, 0.02)",
+                  background: "rgba(255, 215, 0, 0.02)",
                   padding: isSingleMonthView ? "1.5rem" : "1rem",
                   borderRadius: "12px",
-                  border: "1px solid rgba(255, 255, 255, 0.06)",
+                  border: "1px solid rgba(255, 215, 0, 0.08)",
                   boxSizing: "border-box",
                   width: "100%",
                   overflow: "hidden",
@@ -347,7 +355,7 @@ function CalendarHeatmap() {
                 <div style={{
                   fontSize: isSingleMonthView ? "1.2rem" : "0.95rem",
                   fontWeight: 800,
-                  color: "var(--accent-cyan)",
+                  color: "#ffd700",
                   marginBottom: "0.8rem",
                   display: "flex",
                   justifyContent: "space-between",
@@ -361,8 +369,9 @@ function CalendarHeatmap() {
                       style={{
                         background: "none",
                         border: "none",
-                        color: "var(--text-muted)",
-                        fontSize: "0.7rem",
+                        color: "var(--accent-cyan)",
+                        fontSize: "0.75rem",
+                        fontWeight: 700,
                         cursor: "pointer",
                         textDecoration: "underline",
                       }}
@@ -389,7 +398,7 @@ function CalendarHeatmap() {
                         style={{
                           fontSize: isSingleMonthView ? "0.8rem" : "0.68rem",
                           fontWeight: isDrawDayHeader ? 800 : 500,
-                          color: isDrawDayHeader ? "var(--accent-cyan)" : "var(--text-muted)",
+                          color: isDrawDayHeader ? "#ffd700" : "var(--text-muted)",
                           paddingBottom: "2px",
                         }}
                       >
@@ -446,16 +455,16 @@ function CalendarHeatmap() {
                           borderRadius: isSingleMonthView ? "8px" : "5px",
                           padding: isSingleMonthView ? "6px 4px" : "2px 1px",
                           background: hasDraw
-                            ? "linear-gradient(135deg, rgba(6, 182, 212, 0.95), rgba(59, 130, 246, 0.95))"
+                            ? "linear-gradient(135deg, #ffd700 0%, #f59e0b 70%, #d97706 100%)"
                             : isOfficialDrawDay
-                            ? "rgba(255, 255, 255, 0.04)"
+                            ? "rgba(255, 215, 0, 0.05)"
                             : "rgba(255, 255, 255, 0.015)",
                           border: hasDraw
-                            ? "1px solid rgba(255, 255, 255, 0.45)"
+                            ? "1px solid rgba(255, 255, 255, 0.6)"
                             : isOfficialDrawDay
-                            ? "1px dashed rgba(6, 182, 212, 0.2)"
+                            ? "1px dashed rgba(255, 215, 0, 0.3)"
                             : "1px solid rgba(255, 255, 255, 0.02)",
-                          boxShadow: hasDraw ? "0 2px 8px rgba(6, 182, 212, 0.35)" : "none",
+                          boxShadow: hasDraw ? "0 2px 12px rgba(245, 158, 11, 0.5)" : "none",
                           cursor: hasDraw ? "pointer" : "default",
                           transition: "all 0.15s ease",
                         }}
@@ -463,8 +472,8 @@ function CalendarHeatmap() {
                         {/* Top: Day number */}
                         <span style={{
                           fontSize: isSingleMonthView ? "0.75rem" : "0.58rem",
-                          fontWeight: hasDraw ? 800 : 500,
-                          color: hasDraw ? "#ffffff" : isOfficialDrawDay ? "rgba(255,255,255,0.7)" : "rgba(255, 255, 255, 0.3)",
+                          fontWeight: hasDraw ? 900 : 500,
+                          color: hasDraw ? "#000000" : isOfficialDrawDay ? "#fde047" : "rgba(255, 255, 255, 0.35)",
                           alignSelf: "flex-start",
                           marginLeft: isSingleMonthView ? "4px" : "2px",
                           lineHeight: 1,
@@ -479,8 +488,7 @@ function CalendarHeatmap() {
                             fontWeight: 900,
                             fontFamily: "monospace",
                             letterSpacing: "0.2px",
-                            color: "#ffffff",
-                            textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+                            color: "#000000",
                             lineHeight: 1,
                           }}>
                             {drawInfo.last2}
@@ -493,8 +501,9 @@ function CalendarHeatmap() {
                         {isSingleMonthView && hasDraw && (
                           <span style={{
                             fontSize: "0.65rem",
-                            color: "rgba(255,255,255,0.85)",
+                            color: "#000000",
                             fontFamily: "monospace",
+                            fontWeight: 700,
                             lineHeight: 1,
                           }}>
                             1st: {drawInfo.first_prize}
