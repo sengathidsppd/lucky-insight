@@ -205,7 +205,7 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                 }}
               >
                 <img
-                  src="/app-logo.jpg"
+                  src="/user-avatar.jpg"
                   alt="Profile"
                   style={{
                     width: "28px",

@@ -32,7 +32,7 @@ export default function LoginPage() {
       <div className="glass-panel" style={cardStyle}>
         <div style={headerStyle}>
           <img
-            src="/app-logo.jpg"
+            src="/lottery-logo.jpg"
             alt="SUSU Lucky"
             style={{
               width: "72px",
