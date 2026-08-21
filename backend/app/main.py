@@ -97,7 +97,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
-    title="Lucky Insight API",
+    title="SUSU Lucky API",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",

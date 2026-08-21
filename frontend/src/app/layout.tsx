@@ -4,9 +4,9 @@ import { AuthProvider } from "@/context/AuthContext";
 import NavigationShell from "@/components/NavigationShell";
 
 export const metadata: Metadata = {
-  title: "Insight Analytics — Number Management & Lottery Analytics",
+  title: "SUSU Lucky — Advanced Lottery Statistical Intelligence",
   description:
-    "Unlock mathematical insights from your lucky numbers and compare against official lottery draws.",
+    "Unlock mathematical insights from your lucky numbers and compare against official lottery draws with SUSU Lucky.",
 };
 
 export default function RootLayout({

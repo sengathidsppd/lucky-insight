@@ -38,7 +38,7 @@ export default function NavigationShell({ children }: { children: React.ReactNod
             animation: "spin 1s linear infinite",
           }}
         />
-        Loading Lucky Insight...
+        Loading SUSU Lucky...
         <style>{`
           @keyframes spin {
             to { transform: rotate(360deg); }
@@ -126,7 +126,7 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                   filter: "drop-shadow(0 2px 10px rgba(245, 158, 11, 0.4))",
                 }}
               >
-                LUCKY INSIGHT
+                SUSU LUCKY
               </span>
             </div>
           </Link>

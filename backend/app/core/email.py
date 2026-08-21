@@ -15,25 +15,25 @@ def send_password_reset_email(to_email: str, reset_url: str) -> None:
 
     Otherwise, log the simulation link to the terminal.
     """
-    subject = "Lucky Insight - Password Reset Request"
+    subject = "SUSU Lucky - Password Reset Request"
     body_html = f"""
     <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #ffffff;">
                 <div style="text-align: center; margin-bottom: 20px;">
-                    <span style="font-size: 2.5rem;">🍀</span>
-                    <h2 style="color: #4f46e5; margin-top: 10px;">Lucky Insight</h2>
+                    <span style="font-size: 2.5rem;">👑</span>
+                    <h2 style="color: #d97706; margin-top: 10px;">SUSU Lucky</h2>
                 </div>
                 <p>Hello,</p>
-                <p>We received a request to reset the password for your Lucky Insight account. Click the button below to choose a new password:</p>
+                <p>We received a request to reset the password for your SUSU Lucky account. Click the button below to choose a new password:</p>
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="{reset_url}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Password</a>
+                    <a href="{reset_url}" style="background-color: #d97706; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Password</a>
                 </div>
                 <p>If you did not request a password reset, you can safely ignore this email. This link will expire in 30 minutes.</p>
                 <p>If the button doesn't work, copy and paste the link below into your browser:</p>
-                <p style="word-break: break-all; color: #4f46e5;">{reset_url}</p>
+                <p style="word-break: break-all; color: #d97706;">{reset_url}</p>
                 <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 20px 0;" />
-                <p style="font-size: 0.8rem; color: #777; text-align: center;">Lucky Insight Team</p>
+                <p style="font-size: 0.8rem; color: #777; text-align: center;">SUSU Lucky Team</p>
             </div>
         </body>
     </html>

@@ -296,7 +296,7 @@ def export_analysis_csv(
         writer = csv.writer(output)
         
         # Write metadata headers
-        writer.writerow(["Lucky Insight Analysis Report"])
+        writer.writerow(["SUSU Lucky Analysis Report"])
         writer.writerow(["Game", game_name])
         writer.writerow(["Model Type", job.analysis_type])
         writer.writerow(["Created At", str(job.created_at)])
