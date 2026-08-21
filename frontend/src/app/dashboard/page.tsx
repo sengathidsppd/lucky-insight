@@ -238,6 +238,8 @@ export default function DashboardPage() {
 function CalendarHeatmap() {
   const [heatmapData, setHeatmapData] = useState<Record<string, { last2: string; first_prize: string; game_name: string; draw_number: string }>>({});
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState<number | "ALL">("ALL");
+  const [activeHoverDraw, setActiveHoverDraw] = useState<{ date: string; last2: string; first_prize: string; draw_number: string } | null>(null);
 
   useEffect(() => {
     apiRequest("/lotteries/heatmap?year=2026")
@@ -258,64 +260,289 @@ function CalendarHeatmap() {
   }, []);
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const weekDays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+  const displayedMonths = selectedMonth === "ALL" 
+    ? months.map((m, idx) => ({ name: m, idx }))
+    : [{ name: months[selectedMonth], idx: selectedMonth }];
 
   return (
-    <div className="glass-panel" style={{ padding: "1.5rem", borderRadius: "12px", marginTop: "1rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
-        <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", margin: 0 }}>
-          🇱🇦 Lao Lottery Results Calendar (2026)
-        </h3>
-        <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-          Showing 2-digit winning outcomes per draw day
-        </span>
+    <div className="glass-panel" style={{ padding: "1.5rem", borderRadius: "16px", marginTop: "1rem" }}>
+      {/* Header & Controls */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "1rem" }}>
+        <div>
+          <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#fff", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span>🇱🇦</span> Lao Lottery Results Calendar (2026)
+          </h3>
+          <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", margin: "0.25rem 0 0 0" }}>
+            Official winning 2-digit outcomes aligned by real calendar dates (Draws on Mon, Wed, Fri)
+          </p>
+        </div>
+
+        {/* Month Selector Tabs */}
+        <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap", background: "rgba(255, 255, 255, 0.03)", padding: "0.3rem", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
+          <button
+            type="button"
+            onClick={() => setSelectedMonth("ALL")}
+            style={{
+              padding: "0.35rem 0.75rem",
+              borderRadius: "8px",
+              border: "none",
+              fontSize: "0.75rem",
+              fontWeight: selectedMonth === "ALL" ? 800 : 500,
+              background: selectedMonth === "ALL" ? "linear-gradient(135deg, var(--accent-cyan), #0284c7)" : "transparent",
+              color: selectedMonth === "ALL" ? "#000" : "var(--text-secondary)",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+          >
+            All Year (12M)
+          </button>
+          {months.map((m, mIdx) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setSelectedMonth(mIdx)}
+              style={{
+                padding: "0.35rem 0.6rem",
+                borderRadius: "8px",
+                border: "none",
+                fontSize: "0.75rem",
+                fontWeight: selectedMonth === mIdx ? 800 : 500,
+                background: selectedMonth === mIdx ? "linear-gradient(135deg, var(--accent-cyan), #0284c7)" : "transparent",
+                color: selectedMonth === mIdx ? "#000" : "var(--text-secondary)",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* Active Draw Detail Callout (when hovered/selected) */}
+      {activeHoverDraw && (
+        <div style={{
+          background: "linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15))",
+          border: "1px solid rgba(6, 182, 212, 0.3)",
+          borderRadius: "10px",
+          padding: "0.75rem 1.2rem",
+          marginBottom: "1.2rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "1rem",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <span style={{ fontSize: "1.2rem" }}>🇱🇦</span>
+            <div>
+              <div style={{ fontWeight: 800, color: "#fff", fontSize: "0.95rem" }}>
+                Draw Date: {new Date(activeHoverDraw.date).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+              </div>
+              <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                Draw #{activeHoverDraw.draw_number || "—"}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+            <div>
+              <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase" }}>1st Prize (6D): </span>
+              <span style={{ fontFamily: "monospace", fontSize: "1.1rem", fontWeight: 800, color: "#ffd700", letterSpacing: "2px" }}>
+                {activeHoverDraw.first_prize || "—"}
+              </span>
+            </div>
+            <div style={{
+              background: "linear-gradient(135deg, var(--accent-cyan), #0284c7)",
+              color: "#000",
+              fontWeight: 900,
+              fontSize: "1.1rem",
+              padding: "0.2rem 0.8rem",
+              borderRadius: "6px",
+              fontFamily: "monospace",
+              letterSpacing: "1px",
+            }}>
+              2D: {activeHoverDraw.last2}
+            </div>
+          </div>
+        </div>
+      )}
+
       {loading ? (
-        <div style={{ padding: "1rem", color: "var(--text-secondary)" }}>Loading calendar results...</div>
+        <div style={{ padding: "2rem", textAlign: "center", color: "var(--text-secondary)" }}>
+          Loading 2026 calendar lottery results...
+        </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem" }}>
-          {months.map((m, mIdx) => {
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: selectedMonth === "ALL" ? "repeat(auto-fit, minmax(240px, 1fr))" : "1fr",
+          gap: "1.2rem",
+        }}>
+          {displayedMonths.map(({ name: mName, idx: mIdx }) => {
             const daysInMonth = new Date(2026, mIdx + 1, 0).getDate();
+            const startDayOfWeek = new Date(2026, mIdx, 1).getDay(); // 0 = Sunday, 1 = Monday ... 6 = Saturday
+            const isSingleMonthView = selectedMonth !== "ALL";
+
             return (
-              <div key={m} style={{ background: "rgba(255,255,255,0.02)", padding: "0.75rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
-                <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--accent-cyan)", marginBottom: "0.5rem" }}>
-                  {m} 2026
+              <div
+                key={mName}
+                style={{
+                  background: "rgba(255, 255, 255, 0.02)",
+                  padding: isSingleMonthView ? "1.5rem" : "1rem",
+                  borderRadius: "12px",
+                  border: "1px solid rgba(255, 255, 255, 0.06)",
+                }}
+              >
+                {/* Month Title */}
+                <div style={{
+                  fontSize: isSingleMonthView ? "1.2rem" : "0.95rem",
+                  fontWeight: 800,
+                  color: "var(--accent-cyan)",
+                  marginBottom: "0.8rem",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}>
+                  <span>{mName} 2026</span>
+                  {!isSingleMonthView && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMonth(mIdx)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--text-muted)",
+                        fontSize: "0.7rem",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      Expand
+                    </button>
+                  )}
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "4px" }}>
+
+                {/* Day of Week Headers */}
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(7, 1fr)",
+                  gap: isSingleMonthView ? "8px" : "4px",
+                  textAlign: "center",
+                  marginBottom: "6px",
+                }}>
+                  {weekDays.map((wd, wdIdx) => {
+                    const isDrawDayHeader = wdIdx === 1 || wdIdx === 3 || wdIdx === 5; // Mon, Wed, Fri
+                    return (
+                      <div
+                        key={wd}
+                        style={{
+                          fontSize: isSingleMonthView ? "0.8rem" : "0.7rem",
+                          fontWeight: isDrawDayHeader ? 800 : 500,
+                          color: isDrawDayHeader ? "var(--accent-cyan)" : "var(--text-muted)",
+                          paddingBottom: "2px",
+                        }}
+                      >
+                        {wd}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Days Grid */}
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(7, 1fr)",
+                  gap: isSingleMonthView ? "8px" : "4px",
+                }}>
+                  {/* Empty offset slots for previous month overflow */}
+                  {Array.from({ length: startDayOfWeek }).map((_, emptyIdx) => (
+                    <div key={`empty-${emptyIdx}`} style={{ aspectRatio: "1" }} />
+                  ))}
+
+                  {/* Day Cells */}
                   {Array.from({ length: daysInMonth }).map((_, dIdx) => {
                     const dayNum = dIdx + 1;
                     const dateStr = `2026-${String(mIdx + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
                     const drawInfo = heatmapData[dateStr];
                     const hasDraw = !!drawInfo;
+                    const dayOfWeekIdx = (startDayOfWeek + dIdx) % 7;
+                    const isOfficialDrawDay = dayOfWeekIdx === 1 || dayOfWeekIdx === 3 || dayOfWeekIdx === 5; // Mon, Wed, Fri
 
                     return (
                       <div
                         key={dayNum}
-                        title={
-                          hasDraw
-                            ? `${dateStr}\n2D Result: ${drawInfo.last2}\n1st Prize: ${drawInfo.first_prize}`
-                            : `No draw on 2026-${mIdx + 1}-${dayNum}`
-                        }
+                        onMouseEnter={() => {
+                          if (hasDraw) {
+                            setActiveHoverDraw({
+                              date: dateStr,
+                              last2: drawInfo.last2,
+                              first_prize: drawInfo.first_prize,
+                              draw_number: drawInfo.draw_number,
+                            });
+                          }
+                        }}
                         style={{
                           aspectRatio: "1",
                           display: "flex",
+                          flexDirection: "column",
                           alignItems: "center",
-                          justifyContent: "center",
-                          borderRadius: "4px",
-                          fontSize: "0.7rem",
-                          fontWeight: hasDraw ? 800 : 400,
-                          fontFamily: "monospace",
-                          letterSpacing: hasDraw ? "0.5px" : "normal",
+                          justifyContent: "space-between",
+                          borderRadius: isSingleMonthView ? "8px" : "6px",
+                          padding: isSingleMonthView ? "6px 4px" : "3px 2px",
                           background: hasDraw
-                            ? "linear-gradient(135deg, rgba(6, 182, 212, 0.85), rgba(59, 130, 246, 0.85))"
-                            : "rgba(255, 255, 255, 0.03)",
-                          color: hasDraw ? "#ffffff" : "transparent",
-                          boxShadow: hasDraw ? "0 0 8px rgba(6, 182, 212, 0.4)" : "none",
-                          border: hasDraw ? "1px solid rgba(255,255,255,0.4)" : "1px solid transparent",
+                            ? "linear-gradient(135deg, rgba(6, 182, 212, 0.9), rgba(59, 130, 246, 0.9))"
+                            : isOfficialDrawDay
+                            ? "rgba(255, 255, 255, 0.04)"
+                            : "rgba(255, 255, 255, 0.015)",
+                          border: hasDraw
+                            ? "1px solid rgba(255, 255, 255, 0.4)"
+                            : isOfficialDrawDay
+                            ? "1px dashed rgba(6, 182, 212, 0.2)"
+                            : "1px solid rgba(255, 255, 255, 0.02)",
+                          boxShadow: hasDraw ? "0 2px 10px rgba(6, 182, 212, 0.35)" : "none",
                           cursor: hasDraw ? "pointer" : "default",
+                          transition: "all 0.2s ease",
                         }}
                       >
-                        {hasDraw ? drawInfo.last2 : ""}
+                        {/* Top: Day number */}
+                        <span style={{
+                          fontSize: isSingleMonthView ? "0.75rem" : "0.62rem",
+                          fontWeight: hasDraw ? 800 : 500,
+                          color: hasDraw ? "#ffffff" : isOfficialDrawDay ? "rgba(255,255,255,0.7)" : "rgba(255, 255, 255, 0.3)",
+                          alignSelf: "flex-start",
+                          marginLeft: isSingleMonthView ? "4px" : "2px",
+                        }}>
+                          {dayNum}
+                        </span>
+
+                        {/* Center: Winning 2D number or empty indicator */}
+                        {hasDraw ? (
+                          <span style={{
+                            fontSize: isSingleMonthView ? "1.4rem" : "0.85rem",
+                            fontWeight: 900,
+                            fontFamily: "monospace",
+                            letterSpacing: "0.5px",
+                            color: "#ffffff",
+                            textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+                          }}>
+                            {drawInfo.last2}
+                          </span>
+                        ) : (
+                          <div style={{ flex: 1 }} />
+                        )}
+
+                        {/* Bottom: 6D prize in expanded view */}
+                        {isSingleMonthView && hasDraw && (
+                          <span style={{
+                            fontSize: "0.65rem",
+                            color: "rgba(255,255,255,0.85)",
+                            fontFamily: "monospace",
+                          }}>
+                            1st: {drawInfo.first_prize}
+                          </span>
+                        )}
+                        {(!isSingleMonthView || !hasDraw) && <div style={{ height: "2px" }} />}
                       </div>
                     );
                   })}
@@ -326,7 +553,6 @@ function CalendarHeatmap() {
         </div>
       )}
     </div>
-
   );
 }
 
