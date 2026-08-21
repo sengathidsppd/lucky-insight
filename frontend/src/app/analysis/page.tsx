@@ -342,7 +342,7 @@ export default function AnalysisPage() {
                           ...(isSelected ? selectedHistoryItemStyle : historyItemStyle),
                           display: "flex",
                           alignItems: "center",
-                          padding: "0.8rem",
+                          padding: "0.85rem",
                         }}
                       >
                         <input
@@ -356,9 +356,9 @@ export default function AnalysisPage() {
                               setSelectedJobIds(selectedJobIds.filter((id) => id !== job.id));
                             }
                           }}
-                          style={{ marginRight: "0.8rem", cursor: "pointer" }}
+                          style={{ marginRight: "0.8rem", cursor: "pointer", accentColor: "#ffd700", width: "16px", height: "16px" }}
                         />
-                        <div style={{ flex: 1 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={historyItemHeaderStyle}>
                             <span style={historyItemTitleStyle}>
                               {job.analysis_type} ({job.game_code})
@@ -374,7 +374,7 @@ export default function AnalysisPage() {
                                 style={{
                                   background: "none",
                                   border: "none",
-                                  color: "rgba(255, 255, 255, 0.4)",
+                                  color: "rgba(255, 255, 255, 0.6)",
                                   cursor: "pointer",
                                   fontSize: "1rem",
                                   padding: "0.2rem",
@@ -387,7 +387,7 @@ export default function AnalysisPage() {
                             </div>
                           </div>
                           <div style={historyItemDateStyle}>
-                            Run on: {new Date(job.created_at).toLocaleString()}
+                            Run on: {formatSafeDate(job.created_at)}
                           </div>
                         </div>
                       </div>
@@ -952,22 +952,42 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
 }
 
 
+// Helper safe date formatter for Safari/iOS compatibility
+function formatSafeDate(dateStr: string): string {
+  if (!dateStr) return "—";
+  try {
+    const cleanStr = dateStr.includes("T") ? dateStr : dateStr.replace(" ", "T");
+    const d = new Date(cleanStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
 // Helper badge color functions
 function getStatusBadgeStyle(status: string): React.CSSProperties {
   const base: React.CSSProperties = {
     fontSize: "0.75rem",
-    fontWeight: 700,
-    padding: "2px 8px",
-    borderRadius: "4px",
+    fontWeight: 800,
+    padding: "3px 8px",
+    borderRadius: "6px",
+    WebkitTextFillColor: "currentColor",
   };
 
   if (status === "COMPLETED") {
-    return { ...base, background: "rgba(80, 224, 120, 0.15)", color: "hsl(120, 80%, 75%)" };
+    return { ...base, background: "rgba(34, 197, 94, 0.2)", color: "#4ade80", border: "1px solid rgba(34, 197, 94, 0.4)" };
   }
   if (status === "FAILED") {
-    return { ...base, background: "rgba(224, 80, 80, 0.15)", color: "hsl(0, 80%, 75%)" };
+    return { ...base, background: "rgba(239, 68, 68, 0.2)", color: "#f87171", border: "1px solid rgba(239, 68, 68, 0.4)" };
   }
-  return { ...base, background: "rgba(255, 255, 255, 0.05)", color: "var(--text-secondary)" };
+  return { ...base, background: "rgba(255, 215, 0, 0.15)", color: "#ffd700", border: "1px solid rgba(255, 215, 0, 0.3)" };
 }
 
 // Styling Objects
@@ -987,7 +1007,7 @@ const headerStyle: React.CSSProperties = {
 const titleStyle: React.CSSProperties = {
   fontSize: "2rem",
   fontWeight: 800,
-  background: "linear-gradient(135deg, #fff, var(--text-secondary))",
+  background: "linear-gradient(135deg, #ffffff 40%, #ffd700 100%)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
 };
@@ -1019,12 +1039,14 @@ const panelCardStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: "1.25rem",
+  border: "1px solid rgba(255, 215, 0, 0.12)",
 };
 
 const panelTitleStyle: React.CSSProperties = {
-  fontSize: "1.1rem",
-  fontWeight: 700,
-  color: "var(--text-primary)",
+  fontSize: "1.15rem",
+  fontWeight: 800,
+  color: "#ffd700",
+  WebkitTextFillColor: "#ffd700",
 };
 
 const formStyle: React.CSSProperties = {
@@ -1061,24 +1083,27 @@ const emptyTextStyle: React.CSSProperties = {
 const historyListStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "0.5rem",
-  maxHeight: "350px",
+  gap: "0.6rem",
+  maxHeight: "380px",
   overflowY: "auto",
 };
 
 const historyItemStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.02)",
-  border: "1px solid var(--border-light)",
-  borderRadius: "var(--radius-md)",
-  padding: "0.75rem",
+  background: "rgba(255, 215, 0, 0.03)",
+  border: "1px solid rgba(255, 215, 0, 0.12)",
+  borderRadius: "10px",
+  padding: "0.85rem",
   cursor: "pointer",
   transition: "var(--transition-smooth)",
+  color: "#ffffff",
+  WebkitTextFillColor: "#ffffff",
 };
 
 const selectedHistoryItemStyle: React.CSSProperties = {
   ...historyItemStyle,
-  background: "rgba(255,255,255,0.06)",
-  borderColor: "var(--accent-cyan)",
+  background: "linear-gradient(135deg, rgba(255, 215, 0, 0.18), rgba(245, 158, 11, 0.1))",
+  borderColor: "#ffd700",
+  boxShadow: "0 0 15px rgba(255, 215, 0, 0.3)",
 };
 
 const historyItemHeaderStyle: React.CSSProperties = {
@@ -1088,15 +1113,17 @@ const historyItemHeaderStyle: React.CSSProperties = {
 };
 
 const historyItemTitleStyle: React.CSSProperties = {
-  fontSize: "0.9rem",
-  fontWeight: 700,
-  color: "var(--text-primary)",
+  fontSize: "0.92rem",
+  fontWeight: 800,
+  color: "#ffffff",
+  WebkitTextFillColor: "#ffffff",
 };
 
 const historyItemDateStyle: React.CSSProperties = {
-  fontSize: "0.75rem",
-  color: "var(--text-muted)",
-  marginTop: "0.25rem",
+  fontSize: "0.78rem",
+  color: "#cbd5e1",
+  WebkitTextFillColor: "#cbd5e1",
+  marginTop: "0.3rem",
 };
 
 const resultsPanelCardStyle: React.CSSProperties = {
