@@ -44,21 +44,9 @@ interface LatestDraw {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [latestDraws, setLatestDraws] = useState<{ game: LotteryGame; draw: LatestDraw | null }[]>([]);
-
-  const fetchDashboard = async () => {
-    try {
-      const resp = await apiRequest("/dashboard/summary");
-      setData(resp.data);
-    } catch (err: any) {
-      setError(err.message || "Failed to load dashboard data.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const fetchLatestDraws = async () => {
     try {
@@ -83,13 +71,14 @@ export default function DashboardPage() {
         }
       }
       setLatestDraws(draws);
-    } catch {
-      // silently ignore
+    } catch (err: any) {
+      setError(err.message || "Failed to load lottery data.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDashboard();
     fetchLatestDraws();
   }, []);
 
@@ -105,27 +94,6 @@ export default function DashboardPage() {
   if (error) {
     return <div style={errorContainerStyle}>Error: {error}</div>;
   }
-
-  if (!data) return null;
-
-  const maxCategoryCount = Math.max(...data.records_by_category.map(c => c.count), 1);
-  const maxSourceCount = Math.max(...data.records_by_source.map(s => s.count), 1);
-  const totalCategories = data.records_by_category.length;
-  const totalSources = data.records_by_source.length;
-  const totalAnalysisRuns = data.recent_analysis_jobs?.length ?? 0;
-
-  // Digit frequency from recent records
-  const digitFreq: Record<string, number> = {};
-  data.recent_records.forEach((rec) => {
-    const num = rec.number || "";
-    for (const ch of num) {
-      if (ch >= "0" && ch <= "9") {
-        digitFreq[ch] = (digitFreq[ch] || 0) + 1;
-      }
-    }
-  });
-  const digitEntries = Object.entries(digitFreq).sort((a, b) => b[1] - a[1]);
-  const maxDigitCount = Math.max(...digitEntries.map(e => e[1]), 1);
 
   // Helper: get flag emoji for game
   const getGameFlag = (code: string) => {
@@ -145,7 +113,6 @@ export default function DashboardPage() {
   return (
     <div className="db-container">
       {/* 1. Latest Lottery Results Row (Top) */}
-
       {latestDraws.length > 0 && (
         <div>
           <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", margin: "0 0 1rem 0" }}>Latest Lottery Results</h3>
@@ -206,30 +173,8 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 2. Calendar Heatmap Section (Second) */}
+      {/* 2. Calendar Heatmap Section */}
       <CalendarHeatmap />
-
-      {/* 3. Top Digit Frequency */}
-      <div style={{ marginTop: "1rem" }}>
-        <div className="glass-panel" style={chartPanelStyle}>
-          <h4 style={panelTitleStyle}>Top Digit Frequency</h4>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: "0.2rem 0 0 0" }}>From recent records</p>
-          <div style={miniBarChartStyle}>
-            {digitEntries.slice(0, 10).map(([digit, count]) => {
-              const heightPct = Math.max((count / maxDigitCount) * 100, 8);
-              return (
-                <div key={digit} style={miniBarColStyle}>
-                  <div style={{
-                    width: "100%", height: `${heightPct}%`, borderRadius: "4px 4px 0 0",
-                    background: "linear-gradient(180deg, #d946ef, #764ba2)", transition: "height 0.6s ease",
-                  }} />
-                  <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "0.3rem" }}>{digit}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

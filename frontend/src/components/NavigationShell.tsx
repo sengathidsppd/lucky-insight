@@ -49,9 +49,8 @@ export default function NavigationShell({ children }: { children: React.ReactNod
 
   const navItems = [
     { name: "Dashboard", path: "/dashboard", image: "/images/nav_dashboard.jpg" },
-    { name: "Records", path: "/records", image: "/images/nav_records.jpg" },
-    { name: "Lotteries", path: "/lotteries", image: "/images/nav_lotteries.jpg" },
     { name: "Analysis", path: "/analysis", image: "/images/nav_analysis.jpg" },
+    { name: "Lotteries", path: "/lotteries", image: "/images/nav_lotteries.jpg" },
   ];
 
   if (user?.is_admin) {
