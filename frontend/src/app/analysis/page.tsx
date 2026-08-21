@@ -545,12 +545,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
     if (details.best_analyzed_6d?.[0]?.number) {
       numbers.push(details.best_analyzed_6d[0].number);
     }
-    const top3dItems = (details.generated_3d_recommendations || []).slice(0, 1);
-    for (const item of top3dItems) {
-      const n = typeof item === "string" ? item : item?.number;
-      if (n) numbers.push(n);
-    }
-    const top2dItems = (details.generated_2d_recommendations || []).slice(0, 2);
+    const top2dItems = (details.generated_2d_recommendations || []).slice(0, 3);
     for (const item of top2dItems) {
       const n = typeof item === "string" ? item : item?.number;
       if (n) numbers.push(n);
@@ -658,89 +653,17 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 </div>
               )}
 
-              {/* 3-Digit Card (1 Pick) */}
-              {(() => {
-                let top3dList = [...(details.generated_3d_recommendations || [])];
-
-                // Fallback for older jobs: supplement with top 3-digit endings if less than 1
-                if (top3dList.length < 1 && details.top_3digit_endings) {
-                  const existingSet = new Set(
-                    top3dList.map((x: any) => (typeof x === "string" ? x : x.number))
-                  );
-                  for (const ending of details.top_3digit_endings) {
-                    if (top3dList.length >= 1) break;
-                    if (ending?.combination && !existingSet.has(ending.combination)) {
-                      top3dList.push({ number: ending.combination, score: Math.round(ending.count * 15 * 10) / 10 });
-                      existingSet.add(ending.combination);
-                    }
-                  }
-                }
-
-                const display3dList = top3dList.slice(0, 1);
-
-                return display3dList.map((item: any, idx: number) => {
-                  const numStr = typeof item === "string" ? item : item?.number || "000";
-                  const scoreVal = typeof item === "object" && item?.score !== undefined ? item.score : "N/A";
-
-                  return (
-                    <div
-                      key={numStr + idx}
-                      style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        flexWrap: "wrap",
-                        gap: "1rem",
-                        background: "rgba(255, 255, 255, 0.02)",
-                        border: "1px solid rgba(255, 255, 255, 0.05)",
-                        borderRadius: "8px",
-                        padding: "1rem 1.5rem",
-                      }}
-                    >
-                      <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                        3-Digit Pick #1 (Top 3D)
-                      </div>
-                      <div style={{ fontSize: "2rem", fontWeight: "bold", fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "4px" }}>
-                        {numStr}
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "right" }}>
-                          Score: {scoreVal}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleSaveToTracker(numStr, "3D")}
-                          style={{
-                            padding: "0.4rem 0.8rem",
-                            background: "rgba(14, 165, 233, 0.15)",
-                            border: "1px solid rgba(14, 165, 233, 0.4)",
-                            borderRadius: "6px",
-                            color: "var(--accent-cyan)",
-                            fontWeight: 700,
-                            fontSize: "0.8rem",
-                            cursor: "pointer",
-                          }}
-                        >
-                          📌 Save to Tracker
-                        </button>
-                      </div>
-                    </div>
-                  );
-                });
-              })()}
-
-              {/* 2-Digit Cards (2 Unique Picks) */}
+              {/* 2-Digit Cards (3 Unique Picks) */}
               {(() => {
                 let top2dList = [...(details.generated_2d_recommendations || [])];
 
-                // Fallback for older jobs: supplement with top 2-digit endings if less than 2
-                if (top2dList.length < 2 && details.top_2digit_endings) {
+                // Fallback for older jobs: supplement with top 2-digit endings if less than 3
+                if (top2dList.length < 3 && details.top_2digit_endings) {
                   const existingSet = new Set(
                     top2dList.map((x: any) => (typeof x === "string" ? x : x.number))
                   );
                   for (const ending of details.top_2digit_endings) {
-                    if (top2dList.length >= 2) break;
+                    if (top2dList.length >= 3) break;
                     if (ending?.combination && !existingSet.has(ending.combination)) {
                       top2dList.push({ number: ending.combination, score: Math.round(ending.count * 8.5 * 10) / 10 });
                       existingSet.add(ending.combination);
@@ -748,7 +671,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                   }
                 }
 
-                const display2dList = top2dList.slice(0, 2);
+                const display2dList = top2dList.slice(0, 3);
 
                 return display2dList.map((item: any, idx: number) => {
                   const numStr = typeof item === "string" ? item : item?.number || "00";
