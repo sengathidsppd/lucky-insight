@@ -53,13 +53,13 @@ export default function NavigationShell({ children }: { children: React.ReactNod
   }
 
   const navItems = [
-    { name: "Dashboard", path: "/dashboard", icon: "📊" },
-    { name: "Analysis", path: "/analysis", icon: "🎯" },
-    { name: "Lotteries", path: "/lotteries", icon: "📜" },
+    { name: "Dashboard", path: "/dashboard" },
+    { name: "Analysis", path: "/analysis" },
+    { name: "Lotteries", path: "/lotteries" },
   ];
 
   if (user?.is_admin) {
-    navItems.push({ name: "Users", path: "/users", icon: "👥" });
+    navItems.push({ name: "Users", path: "/users" });
   }
 
   return (
@@ -131,12 +131,12 @@ export default function NavigationShell({ children }: { children: React.ReactNod
             </div>
           </Link>
 
-          {/* Navigation Links (Prominent & Eye-catching) */}
+          {/* Navigation Links (Clean & Sleek with Dividers) */}
           <nav
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "0.6rem",
+              gap: "0.4rem",
               background: "rgba(255, 215, 0, 0.04)",
               padding: "0.4rem 0.6rem",
               borderRadius: "16px",
@@ -144,38 +144,49 @@ export default function NavigationShell({ children }: { children: React.ReactNod
               boxShadow: "inset 0 2px 8px rgba(0, 0, 0, 0.5)",
             }}
           >
-            {navItems.map((item) => {
+            {navItems.map((item, idx) => {
               const isActive = pathname === item.path;
               return (
-                <Link
-                  key={item.path}
-                  href={item.path}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    padding: "0.65rem 1.4rem",
-                    borderRadius: "10px",
-                    textDecoration: "none",
-                    fontSize: "0.95rem",
-                    fontWeight: isActive ? 900 : 600,
-                    color: isActive ? "#ffffff" : "var(--text-secondary)",
-                    background: isActive
-                      ? "linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(245, 158, 11, 0.3))"
-                      : "transparent",
-                    border: isActive
-                      ? "1.5px solid #ffd700"
-                      : "1.5px solid transparent",
-                    boxShadow: isActive
-                      ? "0 0 22px rgba(255, 215, 0, 0.5), inset 0 0 10px rgba(255, 215, 0, 0.25)"
-                      : "none",
-                    transform: isActive ? "scale(1.04)" : "scale(1)",
-                    transition: "all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)",
-                  }}
-                >
-                  <span style={{ fontSize: "1.15rem" }}>{item.icon}</span>
-                  <span style={{ letterSpacing: "0.5px" }}>{item.name}</span>
-                </Link>
+                <React.Fragment key={item.path}>
+                  {idx > 0 && (
+                    <div
+                      style={{
+                        width: "1px",
+                        height: "18px",
+                        background: "rgba(255, 215, 0, 0.15)",
+                        margin: "0 2px",
+                      }}
+                    />
+                  )}
+                  <Link
+                    href={item.path}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "0.65rem 1.5rem",
+                      borderRadius: "10px",
+                      textDecoration: "none",
+                      fontSize: "0.95rem",
+                      fontWeight: isActive ? 900 : 600,
+                      letterSpacing: "0.6px",
+                      color: isActive ? "#ffffff" : "var(--text-secondary)",
+                      background: isActive
+                        ? "linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(245, 158, 11, 0.3))"
+                        : "transparent",
+                      border: isActive
+                        ? "1.5px solid #ffd700"
+                        : "1.5px solid transparent",
+                      boxShadow: isActive
+                        ? "0 0 22px rgba(255, 215, 0, 0.5), inset 0 0 10px rgba(255, 215, 0, 0.25)"
+                        : "none",
+                      transform: isActive ? "scale(1.04)" : "scale(1)",
+                      transition: "all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)",
+                    }}
+                  >
+                    <span>{item.name}</span>
+                  </Link>
+                </React.Fragment>
               );
             })}
           </nav>
