@@ -177,8 +177,353 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 2. Calendar Heatmap Section */}
+      {/* 2. Winning Flow Wave Trend Section */}
+      <WinningFlowWaveDashboard />
+
+      {/* 3. Calendar Heatmap Section */}
       <CalendarHeatmap />
+    </div>
+  );
+}
+
+
+function WinningFlowWaveDashboard() {
+  const [games, setGames] = useState<any[]>([]);
+  const [selectedGameCode, setSelectedGameCode] = useState<string>("LAO");
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load games list
+  useEffect(() => {
+    apiRequest("/lotteries/games")
+      .then((resp) => {
+        const gameList = resp.data || [];
+        setGames(gameList);
+      })
+      .catch((err) => console.error("Error fetching games for wave chart:", err));
+  }, []);
+
+  // Fetch results whenever selectedGameCode changes
+  useEffect(() => {
+    if (games.length === 0) return;
+    const currentGame = games.find((g) => g.code.toUpperCase().includes(selectedGameCode)) || games[0];
+    if (!currentGame) return;
+
+    setLoading(true);
+    apiRequest(`/lotteries/results?game_id=${currentGame.id}&limit=16`)
+      .then((resp) => {
+        const dataList = resp.data || [];
+        // Reverse so oldest is left, latest is right
+        setResults([...dataList].reverse());
+      })
+      .catch((err) => console.error("Error fetching wave chart results:", err))
+      .finally(() => setLoading(false));
+  }, [games, selectedGameCode]);
+
+  // Calculations for Wave
+  const trendData = results.map((item, idx) => {
+    const raw2D = item.last2 || (item.first_prize && item.first_prize.length >= 2 ? item.first_prize.slice(-2) : "00");
+    const numVal = parseInt(raw2D, 10) || 0;
+    return {
+      id: item.id,
+      label: `Draw #${item.draw_number || idx + 1}`,
+      date: item.draw_date,
+      number: item.first_prize || "—",
+      last2: numVal,
+      last2Str: String(raw2D).padStart(2, "0"),
+    };
+  });
+
+  const chartWidth = 520;
+  const chartHeight = 220;
+  const padLeft = 45;
+  const padRight = 25;
+  const padTop = 30;
+  const padBottom = 40;
+  const plotWidth = chartWidth - padLeft - padRight;
+  const plotHeight = chartHeight - padTop - padBottom;
+
+  const points = trendData.map((d, idx) => {
+    const x = padLeft + (idx * plotWidth) / Math.max(1, trendData.length - 1);
+    const y = padTop + plotHeight * (1 - d.last2 / 99);
+    return { x, y, data: d };
+  });
+
+  let curvePath = "";
+  let areaPath = "";
+
+  if (points.length > 0) {
+    curvePath = `M ${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[Math.max(0, i - 1)];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[Math.min(points.length - 1, i + 2)];
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      curvePath += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+    }
+    areaPath = `${curvePath} L ${points[points.length - 1].x.toFixed(1)},${padTop + plotHeight} L ${points[0].x.toFixed(1)},${padTop + plotHeight} Z`;
+  }
+
+  // Quick stats
+  const avgValue = trendData.length > 0 
+    ? (trendData.reduce((acc, curr) => acc + curr.last2, 0) / trendData.length).toFixed(1)
+    : "—";
+
+  const highest2D = trendData.length > 0 ? Math.max(...trendData.map(d => d.last2)) : 0;
+  const lowest2D = trendData.length > 0 ? Math.min(...trendData.map(d => d.last2)) : 0;
+
+  return (
+    <div className="glass-panel" style={{ padding: "1.5rem", borderRadius: "16px", marginTop: "1rem", border: "1px solid rgba(255, 215, 0, 0.12)" }}>
+      {/* Header & Controls */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "1rem" }}>
+        <div>
+          <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#fff", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span>📈</span> Winning Flow Wave Trend
+          </h3>
+          <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", margin: "0.25rem 0 0 0" }}>
+            Continuous 2-digit trajectory across recent draws (Low Zone 00–49 vs High Zone 50–99)
+          </p>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+          {/* Stats Chips */}
+          <div style={{ display: "flex", gap: "0.6rem" }}>
+            <div style={{ background: "rgba(255, 215, 0, 0.05)", border: "1px solid rgba(255, 215, 0, 0.15)", borderRadius: "8px", padding: "0.3rem 0.7rem", fontSize: "0.75rem", color: "#fff" }}>
+              <span style={{ color: "var(--text-muted)", marginRight: "4px" }}>Mean:</span>
+              <strong style={{ color: "#ffd700" }}>{avgValue}</strong>
+            </div>
+            <div style={{ background: "rgba(255, 215, 0, 0.05)", border: "1px solid rgba(255, 215, 0, 0.15)", borderRadius: "8px", padding: "0.3rem 0.7rem", fontSize: "0.75rem", color: "#fff" }}>
+              <span style={{ color: "var(--text-muted)", marginRight: "4px" }}>Range:</span>
+              <strong style={{ color: "#ffd700" }}>{String(lowest2D).padStart(2, "0")} – {String(highest2D).padStart(2, "0")}</strong>
+            </div>
+          </div>
+
+          {/* Game Switch Buttons */}
+          <div style={{ display: "flex", background: "rgba(255, 215, 0, 0.04)", padding: "3px", borderRadius: "10px", border: "1px solid rgba(255, 215, 0, 0.12)" }}>
+            <button
+              type="button"
+              onClick={() => setSelectedGameCode("LAO")}
+              style={{
+                padding: "0.35rem 0.8rem",
+                borderRadius: "7px",
+                border: "none",
+                fontSize: "0.78rem",
+                fontWeight: selectedGameCode === "LAO" ? 800 : 500,
+                background: selectedGameCode === "LAO" ? "linear-gradient(135deg, #ffd700, #f59e0b)" : "transparent",
+                color: selectedGameCode === "LAO" ? "#000" : "var(--text-secondary)",
+                boxShadow: selectedGameCode === "LAO" ? "0 0 12px rgba(255, 215, 0, 0.4)" : "none",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+            >
+              🇱🇦 Lao
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedGameCode("THAI")}
+              style={{
+                padding: "0.35rem 0.8rem",
+                borderRadius: "7px",
+                border: "none",
+                fontSize: "0.78rem",
+                fontWeight: selectedGameCode === "THAI" ? 800 : 500,
+                background: selectedGameCode === "THAI" ? "linear-gradient(135deg, #ffd700, #f59e0b)" : "transparent",
+                color: selectedGameCode === "THAI" ? "#000" : "var(--text-secondary)",
+                boxShadow: selectedGameCode === "THAI" ? "0 0 12px rgba(255, 215, 0, 0.4)" : "none",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+            >
+              🇹🇭 Thai
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-secondary)" }}>
+          Loading trajectory flow...
+        </div>
+      ) : points.length === 0 ? (
+        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+          No draw history available for this game.
+        </div>
+      ) : (
+        <div style={{ position: "relative", width: "100%", height: "240px" }}>
+          <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} style={{ width: "100%", height: "100%", overflow: "visible" }}>
+            <defs>
+              <linearGradient id="dashGoldWaveFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ffd700" stopOpacity="0.3" />
+                <stop offset="60%" stopColor="#f59e0b" stopOpacity="0.08" />
+                <stop offset="100%" stopColor="#d97706" stopOpacity="0.0" />
+              </linearGradient>
+
+              <linearGradient id="dashGoldWaveStroke" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#f59e0b" />
+                <stop offset="50%" stopColor="#ffd700" />
+                <stop offset="100%" stopColor="#fffbeb" />
+              </linearGradient>
+
+              <filter id="dashGoldGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#ffd700" floodOpacity="0.7" />
+              </filter>
+            </defs>
+
+            {/* Zone Background Rectangles */}
+            <rect
+              x={padLeft}
+              y={padTop}
+              width={plotWidth}
+              height={plotHeight / 2}
+              fill="rgba(245, 158, 11, 0.02)"
+            />
+            <rect
+              x={padLeft}
+              y={padTop + plotHeight / 2}
+              width={plotWidth}
+              height={plotHeight / 2}
+              fill="rgba(6, 182, 212, 0.015)"
+            />
+
+            {/* Horizontal Grid lines & Y-Axis Labels */}
+            {[
+              { val: 99, label: "99 (High)" },
+              { val: 75, label: "75" },
+              { val: 50, label: "50" },
+              { val: 25, label: "25" },
+              { val: 0, label: "00 (Low)" },
+            ].map(({ val, label }) => {
+              const y = padTop + plotHeight * (1 - val / 99);
+              const isMid = val === 50;
+              return (
+                <g key={val}>
+                  <line
+                    x1={padLeft}
+                    y1={y}
+                    x2={padLeft + plotWidth}
+                    y2={y}
+                    stroke={isMid ? "rgba(255, 215, 0, 0.35)" : "rgba(255, 255, 255, 0.06)"}
+                    strokeDasharray={isMid ? "4 4" : "2 4"}
+                    strokeWidth={isMid ? 1.5 : 1}
+                  />
+                  <text
+                    x={padLeft - 8}
+                    y={y + 3}
+                    fill={isMid ? "#ffd700" : "var(--text-muted)"}
+                    fontSize="9.5"
+                    fontWeight={isMid ? 800 : 500}
+                    textAnchor="end"
+                  >
+                    {label}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Vertical Gridlines */}
+            {points.map((p, idx) => (
+              <line
+                key={idx}
+                x1={p.x}
+                y1={padTop}
+                x2={p.x}
+                y2={padTop + plotHeight}
+                stroke="rgba(255, 255, 255, 0.04)"
+                strokeWidth="1"
+              />
+            ))}
+
+            {/* Golden Wave Area Fill */}
+            <path d={areaPath} fill="url(#dashGoldWaveFill)" />
+
+            {/* Golden Wave Stroke */}
+            <path
+              d={curvePath}
+              fill="none"
+              stroke="url(#dashGoldWaveStroke)"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              filter="url(#dashGoldGlow)"
+            />
+
+            {/* Point Nodes */}
+            {points.map((p, idx) => {
+              const isLast = idx === points.length - 1;
+              const dateObj = new Date(p.data.date);
+              const dateStr = !isNaN(dateObj.getTime())
+                ? dateObj.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })
+                : "";
+
+              return (
+                <g key={idx}>
+                  {/* Pulsing Outer Halo for last point */}
+                  {isLast && (
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r="10"
+                      fill="none"
+                      stroke="#ffd700"
+                      strokeWidth="2"
+                      opacity="0.6"
+                    >
+                      <animate attributeName="r" values="8;14;8" dur="2s" repeatCount="indefinite" />
+                      <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite" />
+                    </circle>
+                  )}
+
+                  {/* Center Node */}
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r={isLast ? 6 : 4.5}
+                    fill={isLast ? "#fffbeb" : "#ffd700"}
+                    stroke="#000"
+                    strokeWidth="2"
+                    style={{ cursor: "pointer" }}
+                  >
+                    <title>{`${p.data.label} (${dateStr})\nWinning 2D: ${p.data.last2Str}\n1st Prize: ${p.data.number}`}</title>
+                  </circle>
+
+                  {/* Node Value Label Tag */}
+                  <text
+                    x={p.x}
+                    y={p.y - 10}
+                    fill={isLast ? "#ffd700" : "#ffffff"}
+                    fontSize={isLast ? "11" : "9.5"}
+                    fontWeight={900}
+                    fontFamily="monospace"
+                    textAnchor="middle"
+                    filter="drop-shadow(0 1px 3px rgba(0,0,0,0.8))"
+                  >
+                    {p.data.last2Str}
+                  </text>
+
+                  {/* X-Axis Draw / Date Label */}
+                  {(idx % 2 === 0 || isLast) && (
+                    <text
+                      x={p.x}
+                      y={padTop + plotHeight + 18}
+                      fill="var(--text-secondary)"
+                      fontSize="9"
+                      textAnchor="middle"
+                    >
+                      {dateStr || `#${idx + 1}`}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+      )}
     </div>
   );
 }
