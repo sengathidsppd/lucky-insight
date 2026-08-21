@@ -173,24 +173,6 @@ export default function AnalysisPage() {
     }
   };
 
-  const handleSaveToTracker = async (numberCode: string, category: string) => {
-    try {
-      await apiRequest("/tickets", {
-        method: "POST",
-        body: JSON.stringify({
-          number_code: numberCode,
-          category: category,
-          lottery_type: gameCode || "LAO",
-          amount_spent: 0,
-          status: "PENDING",
-        }),
-      });
-      alert(`📌 Number ${numberCode} (${category}) saved to your Personal Tracker!`);
-    } catch (err: any) {
-      alert("Failed to save to Tracker: " + err.message);
-    }
-  };
-
   const handleBulkDelete = async () => {
     if (selectedJobIds.length === 0) return;
     if (!confirm(`Are you sure you want to delete all ${selectedJobIds.length} selected analysis histories?`)) {
@@ -522,58 +504,6 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
     setIsSet1Visible(false);
   }, [job.id]);
 
-  const handleSaveToTracker = async (numberCode: string, category: string) => {
-    try {
-      await apiRequest("/tickets", {
-        method: "POST",
-        body: JSON.stringify({
-          number_code: numberCode,
-          category: category,
-          lottery_type: job.game_code || "LAO",
-          amount_spent: 0,
-          status: "PENDING",
-        }),
-      });
-      alert(`📌 Number ${numberCode} (${category}) saved to your Personal Tracker!`);
-    } catch (err: any) {
-      alert("Failed to save to Tracker: " + err.message);
-    }
-  };
-
-  const handleSaveAllToTracker = async () => {
-    const numbers: string[] = [];
-    if (details.best_analyzed_6d?.[0]?.number) {
-      numbers.push(details.best_analyzed_6d[0].number);
-    }
-    const top2dItems = (details.generated_2d_recommendations || []).slice(0, 3);
-    for (const item of top2dItems) {
-      const n = typeof item === "string" ? item : item?.number;
-      if (n) numbers.push(n);
-    }
-
-    if (numbers.length === 0) {
-      alert("No recommendation numbers available to save.");
-      return;
-    }
-
-    const combinedCode = numbers.join(", ");
-    try {
-      await apiRequest("/tickets", {
-        method: "POST",
-        body: JSON.stringify({
-          number_code: combinedCode,
-          category: "SET",
-          lottery_type: job.game_code || "LAO",
-          amount_spent: 0,
-          status: "PENDING",
-        }),
-      });
-      alert(`📌 Combined Lucky Set (${combinedCode}) saved as 1 Ticket to your Personal Tracker!`);
-    } catch (err: any) {
-      alert("Failed to save to Tracker: " + err.message);
-    }
-  };
-
   if (!result) return null;
   const details = result.result_data;
 
@@ -597,26 +527,6 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0, fontSize: "1.1rem" }}>
                  Winning Number Projections (Statistical Picks)
               </h4>
-              <button
-                type="button"
-                onClick={handleSaveAllToTracker}
-                style={{
-                  padding: "0.6rem 1.2rem",
-                  background: "linear-gradient(135deg, var(--accent-cyan), #0284c7)",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#000",
-                  fontWeight: 800,
-                  fontSize: "0.85rem",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.4rem",
-                  boxShadow: "0 4px 12px rgba(14, 165, 233, 0.3)",
-                }}
-              >
-                📌 Save All to Tracker (1 Combined Ticket)
-              </button>
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
@@ -633,22 +543,6 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                     <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "right" }}>
                       Score: {details.best_analyzed_6d[0].score}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleSaveToTracker(details.best_analyzed_6d[0].number, "6D")}
-                      style={{
-                        padding: "0.4rem 0.8rem",
-                        background: "rgba(14, 165, 233, 0.15)",
-                        border: "1px solid rgba(14, 165, 233, 0.4)",
-                        borderRadius: "6px",
-                        color: "var(--accent-cyan)",
-                        fontWeight: 700,
-                        fontSize: "0.8rem",
-                        cursor: "pointer",
-                      }}
-                    >
-                      📌 Save to Tracker
-                    </button>
                   </div>
                 </div>
               )}
@@ -703,22 +597,6 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                         <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "right" }}>
                           Score: {scoreVal}
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleSaveToTracker(numStr, "2D")}
-                          style={{
-                            padding: "0.4rem 0.8rem",
-                            background: "rgba(14, 165, 233, 0.15)",
-                            border: "1px solid rgba(14, 165, 233, 0.4)",
-                            borderRadius: "6px",
-                            color: "var(--accent-cyan)",
-                            fontWeight: 700,
-                            fontSize: "0.8rem",
-                            cursor: "pointer",
-                          }}
-                        >
-                          📌 Save to Tracker
-                        </button>
                       </div>
                     </div>
                   );

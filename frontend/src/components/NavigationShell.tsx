@@ -52,7 +52,6 @@ export default function NavigationShell({ children }: { children: React.ReactNod
     { name: "Records", path: "/records", image: "/images/nav_records.jpg" },
     { name: "Lotteries", path: "/lotteries", image: "/images/nav_lotteries.jpg" },
     { name: "Analysis", path: "/analysis", image: "/images/nav_analysis.jpg" },
-    { name: "Tracker", path: "/tracker", image: "/images/nav_dashboard.jpg" },
   ];
 
   if (user?.is_admin) {

@@ -138,7 +138,6 @@ async def validation_exception_handler(
 
 
 from app.api.v1.notifications import router as notifications_v1_router
-from app.api.v1.tickets import router as tickets_v1_router
 
 app.include_router(health_router)
 app.include_router(health_router, prefix="/api/v1")
@@ -153,6 +152,5 @@ app.include_router(analysis_v1_router, prefix="/api/v1")
 app.include_router(dashboard_v1_router, prefix="/api/v1")
 app.include_router(ocr_v1_router, prefix="/api/v1")
 app.include_router(notifications_v1_router, prefix="/api/v1")
-app.include_router(tickets_v1_router, prefix="/api/v1", tags=["Tickets"])
 
 
