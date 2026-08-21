@@ -200,8 +200,8 @@ export default function DashboardPage() {
       {/* 2. Calendar Heatmap Section (Second) */}
       <CalendarHeatmap />
 
-      {/* 3. Top Digit Frequency + Quick Actions Row */}
-      <div className="db-charts-row">
+      {/* 3. Top Digit Frequency */}
+      <div style={{ marginTop: "1rem" }}>
         <div className="glass-panel" style={chartPanelStyle}>
           <h4 style={panelTitleStyle}>Top Digit Frequency</h4>
           <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: "0.2rem 0 0 0" }}>From recent records</p>
@@ -220,42 +220,6 @@ export default function DashboardPage() {
             })}
           </div>
         </div>
-
-        <div className="glass-panel" style={quickActionsStyle}>
-          <h4 style={panelTitleStyle}>Quick Actions</h4>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: "0 0 1rem 0" }}>Jump to features</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-            <Link href="/records" style={quickActionBtnStyle}>
-              <span style={qaBtnIconStyle}>-</span>
-              <div>
-                <div style={qaBtnTitleStyle}>Number Records</div>
-                <div style={qaBtnSubStyle}>Add & manage numbers</div>
-              </div>
-            </Link>
-            <Link href="/analysis" style={quickActionBtnStyle}>
-              <span style={qaBtnIconStyle}></span>
-              <div>
-                <div style={qaBtnTitleStyle}>Stat Analysis</div>
-                <div style={qaBtnSubStyle}>Run frequency models</div>
-              </div>
-            </Link>
-            <Link href="/lotteries" style={quickActionBtnStyle}>
-              <span style={qaBtnIconStyle}>-</span>
-              <div>
-                <div style={qaBtnTitleStyle}>Lottery History</div>
-                <div style={qaBtnSubStyle}>View official results</div>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Overview Stats */}
-      <div className="db-stats-row">
-        <StatCard icon="#" label="Total Records" value={data.total_records} accent="var(--gradient-btn)" />
-        <StatCard icon="★" label="Favorites" value={data.total_favorites} accent="var(--gradient-border)" />
-        <StatCard icon="/" label="Categories" value={totalCategories} accent="linear-gradient(135deg, #06b6d4, #3b82f6)" />
-        <StatCard icon="" label="Analysis Runs" value={totalAnalysisRuns} accent="linear-gradient(135deg, #d946ef, #8b5cf6)" />
       </div>
     </div>
   );
