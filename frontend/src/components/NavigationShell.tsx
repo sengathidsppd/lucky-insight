@@ -70,22 +70,22 @@ export default function NavigationShell({ children }: { children: React.ReactNod
           position: "sticky",
           top: 0,
           zIndex: 200,
-          background: "rgba(10, 2, 15, 0.88)",
-          backdropFilter: "blur(20px)",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.4)",
+          background: "rgba(10, 2, 15, 0.92)",
+          backdropFilter: "blur(25px)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.12)",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.6)",
         }}
       >
         <div
           style={{
-            maxWidth: "1400px",
+            maxWidth: "1440px",
             margin: "0 auto",
-            padding: "0.75rem 2rem",
+            padding: "1rem 2.5rem",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             flexWrap: "wrap",
-            gap: "1rem",
+            gap: "1.2rem",
           }}
         >
           {/* Logo & Brand */}
@@ -95,20 +95,21 @@ export default function NavigationShell({ children }: { children: React.ReactNod
               textDecoration: "none",
               display: "flex",
               alignItems: "center",
-              gap: "0.6rem",
+              gap: "0.8rem",
+              transition: "transform 0.2s ease",
             }}
           >
             <div
               style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "10px",
-                background: "linear-gradient(135deg, var(--accent-cyan), #8b5cf6)",
+                width: "44px",
+                height: "44px",
+                borderRadius: "12px",
+                background: "linear-gradient(135deg, var(--accent-cyan), #8b5cf6, #d946ef)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "1.2rem",
-                boxShadow: "0 0 15px rgba(6, 182, 212, 0.4)",
+                fontSize: "1.4rem",
+                boxShadow: "0 0 20px rgba(6, 182, 212, 0.5)",
               }}
             >
               ✨
@@ -116,12 +117,13 @@ export default function NavigationShell({ children }: { children: React.ReactNod
             <div>
               <span
                 style={{
-                  fontSize: "1.1rem",
+                  fontSize: "1.35rem",
                   fontWeight: 900,
-                  letterSpacing: "1.5px",
-                  background: "linear-gradient(135deg, #ffffff, var(--accent-cyan))",
+                  letterSpacing: "2px",
+                  background: "linear-gradient(135deg, #ffffff 40%, var(--accent-cyan) 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
+                  filter: "drop-shadow(0 2px 8px rgba(6, 182, 212, 0.3))",
                 }}
               >
                 LUCKY INSIGHT
@@ -129,16 +131,17 @@ export default function NavigationShell({ children }: { children: React.ReactNod
             </div>
           </Link>
 
-          {/* Navigation Links */}
+          {/* Navigation Links (Prominent & Eye-catching) */}
           <nav
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "0.5rem",
-              background: "rgba(255, 255, 255, 0.03)",
-              padding: "0.3rem 0.5rem",
-              borderRadius: "12px",
-              border: "1px solid rgba(255, 255, 255, 0.06)",
+              gap: "0.6rem",
+              background: "rgba(255, 255, 255, 0.04)",
+              padding: "0.4rem 0.6rem",
+              borderRadius: "16px",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              boxShadow: "inset 0 2px 6px rgba(0, 0, 0, 0.3)",
             }}
           >
             {navItems.map((item) => {
@@ -150,34 +153,35 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "0.4rem",
-                    padding: "0.5rem 1.1rem",
-                    borderRadius: "8px",
+                    gap: "0.5rem",
+                    padding: "0.65rem 1.4rem",
+                    borderRadius: "10px",
                     textDecoration: "none",
-                    fontSize: "0.85rem",
-                    fontWeight: isActive ? 800 : 600,
+                    fontSize: "0.95rem",
+                    fontWeight: isActive ? 900 : 600,
                     color: isActive ? "#ffffff" : "var(--text-secondary)",
                     background: isActive
-                      ? "linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(59, 130, 246, 0.25))"
+                      ? "linear-gradient(135deg, rgba(6, 182, 212, 0.35), rgba(139, 92, 246, 0.35))"
                       : "transparent",
                     border: isActive
-                      ? "1px solid rgba(6, 182, 212, 0.6)"
-                      : "1px solid transparent",
+                      ? "1.5px solid var(--accent-cyan)"
+                      : "1.5px solid transparent",
                     boxShadow: isActive
-                      ? "0 0 12px rgba(6, 182, 212, 0.3)"
+                      ? "0 0 20px rgba(6, 182, 212, 0.45), inset 0 0 10px rgba(6, 182, 212, 0.2)"
                       : "none",
-                    transition: "all 0.2s ease",
+                    transform: isActive ? "scale(1.04)" : "scale(1)",
+                    transition: "all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)",
                   }}
                 >
-                  <span style={{ fontSize: "0.95rem" }}>{item.icon}</span>
-                  <span>{item.name}</span>
+                  <span style={{ fontSize: "1.15rem" }}>{item.icon}</span>
+                  <span style={{ letterSpacing: "0.5px" }}>{item.name}</span>
                 </Link>
               );
             })}
           </nav>
 
           {/* Right Actions: Notification + User + Logout */}
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.2rem" }}>
             <NotificationBell />
 
             {user && (
@@ -185,30 +189,31 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.35rem 0.8rem",
-                  borderRadius: "20px",
-                  background: "rgba(255, 255, 255, 0.03)",
-                  border: "1px solid rgba(255, 255, 255, 0.06)",
+                  gap: "0.6rem",
+                  padding: "0.45rem 1rem",
+                  borderRadius: "24px",
+                  background: "rgba(255, 255, 255, 0.04)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
                 }}
               >
                 <div
                   style={{
-                    width: "24px",
-                    height: "24px",
+                    width: "28px",
+                    height: "28px",
                     borderRadius: "50%",
                     background: "linear-gradient(135deg, #d946ef, #8b5cf6)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "0.75rem",
-                    fontWeight: 800,
+                    fontSize: "0.85rem",
+                    fontWeight: 900,
                     color: "#fff",
+                    boxShadow: "0 0 10px rgba(217, 70, 239, 0.4)",
                   }}
                 >
                   {(user.first_name || user.email || "U")[0].toUpperCase()}
                 </div>
-                <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", fontWeight: 600 }}>
+                <span style={{ fontSize: "0.88rem", color: "#fff", fontWeight: 700 }}>
                   {user.first_name || user.email?.split("@")[0]}
                 </span>
               </div>
@@ -219,15 +224,16 @@ export default function NavigationShell({ children }: { children: React.ReactNod
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "0.4rem",
-                padding: "0.45rem 0.9rem",
-                borderRadius: "8px",
-                border: "1px solid rgba(239, 68, 68, 0.3)",
-                background: "rgba(239, 68, 68, 0.08)",
+                gap: "0.5rem",
+                padding: "0.55rem 1.1rem",
+                borderRadius: "10px",
+                border: "1px solid rgba(239, 68, 68, 0.4)",
+                background: "rgba(239, 68, 68, 0.12)",
                 color: "#f87171",
-                fontSize: "0.8rem",
-                fontWeight: 700,
+                fontSize: "0.88rem",
+                fontWeight: 800,
                 cursor: "pointer",
+                boxShadow: "0 0 12px rgba(239, 68, 68, 0.2)",
                 transition: "all 0.2s ease",
               }}
             >
