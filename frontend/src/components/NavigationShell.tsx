@@ -99,21 +99,18 @@ export default function NavigationShell({ children }: { children: React.ReactNod
               transition: "transform 0.2s ease",
             }}
           >
-            <div
+            <img
+              src="/app-logo.jpg"
+              alt="SUSU Lucky Logo"
               style={{
                 width: "44px",
                 height: "44px",
                 borderRadius: "12px",
-                background: "linear-gradient(135deg, #ffd700, #f59e0b, #d97706)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "1.4rem",
+                objectFit: "cover",
+                border: "2px solid #ffd700",
                 boxShadow: "0 0 22px rgba(245, 158, 11, 0.55)",
               }}
-            >
-              👑
-            </div>
+            />
             <div>
               <span
                 style={{
@@ -201,29 +198,24 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                   display: "flex",
                   alignItems: "center",
                   gap: "0.6rem",
-                  padding: "0.45rem 1rem",
+                  padding: "0.35rem 0.85rem",
                   borderRadius: "24px",
                   background: "rgba(255, 215, 0, 0.05)",
                   border: "1px solid rgba(255, 215, 0, 0.15)",
                 }}
               >
-                <div
+                <img
+                  src="/app-logo.jpg"
+                  alt="Profile"
                   style={{
                     width: "28px",
                     height: "28px",
                     borderRadius: "50%",
-                    background: "linear-gradient(135deg, #ffd700, #d97706)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "0.85rem",
-                    fontWeight: 900,
-                    color: "#000",
-                    boxShadow: "0 0 12px rgba(255, 215, 0, 0.5)",
+                    objectFit: "cover",
+                    border: "1.5px solid #ffd700",
+                    boxShadow: "0 0 10px rgba(255, 215, 0, 0.5)",
                   }}
-                >
-                  {(user.first_name || user.email || "U")[0].toUpperCase()}
-                </div>
+                />
                 <span style={{ fontSize: "0.88rem", color: "#fff", fontWeight: 700 }}>
                   {user.first_name || user.email?.split("@")[0]}
                 </span>

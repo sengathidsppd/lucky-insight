@@ -31,7 +31,19 @@ export default function LoginPage() {
     <div style={containerStyle}>
       <div className="glass-panel" style={cardStyle}>
         <div style={headerStyle}>
-          <span style={emojiStyle}>👑</span>
+          <img
+            src="/app-logo.jpg"
+            alt="SUSU Lucky"
+            style={{
+              width: "72px",
+              height: "72px",
+              borderRadius: "50%",
+              objectFit: "cover",
+              border: "3px solid #ffd700",
+              boxShadow: "0 0 25px rgba(255, 215, 0, 0.6)",
+              margin: "0 auto 0.8rem auto",
+            }}
+          />
           <h1 style={titleStyle}>SUSU Lucky</h1>
           <p style={subtitleStyle}>Sign in to access your dashboard</p>
         </div>
