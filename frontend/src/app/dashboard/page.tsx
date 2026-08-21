@@ -200,36 +200,9 @@ export default function DashboardPage() {
       {/* 2. Calendar Heatmap Section (Second) */}
       <CalendarHeatmap />
 
-      {/* 3. Charts Row */}
+      {/* 3. Top Digit Frequency + Quick Actions Row */}
       <div className="db-charts-row">
         <div className="glass-panel" style={chartPanelStyle}>
-          <div style={chartHeaderStyle}>
-            <div>
-              <h4 style={panelTitleStyle}>Records by Category</h4>
-              <p style={{ color: "#43e97b", fontSize: "0.8rem", margin: "0.2rem 0 0 0" }}>{totalCategories} categories tracked</p>
-            </div>
-          </div>
-          {data.records_by_category.length === 0 ? (
-            <div style={emptyTextStyle}>No category data yet.</div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginTop: "1rem" }}>
-              {data.records_by_category.map((cat) => {
-                const percent = Math.round((cat.count / maxCategoryCount) * 100);
-                return (
-                  <div key={cat.category_name} style={barRowStyle}>
-                    <span style={barLabelStyle}>{cat.category_name}</span>
-                    <div style={barTrackStyle}>
-                      <div style={{ ...barFillStyle, width: `${percent}%`, background: "linear-gradient(90deg, #4facfe, #06b6d4)" }} />
-                    </div>
-                    <span style={barValueStyle}>{cat.count}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div className="glass-panel" style={chartPanelSmallStyle}>
           <h4 style={panelTitleStyle}>Top Digit Frequency</h4>
           <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: "0.2rem 0 0 0" }}>From recent records</p>
           <div style={miniBarChartStyle}>
@@ -245,130 +218,6 @@ export default function DashboardPage() {
                 </div>
               );
             })}
-          </div>
-          <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", flexWrap: "wrap" }}>
-            <MiniStat label="Total Records" value={data.total_records.toString()} color="#d946ef" />
-            <MiniStat label="Favorites" value={data.total_favorites.toString()} color="#f5576c" />
-            <MiniStat label="Sources" value={totalSources.toString()} color="#43e97b" />
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Recent Records + Source Distribution */}
-      <div className="db-bottom-row">
-        <div className="glass-panel" style={recentPanelStyle}>
-          <div style={chartHeaderStyle}>
-            <h4 style={panelTitleStyle}>Recent Recorded Numbers</h4>
-            <Link href="/records" className="btn btn-secondary" style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem" }}>View All</Link>
-          </div>
-          {data.recent_records.length === 0 ? (
-            <div style={emptyTextStyle}>No recorded numbers yet. Start adding!</div>
-          ) : (
-            <div style={{ width: "100%", overflowX: "auto", marginTop: "0.5rem" }}>
-              <table style={tableStyle}>
-                <thead>
-                  <tr style={tableHeaderRowStyle}>
-                    <th style={thStyle}>Number</th>
-                    <th style={thStyle}>Category</th>
-                    <th style={thStyle}>Source</th>
-                    <th style={thStyle}>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.recent_records.slice(0, 6).map((rec) => (
-                    <tr key={rec.id} style={trStyle}>
-                      <td style={{ ...tdStyle, fontWeight: 700, color: "var(--accent-cyan)", fontSize: "1.05rem", fontFamily: "monospace", letterSpacing: "1px" }}>
-                        {rec.number}{rec.is_favorite && <span style={{ marginLeft: "0.4rem", color: "#f5576c" }}>★</span>}
-                      </td>
-                      <td style={tdStyle}>{rec.category?.name || "General"}</td>
-                      <td style={tdStyle}>{rec.source?.name || "—"}</td>
-                      <td style={tdStyle}>{new Date(rec.recorded_at).toLocaleDateString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        <div className="glass-panel" style={sourcePanelStyle}>
-          <h4 style={panelTitleStyle}>Records by Source</h4>
-          {data.records_by_source.length === 0 ? (
-            <div style={emptyTextStyle}>No source data available.</div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginTop: "0.5rem" }}>
-              {data.records_by_source.map((src) => {
-                const percent = Math.round((src.count / maxSourceCount) * 100);
-                return (
-                  <div key={src.source_name} style={barRowStyle}>
-                    <span style={barLabelStyle}>{src.source_name}</span>
-                    <div style={barTrackStyle}>
-                      <div style={{ ...barFillStyle, width: `${percent}%`, background: "var(--gradient-border)" }} />
-                    </div>
-                    <span style={barValueStyle}>{src.count}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 5. Overview Stats + Banner Row (Bottom) */}
-      <div className="db-stats-row">
-        <StatCard icon="#" label="Total Records" value={data.total_records} accent="var(--gradient-btn)" />
-        <StatCard icon="★" label="Favorites" value={data.total_favorites} accent="var(--gradient-border)" />
-        <StatCard icon="/" label="Categories" value={totalCategories} accent="linear-gradient(135deg, #06b6d4, #3b82f6)" />
-        <StatCard icon="" label="Analysis Runs" value={totalAnalysisRuns} accent="linear-gradient(135deg, #d946ef, #8b5cf6)" />
-      </div>
-
-      <div className="db-banner-row">
-        <div className="db-welcome-banner" style={welcomeBannerStyle}>
-          <div style={welcomeOverlayStyle}>
-            <div>
-              <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.9rem", margin: 0 }}>Welcome back,</p>
-              <h2 style={{ fontSize: "1.8rem", fontWeight: 800, margin: "0.3rem 0 0.5rem 0", color: "#fff" }}>
-                {user?.first_name || "Lucky Player"} {user?.last_name || ""}
-              </h2>
-              <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.9rem", margin: 0, lineHeight: 1.5 }}>
-                Glad to see you again!<br />
-                Analyze data patterns and generate statistical projections. 
-              </p>
-            </div>
-            <div style={{ marginTop: "1.5rem" }}>
-              <Link href="/records" style={bannerButtonStyle}>Add Numbers →</Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-panel" style={ringPanelStyle}>
-          <h4 style={panelTitleStyle}>Records Score</h4>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: 0 }}>Based on your activity</p>
-          <div style={ringContainerStyle}>
-            <svg viewBox="0 0 120 120" style={{ width: "130px", height: "130px" }}>
-              <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
-              <circle cx="60" cy="60" r="50" fill="none" stroke="url(#scoreGrad)" strokeWidth="10" strokeLinecap="round"
-                strokeDasharray={`${Math.min(data.total_records, 100) * 3.14} 314`} transform="rotate(-90 60 60)"
-                filter="url(#ringGlow)"
-                style={{ transition: "stroke-dasharray 1s ease" }} />
-              <defs>
-                <filter id="ringGlow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="4" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-                <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#06b6d4" />
-                  <stop offset="100%" stopColor="#d946ef" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <div style={ringTextStyle}>
-              <span style={{ fontSize: "1.8rem", fontWeight: 800, color: "#fff" }}>{Math.min(data.total_records, 100)}</span>
-              <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>/ 100</span>
-            </div>
           </div>
         </div>
 
@@ -399,6 +248,14 @@ export default function DashboardPage() {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* 4. Overview Stats */}
+      <div className="db-stats-row">
+        <StatCard icon="#" label="Total Records" value={data.total_records} accent="var(--gradient-btn)" />
+        <StatCard icon="★" label="Favorites" value={data.total_favorites} accent="var(--gradient-border)" />
+        <StatCard icon="/" label="Categories" value={totalCategories} accent="linear-gradient(135deg, #06b6d4, #3b82f6)" />
+        <StatCard icon="" label="Analysis Runs" value={totalAnalysisRuns} accent="linear-gradient(135deg, #d946ef, #8b5cf6)" />
       </div>
     </div>
   );
