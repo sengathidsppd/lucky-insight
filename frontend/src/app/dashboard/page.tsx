@@ -64,8 +64,17 @@ export default function DashboardPage() {
     try {
       const gamesResp = await apiRequest("/lotteries/games");
       const games: LotteryGame[] = gamesResp.data || [];
+      // Sort so Lao Development Lottery (LAO) is always first on the left
+      const sortedGames = [...games].sort((a, b) => {
+        const isLaoA = (a.code || "").toUpperCase().includes("LAO") || (a.name || "").toLowerCase().includes("lao");
+        const isLaoB = (b.code || "").toUpperCase().includes("LAO") || (b.name || "").toLowerCase().includes("lao");
+        if (isLaoA && !isLaoB) return -1;
+        if (!isLaoA && isLaoB) return 1;
+        return 0;
+      });
+
       const draws: { game: LotteryGame; draw: LatestDraw | null }[] = [];
-      for (const game of games) {
+      for (const game of sortedGames) {
         try {
           const drawResp = await apiRequest(`/lotteries/results/latest?game_id=${game.id}`);
           draws.push({ game, draw: drawResp.data || null });
