@@ -197,11 +197,12 @@ def reset_user_analysis_quota(
     current_admin: User = Depends(get_current_admin_user),
     db: Session = Depends(get_db),
 ):
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone, timedelta
     from app.models.analysis_job import AnalysisJob
     from sqlalchemy.orm.attributes import flag_modified
 
-    start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    tz_local = timezone(timedelta(hours=7))
+    start_of_today = datetime.now(tz_local).replace(hour=0, minute=0, second=0, microsecond=0).astimezone(timezone.utc).replace(tzinfo=None)
 
     jobs = (
         db.query(AnalysisJob)

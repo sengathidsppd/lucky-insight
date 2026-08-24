@@ -81,10 +81,11 @@ def get_user_quota(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone, timedelta
     from app.models.lottery_game import LotteryGame
 
-    start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    tz_local = timezone(timedelta(hours=7))
+    start_of_today = datetime.now(tz_local).replace(hour=0, minute=0, second=0, microsecond=0).astimezone(timezone.utc).replace(tzinfo=None)
     jobs_today = (
         db.query(AnalysisJob)
         .filter(
@@ -136,13 +137,14 @@ def create_analysis(
     service: AnalysisService = Depends(get_analysis_service),
 ) -> AnalysisJobDetailResponse:
     # Check daily limit of 1 analysis run per day PER GAME for ALL users (including admins)
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone, timedelta
     from app.models.lottery_game import LotteryGame
 
     game_id = (payload.parameters or {}).get("game_id")
     target_game_id = str(game_id).strip() if (game_id and str(game_id).strip() not in ("undefined", "null", "")) else None
 
-    start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    tz_local = timezone(timedelta(hours=7))
+    start_of_today = datetime.now(tz_local).replace(hour=0, minute=0, second=0, microsecond=0).astimezone(timezone.utc).replace(tzinfo=None)
     jobs_today = (
         db.query(AnalysisJob)
         .filter(
