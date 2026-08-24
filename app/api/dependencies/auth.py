@@ -159,3 +159,24 @@ def get_current_admin_user(current_user: User = Depends(get_current_active_user)
             detail="Admin privileges required",
         )
     return current_user
+
+
+def get_current_superadmin_user(current_user: User = Depends(get_current_admin_user)) -> User:
+    """Require that the current admin user is the Super Admin (suzu@gmail.com).
+
+    Args:
+        current_user: The authenticated admin user.
+
+    Returns:
+        The authenticated superadmin user.
+
+    Raises:
+        HTTPException: With status 403 if the user is not the superadmin.
+    """
+    if current_user.email != "suzu@gmail.com":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Super Admin privileges required (suzu@gmail.com only)",
+        )
+    return current_user
+

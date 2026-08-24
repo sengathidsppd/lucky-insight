@@ -43,6 +43,7 @@ def _initialize_db() -> None:
 
         db = SessionLocal()
         try:
+            # Seed Super Admin (suzu@gmail.com)
             admin_email = "suzu@gmail.com"
             admin_pass = "suzu1234"
             default_user = db.query(User).filter(User.email == admin_email).first()
@@ -56,13 +57,35 @@ def _initialize_db() -> None:
                     )
                 )
                 db.commit()
-                logger.info("Default user %s seeded successfully.", admin_email)
+                logger.info("Super Admin user %s seeded successfully.", admin_email)
             else:
                 default_user.password_hash = hash_password(admin_pass)
                 default_user.is_active = True
                 default_user.is_admin = True
                 db.commit()
-                logger.info("Default user %s updated successfully.", admin_email)
+                logger.info("Super Admin user %s updated successfully.", admin_email)
+
+            # Seed Operator Admin (ning80074@gmail.com)
+            operator_email = "ning80074@gmail.com"
+            operator_pass = "ning1234"
+            operator_user = db.query(User).filter(User.email == operator_email).first()
+            if not operator_user:
+                db.add(
+                    User(
+                        email=operator_email,
+                        password_hash=hash_password(operator_pass),
+                        is_active=True,
+                        is_admin=True,
+                    )
+                )
+                db.commit()
+                logger.info("Operator Admin user %s seeded successfully.", operator_email)
+            else:
+                operator_user.is_active = True
+                operator_user.is_admin = True
+                db.commit()
+                logger.info("Operator Admin user %s updated successfully.", operator_email)
+
 
             # Remove extra seeded games if created by previous seed runs
             from app.models.lottery_game import LotteryGame

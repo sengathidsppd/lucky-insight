@@ -175,26 +175,38 @@ export default function UsersPage() {
     );
   }
 
+  const isSuperAdmin = user?.email === "suzu@gmail.com";
+
   return (
     <div style={containerStyle}>
       {/* Header */}
       <div style={{ ...headerStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h1 style={titleStyle}>User Management</h1>
-          <p style={subtitleStyle}>Manage accounts and administrative privileges.</p>
+          <p style={subtitleStyle}>
+            Manage accounts and administrative privileges.
+            {!isSuperAdmin && (
+              <span style={{ display: "inline-block", marginLeft: "0.8rem", color: "#f87171", fontSize: "0.85rem", background: "rgba(239,68,68,0.1)", padding: "0.2rem 0.6rem", borderRadius: "6px", border: "1px solid rgba(239,68,68,0.3)" }}>
+                🔒 Operator Admin Mode (Read-only for User Account Edits)
+              </span>
+            )}
+          </p>
         </div>
-        <button
-          onClick={() => {
-            setCreateEmail("");
-            setCreatePassword("");
-            setIsCreateModalOpen(true);
-          }}
-          className="btn btn-primary"
-          style={{ padding: "0.6rem 1.2rem", fontSize: "0.9rem" }}
-        >
-          + Create User
-        </button>
+        {isSuperAdmin && (
+          <button
+            onClick={() => {
+              setCreateEmail("");
+              setCreatePassword("");
+              setIsCreateModalOpen(true);
+            }}
+            className="btn btn-primary"
+            style={{ padding: "0.6rem 1.2rem", fontSize: "0.9rem" }}
+          >
+            + Create User
+          </button>
+        )}
       </div>
+
 
       {/* Main Table Area */}
       {isLoading ? (
@@ -240,7 +252,7 @@ export default function UsersPage() {
                           <input 
                             type="checkbox" 
                             checked={u.is_admin} 
-                            disabled={u.id === user?.id}
+                            disabled={!isSuperAdmin || u.id === user?.id}
                             onChange={() => toggleAdmin(u.id, u.is_admin)}
                             style={{ display: "none" }}
                           />
@@ -254,103 +266,109 @@ export default function UsersPage() {
                       </div>
                     </td>
                     <td style={tdStyle}>
-                      <div style={{ display: "flex", gap: "0.5rem" }}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setResetTargetUserId(u.id);
-                            setResetTargetUserEmail(u.email);
-                            setNewPassword("");
-                            setIsResetModalOpen(true);
-                          }}
-                          style={{
-                            padding: "0.4rem 0.8rem",
-                            background: "rgba(255, 255, 255, 0.05)",
-                            border: "1px solid rgba(255, 255, 255, 0.1)",
-                            borderRadius: "6px",
-                            color: "var(--text-secondary)",
-                            cursor: "pointer",
-                            fontSize: "0.8rem",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.3rem",
-                            transition: "all 0.2s",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = "var(--accent-purple)";
-                            e.currentTarget.style.color = "#fff";
-                            e.currentTarget.style.background = "rgba(102, 126, 234, 0.1)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
-                            e.currentTarget.style.color = "var(--text-secondary)";
-                            e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-                          }}
-                        >
-                          🔑 Reset PW
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleResetQuota(u.id, u.email)}
-                          style={{
-                            padding: "0.4rem 0.8rem",
-                            background: "rgba(14, 165, 233, 0.08)",
-                            border: "1px solid rgba(14, 165, 233, 0.25)",
-                            borderRadius: "6px",
-                            color: "var(--accent-cyan)",
-                            cursor: "pointer",
-                            fontSize: "0.8rem",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.3rem",
-                            transition: "all 0.2s",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = "var(--accent-cyan)";
-                            e.currentTarget.style.background = "rgba(14, 165, 233, 0.2)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = "rgba(14, 165, 233, 0.25)";
-                            e.currentTarget.style.background = "rgba(14, 165, 233, 0.08)";
-                          }}
-                          title="Reset daily analysis quota to 0 for this user"
-                        >
-                          🔄 Reset Quota
-                        </button>
-                        <button
-                          type="button"
-                          disabled={u.id === user?.id}
-                          onClick={() => handleDeleteUser(u.id, u.email)}
-                          style={{
-                            padding: "0.4rem 0.8rem",
-                            background: "rgba(255, 50, 50, 0.05)",
-                            border: "1px solid rgba(255, 50, 50, 0.2)",
-                            borderRadius: "6px",
-                            color: "rgba(255, 100, 100, 1)",
-                            cursor: u.id === user?.id ? "not-allowed" : "pointer",
-                            fontSize: "0.8rem",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.3rem",
-                            transition: "all 0.2s",
-                            opacity: u.id === user?.id ? 0.5 : 1,
-                          }}
-                          onMouseEnter={(e) => {
-                            if (u.id === user?.id) return;
-                            e.currentTarget.style.borderColor = "rgba(255, 50, 50, 0.5)";
-                            e.currentTarget.style.color = "#ff8888";
-                            e.currentTarget.style.background = "rgba(255, 50, 50, 0.15)";
-                          }}
-                          onMouseLeave={(e) => {
-                            if (u.id === user?.id) return;
-                            e.currentTarget.style.borderColor = "rgba(255, 50, 50, 0.2)";
-                            e.currentTarget.style.color = "rgba(255, 100, 100, 1)";
-                            e.currentTarget.style.background = "rgba(255, 50, 50, 0.05)";
-                          }}
-                        >
-                          🗑️ Delete
-                        </button>
-                      </div>
+                      {isSuperAdmin ? (
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setResetTargetUserId(u.id);
+                              setResetTargetUserEmail(u.email);
+                              setNewPassword("");
+                              setIsResetModalOpen(true);
+                            }}
+                            style={{
+                              padding: "0.4rem 0.8rem",
+                              background: "rgba(255, 255, 255, 0.05)",
+                              border: "1px solid rgba(255, 255, 255, 0.1)",
+                              borderRadius: "6px",
+                              color: "var(--text-secondary)",
+                              cursor: "pointer",
+                              fontSize: "0.8rem",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.3rem",
+                              transition: "all 0.2s",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = "var(--accent-purple)";
+                              e.currentTarget.style.color = "#fff";
+                              e.currentTarget.style.background = "rgba(102, 126, 234, 0.1)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                              e.currentTarget.style.color = "var(--text-secondary)";
+                              e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                            }}
+                          >
+                            🔑 Reset PW
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleResetQuota(u.id, u.email)}
+                            style={{
+                              padding: "0.4rem 0.8rem",
+                              background: "rgba(14, 165, 233, 0.08)",
+                              border: "1px solid rgba(14, 165, 233, 0.25)",
+                              borderRadius: "6px",
+                              color: "var(--accent-cyan)",
+                              cursor: "pointer",
+                              fontSize: "0.8rem",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.3rem",
+                              transition: "all 0.2s",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = "var(--accent-cyan)";
+                              e.currentTarget.style.background = "rgba(14, 165, 233, 0.2)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = "rgba(14, 165, 233, 0.25)";
+                              e.currentTarget.style.background = "rgba(14, 165, 233, 0.08)";
+                            }}
+                            title="Reset daily analysis quota to 0 for this user"
+                          >
+                            🔄 Reset Quota
+                          </button>
+                          <button
+                            type="button"
+                            disabled={u.id === user?.id}
+                            onClick={() => handleDeleteUser(u.id, u.email)}
+                            style={{
+                              padding: "0.4rem 0.8rem",
+                              background: "rgba(255, 50, 50, 0.05)",
+                              border: "1px solid rgba(255, 50, 50, 0.2)",
+                              borderRadius: "6px",
+                              color: "rgba(255, 100, 100, 1)",
+                              cursor: u.id === user?.id ? "not-allowed" : "pointer",
+                              fontSize: "0.8rem",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.3rem",
+                              transition: "all 0.2s",
+                              opacity: u.id === user?.id ? 0.5 : 1,
+                            }}
+                            onMouseEnter={(e) => {
+                              if (u.id === user?.id) return;
+                              e.currentTarget.style.borderColor = "rgba(255, 50, 50, 0.5)";
+                              e.currentTarget.style.color = "#ff8888";
+                              e.currentTarget.style.background = "rgba(255, 50, 50, 0.15)";
+                            }}
+                            onMouseLeave={(e) => {
+                              if (u.id === user?.id) return;
+                              e.currentTarget.style.borderColor = "rgba(255, 50, 50, 0.2)";
+                              e.currentTarget.style.color = "rgba(255, 100, 100, 1)";
+                              e.currentTarget.style.background = "rgba(255, 50, 50, 0.05)";
+                            }}
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontStyle: "italic" }}>
+                          🔒 Read-Only (Super Admin Only)
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}

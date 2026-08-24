@@ -5,7 +5,12 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.api.dependencies.auth import get_current_active_user, get_current_admin_user, get_user_service
+from app.api.dependencies.auth import (
+    get_current_active_user,
+    get_current_admin_user,
+    get_current_superadmin_user,
+    get_user_service,
+)
 from app.api.v1.auth import get_auth_service
 from app.models.user import User
 from app.services.user_service import UserService
@@ -50,11 +55,11 @@ def get_me(current_user: User = Depends(get_current_active_user)) -> CurrentUser
     "",
     response_model=RegisterResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create a new user (Admin only)",
+    summary="Create a new user (Super Admin only)",
 )
 def create_user(
     payload: RegisterRequest,
-    current_admin: User = Depends(get_current_admin_user),
+    current_admin: User = Depends(get_current_superadmin_user),
     db: Session = Depends(get_db),
     auth_service: AuthService = Depends(get_auth_service),
 ) -> RegisterResponse:
@@ -108,12 +113,12 @@ def get_all_users(
     "/{user_id}/admin",
     response_model=UserAdminUpdateResponse,
     status_code=status.HTTP_200_OK,
-    summary="Update a user's admin status (Admin only)",
+    summary="Update a user's admin status (Super Admin only)",
 )
 def update_admin_status(
     user_id: uuid.UUID,
     update_data: AdminStatusUpdate,
-    current_admin: User = Depends(get_current_admin_user),
+    current_admin: User = Depends(get_current_superadmin_user),
     user_service: UserService = Depends(get_user_service),
     db: Session = Depends(get_db)
 ) -> UserAdminUpdateResponse:
@@ -141,11 +146,11 @@ def update_admin_status(
 @router.delete(
     "/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete a user (Admin only)",
+    summary="Delete a user (Super Admin only)",
 )
 def delete_user(
     user_id: uuid.UUID,
-    current_admin: User = Depends(get_current_admin_user),
+    current_admin: User = Depends(get_current_superadmin_user),
     user_service: UserService = Depends(get_user_service),
     db: Session = Depends(get_db)
 ):
@@ -161,15 +166,30 @@ def delete_user(
     "/{user_id}/password",
     response_model=UserPasswordResetResponse,
     status_code=status.HTTP_200_OK,
-    summary="Reset a user's password (Admin only)",
+    summary="Reset a user's password (Super Admin only)",
 )
 def admin_reset_password(
     user_id: uuid.UUID,
     reset_data: AdminUserPasswordReset,
-    current_admin: User = Depends(get_current_admin_user),
+    current_admin: User = Depends(get_current_superadmin_user),
     user_service: UserService = Depends(get_user_service),
     db: Session = Depends(get_db)
 ) -> UserPasswordResetResponse:
+    u = user_service.reset_password(user_id, reset_data.new_password)
+    db.commit()
+    return UserPasswordResetResponse(
+        data=UserResponse(
+            id=u.id,
+            email=u.email,
+            first_name=None,
+            last_name=None,
+            is_active=u.is_active,
+            is_admin=u.is_admin,
+            created_at=u.created_at,
+            updated_at=u.updated_at,
+        )
+    )
+
     u = user_service.reset_password(user_id, reset_data.new_password)
     db.commit()
     return UserPasswordResetResponse(
