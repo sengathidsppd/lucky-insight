@@ -200,8 +200,15 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                   gap: "0.6rem",
                   padding: "0.35rem 0.85rem",
                   borderRadius: "24px",
-                  background: "rgba(255, 215, 0, 0.05)",
-                  border: "1px solid rgba(255, 215, 0, 0.15)",
+                  background: user.email === "suzu@gmail.com" 
+                    ? "rgba(255, 215, 0, 0.12)" 
+                    : "rgba(14, 165, 233, 0.12)",
+                  border: user.email === "suzu@gmail.com"
+                    ? "1px solid rgba(255, 215, 0, 0.4)"
+                    : "1px solid rgba(14, 165, 233, 0.4)",
+                  boxShadow: user.email === "suzu@gmail.com"
+                    ? "0 0 15px rgba(255, 215, 0, 0.25)"
+                    : "0 0 15px rgba(14, 165, 233, 0.25)",
                 }}
               >
                 <img
@@ -212,15 +219,48 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                     height: "28px",
                     borderRadius: "50%",
                     objectFit: "cover",
-                    border: "1.5px solid #ffd700",
+                    border: user.email === "suzu@gmail.com" ? "1.5px solid #ffd700" : "1.5px solid var(--accent-cyan)",
                     boxShadow: "0 0 10px rgba(255, 215, 0, 0.5)",
                   }}
                 />
                 <span style={{ fontSize: "0.88rem", color: "#fff", fontWeight: 700 }}>
                   {user.first_name || user.email?.split("@")[0]}
                 </span>
+                {user.email === "suzu@gmail.com" ? (
+                  <span
+                    style={{
+                      fontSize: "0.7rem",
+                      fontWeight: 900,
+                      color: "#ffd700",
+                      background: "linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(245, 158, 11, 0.3))",
+                      border: "1px solid #ffd700",
+                      padding: "2px 7px",
+                      borderRadius: "12px",
+                      letterSpacing: "0.5px",
+                      boxShadow: "0 0 8px rgba(255, 215, 0, 0.4)",
+                    }}
+                  >
+                    👑 SUPER ADMIN
+                  </span>
+                ) : user.is_admin ? (
+                  <span
+                    style={{
+                      fontSize: "0.7rem",
+                      fontWeight: 900,
+                      color: "var(--accent-cyan)",
+                      background: "rgba(14, 165, 233, 0.2)",
+                      border: "1px solid var(--accent-cyan)",
+                      padding: "2px 7px",
+                      borderRadius: "12px",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    🛡️ OPERATOR ADMIN
+                  </span>
+                ) : null}
               </div>
             )}
+
 
             <button
               onClick={logout}
