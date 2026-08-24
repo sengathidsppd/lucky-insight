@@ -247,23 +247,29 @@ export default function UsersPage() {
                       )}
                     </td>
                     <td style={tdStyle}>
-                      <div style={toggleWrapperStyle}>
-                        <label style={switchStyle}>
-                          <input 
-                            type="checkbox" 
-                            checked={u.is_admin} 
-                            disabled={!isSuperAdmin || u.id === user?.id}
-                            onChange={() => toggleAdmin(u.id, u.is_admin)}
-                            style={{ display: "none" }}
-                          />
-                          <span style={u.is_admin ? sliderActiveStyle : sliderStyle}>
-                            <span style={u.is_admin ? sliderCircleActiveStyle : sliderCircleStyle}></span>
+                      {isSuperAdmin ? (
+                        <div style={toggleWrapperStyle}>
+                          <label style={switchStyle}>
+                            <input 
+                              type="checkbox" 
+                              checked={u.is_admin} 
+                              disabled={u.id === user?.id}
+                              onChange={() => toggleAdmin(u.id, u.is_admin)}
+                              style={{ display: "none" }}
+                            />
+                            <span style={u.is_admin ? sliderActiveStyle : sliderStyle}>
+                              <span style={u.is_admin ? sliderCircleActiveStyle : sliderCircleStyle}></span>
+                            </span>
+                          </label>
+                          <span style={u.is_admin ? adminTextStyle : normalTextStyle}>
+                            {u.is_admin ? "Admin" : "User"}
                           </span>
-                        </label>
+                        </div>
+                      ) : (
                         <span style={u.is_admin ? adminTextStyle : normalTextStyle}>
-                          {u.is_admin ? "Admin" : "User"}
+                          {u.is_admin ? "🛡️ Admin" : "👤 User"}
                         </span>
-                      </div>
+                      )}
                     </td>
                     <td style={tdStyle}>
                       {isSuperAdmin ? (
