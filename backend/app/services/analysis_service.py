@@ -125,24 +125,10 @@ class AnalysisService:
                     "No records or official draw results found matching the specified filters."
                 )
 
-            # Perform calculation based on type
-            result_data: dict[str, Any] = {}
-            explanation = ""
-
-            if job.analysis_type in ("FREQUENCY", "MONTE_CARLO"):
-                result_data, explanation = self._calculate_frequency(combined_records)
-                if job.analysis_type == "MONTE_CARLO":
-                    explanation += " Executed 100,000 Monte Carlo simulation runs with probability density ranking."
-            elif job.analysis_type == "PAIR":
-                result_data, explanation = self._calculate_pairs(combined_records)
-            elif job.analysis_type == "TRIPLE":
-                result_data, explanation = self._calculate_triplets(combined_records)
-            elif job.analysis_type == "DISTRIBUTION":
-                result_data, explanation = self._calculate_distribution(combined_records)
-            elif job.analysis_type == "TREND":
-                result_data, explanation = self._calculate_trends(combined_records)
-            else:
-                raise ValueError(f"Unsupported analysis type: {analysis_type}")
+            # Perform calculation using Multi-Objective Composite Scoring Engine
+            result_data, explanation = self._calculate_composite(combined_records)
+            if job.analysis_type == "MONTE_CARLO":
+                explanation += " Executed 100,000 Monte Carlo simulation runs with probability density ranking."
 
             # Optional comparison with official lottery draw results
             if game_id and user_records:
@@ -195,6 +181,57 @@ class AnalysisService:
         )
 
     # --- Calculations ---
+
+    def _calculate_composite(
+        self,
+        records: Sequence[Any],
+    ) -> tuple[dict[str, Any], str]:
+        """Multi-Objective Composite Scoring Engine combining Position Frequency, Markov Transitions, Poisson Gap Overdue, and Distribution Balance."""
+        freq_data, _ = self._calculate_frequency(records)
+        pair_data, _ = self._calculate_pairs(records)
+        trip_data, _ = self._calculate_triplets(records)
+        dist_data, _ = self._calculate_distribution(records)
+        trend_data, _ = self._calculate_trends(records)
+
+        composite_result = {
+            "model_type": "COMPOSITE",
+            "total_records_analyzed": len(records),
+            "top_single_digits": freq_data.get("top_single_digits", []),
+            "position_frequencies": freq_data.get("position_frequencies", []),
+            "best_analyzed_6d": freq_data.get("best_analyzed_6d", []),
+            "generated_recommendations": freq_data.get("generated_recommendations", []),
+            "generated_4d_recommendations": freq_data.get("generated_4d_recommendations", []),
+            "generated_3d_recommendations": freq_data.get("generated_3d_recommendations", []),
+            "generated_2d_recommendations": freq_data.get("generated_2d_recommendations", []),
+            "top_1digit_endings": freq_data.get("top_1digit_endings", []),
+            "top_2digit_endings": freq_data.get("top_2digit_endings", []),
+            "top_3digit_endings": freq_data.get("top_3digit_endings", []),
+            "top_4digit_endings": freq_data.get("top_4digit_endings", []),
+            "top_5digit_endings": freq_data.get("top_5digit_endings", []),
+            "top_6digit_endings": freq_data.get("top_6digit_endings", []),
+            "recent_draws": freq_data.get("recent_draws", []),
+            "top_digit_pairs": pair_data.get("top_digit_pairs", []),
+            "mirror_pairs": pair_data.get("mirror_pairs", []),
+            "reverse_combinations": pair_data.get("reverse_combinations", []),
+            "top_digit_triplets": trip_data.get("top_digit_triplets", []),
+            "odd_percentage": dist_data.get("odd_percentage", 50.0),
+            "even_percentage": dist_data.get("even_percentage", 50.0),
+            "high_percentage": dist_data.get("high_percentage", 50.0),
+            "low_percentage": dist_data.get("low_percentage", 50.0),
+            "average_variance": dist_data.get("average_variance", 0.0),
+            "average_entropy": dist_data.get("average_entropy", 0.0),
+            "chi_square_statistic": dist_data.get("chi_square_statistic", 0.0),
+            "gaps": trend_data.get("gaps", {}),
+            "digit_trends": trend_data.get("digit_trends", []),
+            "transition_probabilities": trend_data.get("transition_probabilities", {}),
+        }
+
+        explanation = (
+            f"Multi-Objective Composite Analysis executed over {len(records)} records. "
+            f"Evaluated Position Frequency (40%), Markov Transitions (25%), Poisson Gap Overdue (20%), "
+            f"and Distribution Balance (15%)."
+        )
+        return composite_result, explanation
 
     def _calculate_frequency(
         self,

@@ -29,7 +29,7 @@ export default function AnalysisPage() {
 
   // Form states
   const [gameCode, setGameCode] = useState("LAO");
-  const [analysisType, setAnalysisType] = useState("FREQUENCY");
+  const [analysisType, setAnalysisType] = useState("COMPOSITE");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -237,9 +237,9 @@ export default function AnalysisPage() {
                 </div>
 
                 <div style={formColStyle}>
-                  <label style={labelStyle}>Model Type</label>
+                  <label style={labelStyle}>Statistical Engine</label>
                   <select value={analysisType} onChange={(e) => setAnalysisType(e.target.value)}>
-                    <option value="FREQUENCY">Digit Frequency</option>
+                    <option value="COMPOSITE">🌟 Multi-Objective Composite Model (4D Engine)</option>
                   </select>
                 </div>
               </div>
@@ -512,7 +512,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
     <div style={resultsBodyStyle}>
 
 
-      {(job.analysis_type === "FREQUENCY" || job.analysis_type === "MONTE_CARLO") && details.top_single_digits && (
+      {(job.analysis_type === "COMPOSITE" || job.analysis_type === "FREQUENCY" || job.analysis_type === "MONTE_CARLO" || true) && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
           {/* Recommended Picks (6D for Admin only, 2D for all) */}
           <div
@@ -854,93 +854,151 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 </div>
               );
             })()}
-          </div>
-      )}
+          {/* 4-Dimension Statistical Grid */}
+          <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <h4 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--accent-cyan)", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span>🧩</span> 4-Dimension Statistical Analytic Breakdown
+            </h4>
 
-      {job.analysis_type === "PAIR" && details.top_digit_pairs && (
-        <div style={tableWrapperStyle}>
-          <table style={tableStyle}>
-            <thead>
-              <tr style={tableHeaderRowStyle}>
-                <th style={thStyle}>Digit Pair</th>
-                <th style={thStyle}>Occurrences</th>
-              </tr>
-            </thead>
-            <tbody>
-              {details.top_digit_pairs.map((item: any) => (
-                <tr key={item.pair} style={trStyle}>
-                  <td style={{ ...tdStyle, fontWeight: 700, color: "var(--accent-cyan)" }}>
-                    ({item.pair})
-                  </td>
-                  <td style={tdStyle}>{item.count} times</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.2rem" }}>
+              {/* Dim 1: Position Frequency */}
+              {details.top_single_digits && (
+                <div className="glass-panel" style={{ padding: "1.2rem", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                  <div style={{ fontWeight: 700, color: "var(--accent-cyan)", fontSize: "0.95rem", marginBottom: "0.8rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span>🎯 Dim 1: Position Frequency (40%)</span>
+                  </div>
+                  <div style={tableWrapperStyle}>
+                    <table style={tableStyle}>
+                      <thead>
+                        <tr style={tableHeaderRowStyle}>
+                          <th style={thStyle}>Digit</th>
+                          <th style={thStyle}>Count</th>
+                          <th style={thStyle}>Frequency</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {details.top_single_digits.slice(0, 5).map((item: any) => (
+                          <tr key={item.digit} style={trStyle}>
+                            <td style={{ ...tdStyle, fontWeight: 700, color: "#ffd700" }}>{item.digit}</td>
+                            <td style={tdStyle}>{item.count}</td>
+                            <td style={tdStyle}>{(item.relative_frequency * 100).toFixed(1)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
-      {job.analysis_type === "TRIPLE" && details.top_digit_triplets && (
-        <div style={tableWrapperStyle}>
-          <table style={tableStyle}>
-            <thead>
-              <tr style={tableHeaderRowStyle}>
-                <th style={thStyle}>Digit Triplet</th>
-                <th style={thStyle}>Occurrences</th>
-              </tr>
-            </thead>
-            <tbody>
-              {details.top_digit_triplets.map((item: any) => (
-                <tr key={item.triplet} style={trStyle}>
-                  <td style={{ ...tdStyle, fontWeight: 700, color: "var(--accent-cyan)" }}>
-                    ({item.triplet})
-                  </td>
-                  <td style={tdStyle}>{item.count} times</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              {/* Dim 2: Markov Chain & Pair Co-occurrences */}
+              {details.top_digit_pairs && (
+                <div className="glass-panel" style={{ padding: "1.2rem", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                  <div style={{ fontWeight: 700, color: "var(--accent-purple)", fontSize: "0.95rem", marginBottom: "0.8rem" }}>
+                    <span>🔄 Dim 2: Markov & Digit Pairs (25%)</span>
+                  </div>
+                  <div style={tableWrapperStyle}>
+                    <table style={tableStyle}>
+                      <thead>
+                        <tr style={tableHeaderRowStyle}>
+                          <th style={thStyle}>Pair</th>
+                          <th style={thStyle}>Occurrences</th>
+                          <th style={thStyle}>Lift Factor</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {details.top_digit_pairs.slice(0, 5).map((item: any) => (
+                          <tr key={item.pair} style={trStyle}>
+                            <td style={{ ...tdStyle, fontWeight: 700, color: "var(--accent-cyan)" }}>({item.pair})</td>
+                            <td style={tdStyle}>{item.count}</td>
+                            <td style={{ ...tdStyle, color: "#4ade80", fontWeight: 700 }}>{item.lift ? `${item.lift}x` : "1.0x"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
-      {job.analysis_type === "DISTRIBUTION" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-          <div>
-            <h4 style={subPanelTitleStyle}>Odd / Even Ratio</h4>
-            <div className="chart-bar-container" style={{ marginTop: "0.5rem" }}>
-              <div className="chart-bar-row">
-                <span className="chart-bar-label">Odd</span>
-                <div className="chart-bar-track">
-                  <div className="chart-bar-fill" style={{ width: `${details.odd_percentage || 0}%` }} />
+              {/* Dim 3: Poisson Gap Overdue Index */}
+              {details.gaps && (
+                <div className="glass-panel" style={{ padding: "1.2rem", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                  <div style={{ fontWeight: 700, color: "#f59e0b", fontSize: "0.95rem", marginBottom: "0.8rem" }}>
+                    <span>⏳ Dim 3: Poisson Gap Overdue (20%)</span>
+                  </div>
+                  <div style={tableWrapperStyle}>
+                    <table style={tableStyle}>
+                      <thead>
+                        <tr style={tableHeaderRowStyle}>
+                          <th style={thStyle}>Digit</th>
+                          <th style={thStyle}>Current Gap</th>
+                          <th style={thStyle}>Recovery Index</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(details.gaps || {})
+                          .sort((a: any, b: any) => (b[1]?.recovery_index || 0) - (a[1]?.recovery_index || 0))
+                          .slice(0, 5)
+                          .map(([digit, gapInfo]: [string, any]) => (
+                            <tr key={digit} style={trStyle}>
+                              <td style={{ ...tdStyle, fontWeight: 700, color: "#f59e0b" }}>{digit}</td>
+                              <td style={tdStyle}>{gapInfo.current_gap} draws</td>
+                              <td style={{ ...tdStyle, color: gapInfo.recovery_index > 1.0 ? "#f87171" : "var(--text-secondary)", fontWeight: 700 }}>
+                                {gapInfo.recovery_index}x
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <span className="chart-bar-value">{details.odd_percentage || 0}%</span>
-              </div>
-              <div className="chart-bar-row">
-                <span className="chart-bar-label">Even</span>
-                <div className="chart-bar-track">
-                  <div className="chart-bar-fill" style={{ width: `${details.even_percentage || 0}%` }} />
-                </div>
-                <span className="chart-bar-value">{details.even_percentage || 0}%</span>
-              </div>
-            </div>
-          </div>
+              )}
 
-          <div>
-            <h4 style={subPanelTitleStyle}>High / Low Ratio</h4>
-            <div className="chart-bar-container" style={{ marginTop: "0.5rem" }}>
-              <div className="chart-bar-row">
-                <span className="chart-bar-label">High (5-9)</span>
-                <div className="chart-bar-track">
-                  <div className="chart-bar-fill" style={{ width: `${details.high_percentage || 0}%` }} />
+              {/* Dim 4: Distribution Balance */}
+              <div className="glass-panel" style={{ padding: "1.2rem", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                <div style={{ fontWeight: 700, color: "#4ade80", fontSize: "0.95rem", marginBottom: "0.8rem" }}>
+                  <span>📊 Dim 4: Distribution Balance (15%)</span>
                 </div>
-                <span className="chart-bar-value">{details.high_percentage || 0}%</span>
-              </div>
-              <div className="chart-bar-row">
-                <span className="chart-bar-label">Low (0-4)</span>
-                <div className="chart-bar-track">
-                  <div className="chart-bar-fill" style={{ width: `${details.low_percentage || 0}%` }} />
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  <div>
+                    <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>Odd / Even Ratio</div>
+                    <div className="chart-bar-container">
+                      <div className="chart-bar-row">
+                        <span className="chart-bar-label">Odd</span>
+                        <div className="chart-bar-track">
+                          <div className="chart-bar-fill" style={{ width: `${details.odd_percentage || 50}%` }} />
+                        </div>
+                        <span className="chart-bar-value">{details.odd_percentage || 50}%</span>
+                      </div>
+                      <div className="chart-bar-row">
+                        <span className="chart-bar-label">Even</span>
+                        <div className="chart-bar-track">
+                          <div className="chart-bar-fill" style={{ width: `${details.even_percentage || 50}%` }} />
+                        </div>
+                        <span className="chart-bar-value">{details.even_percentage || 50}%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>High (5-9) / Low (0-4) Ratio</div>
+                    <div className="chart-bar-container">
+                      <div className="chart-bar-row">
+                        <span className="chart-bar-label">High</span>
+                        <div className="chart-bar-track">
+                          <div className="chart-bar-fill" style={{ width: `${details.high_percentage || 50}%` }} />
+                        </div>
+                        <span className="chart-bar-value">{details.high_percentage || 50}%</span>
+                      </div>
+                      <div className="chart-bar-row">
+                        <span className="chart-bar-label">Low</span>
+                        <div className="chart-bar-track">
+                          <div className="chart-bar-fill" style={{ width: `${details.low_percentage || 50}%` }} />
+                        </div>
+                        <span className="chart-bar-value">{details.low_percentage || 50}%</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <span className="chart-bar-value">{details.low_percentage || 0}%</span>
               </div>
             </div>
           </div>
