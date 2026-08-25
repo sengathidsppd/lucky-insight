@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 interface AnalysisJob {
   id: string;
@@ -495,6 +496,7 @@ function GameComparisonMatrix() {
 
 
 function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
+  const { user } = useAuth();
   const result = job.result;
   const [endingLength, setEndingLength] = useState(2); // default to 2-digit endings
   const [isSet1Visible, setIsSet1Visible] = useState(false);
@@ -512,7 +514,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
 
       {(job.analysis_type === "FREQUENCY" || job.analysis_type === "MONTE_CARLO") && details.top_single_digits && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-          {/* Recommended Picks (6D, 2D) */}
+          {/* Recommended Picks (6D for Admin only, 2D for all) */}
           <div
             className="glass-panel"
             style={{
@@ -529,8 +531,8 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
-              {/* 6-Digit Card */}
-              {details.best_analyzed_6d?.[0] && (
+              {/* 6-Digit Card (Super Admin / Operator Admin Only) */}
+              {user?.is_admin && details.best_analyzed_6d?.[0] && (
                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.12)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
                   <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
                     6-Digit Pick (Top 6D)

@@ -36,7 +36,7 @@ def get_analysis_service(db: Session = Depends(get_db)) -> AnalysisService:
     )
 
 
-def map_job_to_response(job: AnalysisJob, db: Session) -> AnalysisJobResponse:
+def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = None) -> AnalysisJobResponse:
     """Map AnalysisJob ORM model to Pydantic schema."""
     game_code = "My Records"
     if job.parameters and "game_id" in job.parameters:
@@ -53,10 +53,17 @@ def map_job_to_response(job: AnalysisJob, db: Session) -> AnalysisJobResponse:
 
     result_data = None
     if job.result:
+        res_dict = job.result.result_data
+        # If user is not admin, redact 6D and 3D recommendations for security
+        if user and not user.is_admin and isinstance(res_dict, dict):
+            res_dict = res_dict.copy()
+            res_dict.pop("best_analyzed_6d", None)
+            res_dict.pop("generated_3d_recommendations", None)
+
         result_data = AnalysisResultResponse(
             id=job.result.id,
             job_id=job.result.job_id,
-            result_data=job.result.result_data,
+            result_data=res_dict,
             explanation=job.result.explanation,
             created_at=job.result.created_at,
         )
@@ -186,7 +193,7 @@ def create_analysis(
 
         return AnalysisJobDetailResponse(
             message="Analysis job completed successfully.",
-            data=map_job_to_response(reloaded, db),
+            data=map_job_to_response(reloaded, db, current_user),
         )
     except ValueError as exc:
         raise HTTPException(
@@ -210,7 +217,7 @@ def list_jobs(
 ) -> AnalysisJobListResponse:
     """Return all historical analysis jobs requested by the current user."""
     jobs = service.list_jobs(current_user.id, limit=limit, offset=offset)
-    data = [map_job_to_response(j, db) for j in jobs]
+    data = [map_job_to_response(j, db, current_user) for j in jobs]
     return AnalysisJobListResponse(data=data)
 
 
@@ -229,7 +236,7 @@ def get_job(
     """Return the details and statistics of a specific analysis request."""
     try:
         job = service.get_job(current_user.id, job_id)
-        return AnalysisJobDetailResponse(data=map_job_to_response(job, db))
+        return AnalysisJobDetailResponse(data=map_job_to_response(job, db, current_user))
     except EntityNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
