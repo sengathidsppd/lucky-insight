@@ -543,14 +543,28 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
 
               {/* 4-Digit Card (Super Admin Only - Exclusive VIP) */}
               {(user?.email?.toLowerCase().trim() === "suzu@gmail.com" || user?.is_admin) && (() => {
-                const raw4d = details.generated_4d_recommendations?.[0]
-                  ? (typeof details.generated_4d_recommendations[0] === "string"
-                      ? details.generated_4d_recommendations[0]
-                      : details.generated_4d_recommendations[0]?.number)
-                  : (details.top_4digit_endings?.[0]?.combination
-                      || (details.best_analyzed_6d?.[0]?.number ? details.best_analyzed_6d[0].number.slice(-4) : null));
+                const getVal = (item: any): string | null => {
+                  if (!item) return null;
+                  if (typeof item === "string") return item;
+                  if (typeof item === "object") {
+                    return item.number || item.combination || item.digit_4d || item.value || null;
+                  }
+                  return String(item);
+                };
 
-                if (!raw4d) return null;
+                let raw4d = getVal(details.generated_4d_recommendations?.[0]);
+                if (!raw4d) {
+                  raw4d = getVal(details.top_4digit_endings?.[0]);
+                }
+                if (!raw4d && details.best_analyzed_6d?.[0]) {
+                  const sixD = getVal(details.best_analyzed_6d[0]);
+                  if (sixD && sixD.length >= 4) {
+                    raw4d = sixD.slice(-4);
+                  }
+                }
+                if (!raw4d) {
+                  raw4d = "0000";
+                }
 
                 return (
                   <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(168, 85, 247, 0.05)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
