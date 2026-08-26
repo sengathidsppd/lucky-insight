@@ -510,11 +510,9 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
 
   return (
     <div style={resultsBodyStyle}>
-
-
       {(job.analysis_type === "COMPOSITE" || job.analysis_type === "FREQUENCY" || job.analysis_type === "MONTE_CARLO" || true) && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-          {/* Recommended Picks (6D for Admin only, 2D for all) */}
+          {/* Recommended Picks (6D for Admin only, 4D for Super Admin only, 2D for all) */}
           <div
             className="glass-panel"
             style={{
@@ -542,6 +540,29 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                   </div>
                 </div>
               )}
+
+              {/* 4-Digit Card (Super Admin Only - Exclusive VIP) */}
+              {user?.email === "suzu@gmail.com" && (() => {
+                const raw4d = details.generated_4d_recommendations?.[0]
+                  ? (typeof details.generated_4d_recommendations[0] === "string"
+                      ? details.generated_4d_recommendations[0]
+                      : details.generated_4d_recommendations[0]?.number)
+                  : (details.top_4digit_endings?.[0]?.combination
+                      || (details.best_analyzed_6d?.[0]?.number ? details.best_analyzed_6d[0].number.slice(-4) : null));
+
+                if (!raw4d) return null;
+
+                return (
+                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(168, 85, 247, 0.05)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
+                    <div style={{ fontSize: "0.95rem", color: "#e9d5ff", fontWeight: "bold", minWidth: "150px", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                      👑 4-Digit Pick (Super Admin VIP)
+                    </div>
+                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#c084fc", letterSpacing: "5px", textShadow: "0 0 15px rgba(192, 132, 252, 0.5)" }}>
+                      {raw4d}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* 2-Digit Cards (3 Unique Picks) */}
               {(() => {
