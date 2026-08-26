@@ -66,7 +66,7 @@ class AnalysisJob(BaseEntity):
     def validate_analysis_type(self, key: str, value: str) -> str:
         """Enforce standard uppercase analysis types."""
         val = value.strip().upper()
-        allowed = {"FREQUENCY", "PAIR", "TRIPLE", "DISTRIBUTION", "TREND"}
+        allowed = {"COMPOSITE", "FREQUENCY", "PAIR", "TRIPLE", "DISTRIBUTION", "TREND", "MONTE_CARLO"}
         if val not in allowed:
             raise ValueError(f"analysis_type must be one of {allowed}")
         return val
