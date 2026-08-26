@@ -501,6 +501,9 @@ function GameComparisonMatrix() {
 
 function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
   const { user } = useAuth();
+  const isSuperAdmin = Boolean(user && (user.email === "suzu@gmail.com" || (user.is_admin && (user as any)?.is_superadmin)));
+  const isOperatorAdmin = Boolean(user && user.is_admin && !isSuperAdmin);
+
   const result = job.result;
   const [endingLength, setEndingLength] = useState(2); // default to 2-digit endings
   const [isSet1Visible, setIsSet1Visible] = useState(false);
@@ -516,7 +519,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
     <div style={resultsBodyStyle}>
       {(job.analysis_type === "COMPOSITE" || job.analysis_type === "FREQUENCY" || job.analysis_type === "MONTE_CARLO" || true) && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-          {/* Recommended Picks (6D for Admin only, 4D for Super Admin only, 2D for all) */}
+          {/* Recommended Picks (Role-Based Tiered Visibility) */}
           <div
             className="glass-panel"
             style={{
@@ -533,8 +536,8 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
-              {/* 6-Digit Card (Super Admin / Operator Admin Only) */}
-              {user?.is_admin && details.best_analyzed_6d?.[0] && (
+              {/* 6-Digit Card (Super Admin & Operator Admin: 1 Set) */}
+              {(isSuperAdmin || isOperatorAdmin) && details.best_analyzed_6d?.[0] && (
                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.12)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
                   <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
                     6-Digit Pick (Top 6D)
@@ -545,8 +548,8 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 </div>
               )}
 
-              {/* 4-Digit Card (VIP Pick - Super Admin Only) */}
-              {Boolean(user?.email === "suzu@gmail.com" || (user?.is_admin && (user as any)?.is_superadmin)) && (() => {
+              {/* 4-Digit Card (Super Admin Only: 1 Set) */}
+              {isSuperAdmin && (() => {
                 const getVal = (item: any): string | null => {
                   if (!item) return null;
                   if (typeof item === "string") return item;
@@ -582,7 +585,44 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 );
               })()}
 
-              {/* 2-Digit Cards (3 Unique Picks) */}
+              {/* 3-Digit Card (Super Admin Only: 1 Set) */}
+              {isSuperAdmin && (() => {
+                const getVal = (item: any): string | null => {
+                  if (!item) return null;
+                  if (typeof item === "string") return item;
+                  if (typeof item === "object") {
+                    return item.number || item.combination || item.digit_3d || item.value || null;
+                  }
+                  return String(item);
+                };
+
+                let raw3d = getVal(details.generated_3d_recommendations?.[0]);
+                if (!raw3d) {
+                  raw3d = getVal(details.top_3digit_endings?.[0]);
+                }
+                if (!raw3d && details.best_analyzed_6d?.[0]) {
+                  const sixD = getVal(details.best_analyzed_6d[0]);
+                  if (sixD && sixD.length >= 3) {
+                    raw3d = sixD.slice(-3);
+                  }
+                }
+                if (!raw3d) {
+                  raw3d = "000";
+                }
+
+                return (
+                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(14, 165, 233, 0.05)", border: "1px solid rgba(14, 165, 233, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
+                    <div style={{ fontSize: "0.95rem", color: "#bae6fd", fontWeight: "bold", minWidth: "150px", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                      🎯 3-Digit Pick (Top 3D)
+                    </div>
+                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "5px", textShadow: "0 0 15px rgba(14, 165, 233, 0.5)" }}>
+                      {raw3d}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* 2-Digit Cards (Super Admin: 1 Pick, Operator Admin: 2 Picks, Regular User: 3 Picks) */}
               {(() => {
                 let top2dList = [...(details.generated_2d_recommendations || [])];
 
@@ -600,10 +640,15 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                   }
                 }
 
-                const display2dList = top2dList.slice(0, 3);
+                // Super Admin: 1 pick, Operator Admin: 2 picks, Regular User: 3 picks
+                const numPicks = isSuperAdmin ? 1 : isOperatorAdmin ? 2 : 3;
+                const display2dList = top2dList.slice(0, numPicks);
 
                 return display2dList.map((item: any, idx: number) => {
                   const numStr = typeof item === "string" ? item : item?.number || "00";
+                  const cardTitle = display2dList.length === 1 
+                    ? "2-Digit Pick (Top 2D)" 
+                    : `2-Digit Pick #${idx + 1} (Top 2D)`;
 
                   return (
                     <div
@@ -622,7 +667,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                       }}
                     >
                       <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                        2-Digit Pick #{idx + 1} (Top 2D)
+                        {cardTitle}
                       </div>
                       <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#f59e0b", letterSpacing: "5px", textShadow: "0 0 15px rgba(245, 158, 11, 0.4)" }}>
                         {numStr}
