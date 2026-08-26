@@ -279,8 +279,8 @@ export default function AnalysisPage() {
                 {isSubmitting
                   ? "Calculating..."
                   : quotaInfo.remaining <= 0
-                  ? `🔒 Quota Limit Reached (${quotaInfo.daily_limit}/${quotaInfo.daily_limit})`
-                  : " Analyze Data"}
+                    ? `🔒 Quota Limit Reached (${quotaInfo.daily_limit}/${quotaInfo.daily_limit})`
+                    : " Analyze Data"}
               </button>
             </form>
           </div>
@@ -451,8 +451,8 @@ export default function AnalysisPage() {
 
           ) : (
             <div className="glass-panel" style={resultsPlaceholderStyle}>
-               <div>Select a model run from the history or start a new analysis to visualize statistics.</div>
-               <GameComparisonMatrix />
+              <div>Select a model run from the history or start a new analysis to visualize statistics.</div>
+              <GameComparisonMatrix />
             </div>
           )}
         </div>
@@ -526,10 +526,10 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
               <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0, fontSize: "1.1rem" }}>
-                 Winning Number Projections (Statistical Picks)
+                Winning Number Projections (Statistical Picks)
               </h4>
             </div>
-            
+
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
               {/* 6-Digit Card (Super Admin / Operator Admin Only) */}
               {user?.is_admin && details.best_analyzed_6d?.[0] && (
@@ -596,264 +596,264 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
           </div>
 
 
-            {/* Winning Flow Wave Trend Section (Golden Bezier Wave) */}
-            {(() => {
-              const recentDrawsList = details.recent_draws || (details.best_analyzed_6d || []).map((d: any) => d.number) || [];
-              const trendData = (recentDrawsList || [])
-                .slice(0, 16)
-                .reverse()
-                .map((draw: string, idx: number) => {
-                  const cleaned = draw.replace(/\D/g, "");
-                  if (cleaned.length === 0) return null;
-                  const last2Val = cleaned.length >= 2 ? parseInt(cleaned.slice(-2), 10) : parseInt(cleaned, 10) * 10;
-                  const digits = cleaned.split("").map(c => parseInt(c, 10));
-                  const avgVal = digits.reduce((a, b) => a + b, 0) / (digits.length || 1);
-                  return {
-                    label: `Draw ${idx + 1}`,
-                    number: draw,
-                    last2: last2Val,
-                    avgVal,
-                  };
-                })
-                .filter(Boolean) as any[];
+          {/* Winning Flow Wave Trend Section (Golden Bezier Wave) */}
+          {(() => {
+            const recentDrawsList = details.recent_draws || (details.best_analyzed_6d || []).map((d: any) => d.number) || [];
+            const trendData = (recentDrawsList || [])
+              .slice(0, 16)
+              .reverse()
+              .map((draw: string, idx: number) => {
+                const cleaned = draw.replace(/\D/g, "");
+                if (cleaned.length === 0) return null;
+                const last2Val = cleaned.length >= 2 ? parseInt(cleaned.slice(-2), 10) : parseInt(cleaned, 10) * 10;
+                const digits = cleaned.split("").map(c => parseInt(c, 10));
+                const avgVal = digits.reduce((a, b) => a + b, 0) / (digits.length || 1);
+                return {
+                  label: `Draw ${idx + 1}`,
+                  number: draw,
+                  last2: last2Val,
+                  avgVal,
+                };
+              })
+              .filter(Boolean) as any[];
 
-              if (trendData.length === 0) return null;
+            if (trendData.length === 0) return null;
 
-              // Generate Smooth Catmull-Rom to Cubic Bezier Path
-              const chartWidth = 520;
-              const chartHeight = 220;
-              const padLeft = 45;
-              const padRight = 25;
-              const padTop = 30;
-              const padBottom = 40;
-              const plotWidth = chartWidth - padLeft - padRight;
-              const plotHeight = chartHeight - padTop - padBottom;
+            // Generate Smooth Catmull-Rom to Cubic Bezier Path
+            const chartWidth = 520;
+            const chartHeight = 220;
+            const padLeft = 45;
+            const padRight = 25;
+            const padTop = 30;
+            const padBottom = 40;
+            const plotWidth = chartWidth - padLeft - padRight;
+            const plotHeight = chartHeight - padTop - padBottom;
 
-              const points = trendData.map((d, idx) => {
-                const x = padLeft + (idx * plotWidth) / Math.max(1, trendData.length - 1);
-                const y = padTop + plotHeight * (1 - d.last2 / 99);
-                return { x, y, data: d };
-              });
+            const points = trendData.map((d, idx) => {
+              const x = padLeft + (idx * plotWidth) / Math.max(1, trendData.length - 1);
+              const y = padTop + plotHeight * (1 - d.last2 / 99);
+              return { x, y, data: d };
+            });
 
-              // Smooth Curve
-              let curvePath = `M ${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
-              for (let i = 0; i < points.length - 1; i++) {
-                const p0 = points[Math.max(0, i - 1)];
-                const p1 = points[i];
-                const p2 = points[i + 1];
-                const p3 = points[Math.min(points.length - 1, i + 2)];
+            // Smooth Curve
+            let curvePath = `M ${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
+            for (let i = 0; i < points.length - 1; i++) {
+              const p0 = points[Math.max(0, i - 1)];
+              const p1 = points[i];
+              const p2 = points[i + 1];
+              const p3 = points[Math.min(points.length - 1, i + 2)];
 
-                const cp1x = p1.x + (p2.x - p0.x) / 6;
-                const cp1y = p1.y + (p2.y - p0.y) / 6;
-                const cp2x = p2.x - (p3.x - p1.x) / 6;
-                const cp2y = p2.y - (p3.y - p1.y) / 6;
+              const cp1x = p1.x + (p2.x - p0.x) / 6;
+              const cp1y = p1.y + (p2.y - p0.y) / 6;
+              const cp2x = p2.x - (p3.x - p1.x) / 6;
+              const cp2y = p2.y - (p3.y - p1.y) / 6;
 
-                curvePath += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
-              }
+              curvePath += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+            }
 
-              const areaPath = `${curvePath} L ${points[points.length - 1].x.toFixed(1)},${padTop + plotHeight} L ${points[0].x.toFixed(1)},${padTop + plotHeight} Z`;
+            const areaPath = `${curvePath} L ${points[points.length - 1].x.toFixed(1)},${padTop + plotHeight} L ${points[0].x.toFixed(1)},${padTop + plotHeight} Z`;
 
-              return (
-                <div
-                  className="glass-panel"
-                  style={{
-                    background: "rgba(255, 215, 0, 0.02)",
-                    border: "1px solid rgba(255, 215, 0, 0.12)",
-                    padding: "1.5rem",
-                    borderRadius: "14px",
-                    marginTop: "1.5rem",
-                    boxShadow: "0 8px 30px rgba(0, 0, 0, 0.4)",
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "1rem" }}>
-                    <div>
-                      <h4 style={{ ...subPanelTitleStyle, color: "#ffd700", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1.05rem" }}>
-                        <span>📈</span> Winning Flow Wave Trend (2-Digit Ending Trajectory)
-                      </h4>
-                      <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", margin: "0.2rem 0 0 0" }}>
-                        Mathematical oscillation wave across recent 16 draws (Low Zone 00–49 vs High Zone 50–99)
-                      </p>
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: "1.2rem", fontSize: "0.78rem" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                        <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#ffd700", boxShadow: "0 0 8px #ffd700" }} />
-                        <span style={{ color: "#ffd700", fontWeight: 700 }}>Winning 2D Wave</span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                        <div style={{ width: "16px", height: "2px", background: "rgba(255, 215, 0, 0.4)", borderTop: "1px dashed rgba(255, 215, 0, 0.8)" }} />
-                        <span style={{ color: "var(--text-secondary)" }}>Midline (50)</span>
-                      </div>
-                    </div>
+            return (
+              <div
+                className="glass-panel"
+                style={{
+                  background: "rgba(255, 215, 0, 0.02)",
+                  border: "1px solid rgba(255, 215, 0, 0.12)",
+                  padding: "1.5rem",
+                  borderRadius: "14px",
+                  marginTop: "1.5rem",
+                  boxShadow: "0 8px 30px rgba(0, 0, 0, 0.4)",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "1rem" }}>
+                  <div>
+                    <h4 style={{ ...subPanelTitleStyle, color: "#ffd700", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1.05rem" }}>
+                      <span>📈</span> Winning Flow Wave Trend (2-Digit Ending Trajectory)
+                    </h4>
+                    <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", margin: "0.2rem 0 0 0" }}>
+                      Mathematical oscillation wave across recent 16 draws (Low Zone 00–49 vs High Zone 50–99)
+                    </p>
                   </div>
 
-                  <div style={{ position: "relative", width: "100%", height: "240px" }}>
-                    <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} style={{ width: "100%", height: "100%", overflow: "visible" }}>
-                      <defs>
-                        <linearGradient id="goldWaveFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#ffd700" stopOpacity="0.3" />
-                          <stop offset="60%" stopColor="#f59e0b" stopOpacity="0.08" />
-                          <stop offset="100%" stopColor="#d97706" stopOpacity="0.0" />
-                        </linearGradient>
+                  <div style={{ display: "flex", alignItems: "center", gap: "1.2rem", fontSize: "0.78rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                      <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#ffd700", boxShadow: "0 0 8px #ffd700" }} />
+                      <span style={{ color: "#ffd700", fontWeight: 700 }}>Winning 2D Wave</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                      <div style={{ width: "16px", height: "2px", background: "rgba(255, 215, 0, 0.4)", borderTop: "1px dashed rgba(255, 215, 0, 0.8)" }} />
+                      <span style={{ color: "var(--text-secondary)" }}>Midline (50)</span>
+                    </div>
+                  </div>
+                </div>
 
-                        <linearGradient id="goldWaveStroke" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#f59e0b" />
-                          <stop offset="50%" stopColor="#ffd700" />
-                          <stop offset="100%" stopColor="#fffbeb" />
-                        </linearGradient>
+                <div style={{ position: "relative", width: "100%", height: "240px" }}>
+                  <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} style={{ width: "100%", height: "100%", overflow: "visible" }}>
+                    <defs>
+                      <linearGradient id="goldWaveFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#ffd700" stopOpacity="0.3" />
+                        <stop offset="60%" stopColor="#f59e0b" stopOpacity="0.08" />
+                        <stop offset="100%" stopColor="#d97706" stopOpacity="0.0" />
+                      </linearGradient>
 
-                        <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
-                          <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#ffd700" floodOpacity="0.7" />
-                        </filter>
-                      </defs>
+                      <linearGradient id="goldWaveStroke" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#f59e0b" />
+                        <stop offset="50%" stopColor="#ffd700" />
+                        <stop offset="100%" stopColor="#fffbeb" />
+                      </linearGradient>
 
-                      {/* Zone Background Rectangles */}
-                      <rect
-                        x={padLeft}
-                        y={padTop}
-                        width={plotWidth}
-                        height={plotHeight / 2}
-                        fill="rgba(245, 158, 11, 0.02)"
+                      <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#ffd700" floodOpacity="0.7" />
+                      </filter>
+                    </defs>
+
+                    {/* Zone Background Rectangles */}
+                    <rect
+                      x={padLeft}
+                      y={padTop}
+                      width={plotWidth}
+                      height={plotHeight / 2}
+                      fill="rgba(245, 158, 11, 0.02)"
+                    />
+                    <rect
+                      x={padLeft}
+                      y={padTop + plotHeight / 2}
+                      width={plotWidth}
+                      height={plotHeight / 2}
+                      fill="rgba(6, 182, 212, 0.015)"
+                    />
+
+                    {/* Horizontal Grid lines & Y-Axis Labels */}
+                    {[
+                      { val: 99, label: "99 (High)" },
+                      { val: 75, label: "75" },
+                      { val: 50, label: "50" },
+                      { val: 25, label: "25" },
+                      { val: 0, label: "00 (Low)" },
+                    ].map(({ val, label }) => {
+                      const y = padTop + plotHeight * (1 - val / 99);
+                      const isMid = val === 50;
+                      return (
+                        <g key={val}>
+                          <line
+                            x1={padLeft}
+                            y1={y}
+                            x2={padLeft + plotWidth}
+                            y2={y}
+                            stroke={isMid ? "rgba(255, 215, 0, 0.35)" : "rgba(255, 255, 255, 0.06)"}
+                            strokeDasharray={isMid ? "4 4" : "2 4"}
+                            strokeWidth={isMid ? 1.5 : 1}
+                          />
+                          <text
+                            x={padLeft - 8}
+                            y={y + 3}
+                            fill={isMid ? "#ffd700" : "var(--text-muted)"}
+                            fontSize="9.5"
+                            fontWeight={isMid ? 800 : 500}
+                            textAnchor="end"
+                          >
+                            {label}
+                          </text>
+                        </g>
+                      );
+                    })}
+
+                    {/* Vertical Gridlines */}
+                    {points.map((p, idx) => (
+                      <line
+                        key={idx}
+                        x1={p.x}
+                        y1={padTop}
+                        x2={p.x}
+                        y2={padTop + plotHeight}
+                        stroke="rgba(255, 255, 255, 0.04)"
+                        strokeWidth="1"
                       />
-                      <rect
-                        x={padLeft}
-                        y={padTop + plotHeight / 2}
-                        width={plotWidth}
-                        height={plotHeight / 2}
-                        fill="rgba(6, 182, 212, 0.015)"
-                      />
+                    ))}
 
-                      {/* Horizontal Grid lines & Y-Axis Labels */}
-                      {[
-                        { val: 99, label: "99 (High)" },
-                        { val: 75, label: "75" },
-                        { val: 50, label: "50" },
-                        { val: 25, label: "25" },
-                        { val: 0, label: "00 (Low)" },
-                      ].map(({ val, label }) => {
-                        const y = padTop + plotHeight * (1 - val / 99);
-                        const isMid = val === 50;
-                        return (
-                          <g key={val}>
-                            <line
-                              x1={padLeft}
-                              y1={y}
-                              x2={padLeft + plotWidth}
-                              y2={y}
-                              stroke={isMid ? "rgba(255, 215, 0, 0.35)" : "rgba(255, 255, 255, 0.06)"}
-                              strokeDasharray={isMid ? "4 4" : "2 4"}
-                              strokeWidth={isMid ? 1.5 : 1}
-                            />
-                            <text
-                              x={padLeft - 8}
-                              y={y + 3}
-                              fill={isMid ? "#ffd700" : "var(--text-muted)"}
-                              fontSize="9.5"
-                              fontWeight={isMid ? 800 : 500}
-                              textAnchor="end"
-                            >
-                              {label}
-                            </text>
-                          </g>
-                        );
-                      })}
+                    {/* Golden Wave Area Fill */}
+                    <path d={areaPath} fill="url(#goldWaveFill)" />
 
-                      {/* Vertical Gridlines */}
-                      {points.map((p, idx) => (
-                        <line
-                          key={idx}
-                          x1={p.x}
-                          y1={padTop}
-                          x2={p.x}
-                          y2={padTop + plotHeight}
-                          stroke="rgba(255, 255, 255, 0.04)"
-                          strokeWidth="1"
-                        />
-                      ))}
+                    {/* Golden Wave Stroke */}
+                    <path
+                      d={curvePath}
+                      fill="none"
+                      stroke="url(#goldWaveStroke)"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      filter="url(#goldGlow)"
+                    />
 
-                      {/* Golden Wave Area Fill */}
-                      <path d={areaPath} fill="url(#goldWaveFill)" />
-
-                      {/* Golden Wave Stroke */}
-                      <path
-                        d={curvePath}
-                        fill="none"
-                        stroke="url(#goldWaveStroke)"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        filter="url(#goldGlow)"
-                      />
-
-                      {/* Point Nodes */}
-                      {points.map((p, idx) => {
-                        const isLast = idx === points.length - 1;
-                        const twoDigitStr = String(p.data.last2).padStart(2, "0");
-                        return (
-                          <g key={idx}>
-                            {/* Outer Glow Halo for last point */}
-                            {isLast && (
-                              <circle
-                                cx={p.x}
-                                cy={p.y}
-                                r="10"
-                                fill="none"
-                                stroke="#ffd700"
-                                strokeWidth="2"
-                                opacity="0.6"
-                              >
-                                <animate attributeName="r" values="8;14;8" dur="2s" repeatCount="indefinite" />
-                                <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite" />
-                              </circle>
-                            )}
-
-                            {/* Center Node */}
+                    {/* Point Nodes */}
+                    {points.map((p, idx) => {
+                      const isLast = idx === points.length - 1;
+                      const twoDigitStr = String(p.data.last2).padStart(2, "0");
+                      return (
+                        <g key={idx}>
+                          {/* Outer Glow Halo for last point */}
+                          {isLast && (
                             <circle
                               cx={p.x}
                               cy={p.y}
-                              r={isLast ? 6 : 4.5}
-                              fill={isLast ? "#fffbeb" : "#ffd700"}
-                              stroke="#000"
+                              r="10"
+                              fill="none"
+                              stroke="#ffd700"
                               strokeWidth="2"
-                              style={{ cursor: "pointer" }}
+                              opacity="0.6"
                             >
-                              <title>{`Draw ${idx + 1}: ${p.data.number}\nWinning 2D: ${twoDigitStr} (${p.data.last2 >= 50 ? "High Zone" : "Low Zone"})`}</title>
+                              <animate attributeName="r" values="8;14;8" dur="2s" repeatCount="indefinite" />
+                              <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite" />
                             </circle>
+                          )}
 
-                            {/* Node Value Label Tag */}
+                          {/* Center Node */}
+                          <circle
+                            cx={p.x}
+                            cy={p.y}
+                            r={isLast ? 6 : 4.5}
+                            fill={isLast ? "#fffbeb" : "#ffd700"}
+                            stroke="#000"
+                            strokeWidth="2"
+                            style={{ cursor: "pointer" }}
+                          >
+                            <title>{`Draw ${idx + 1}: ${p.data.number}\nWinning 2D: ${twoDigitStr} (${p.data.last2 >= 50 ? "High Zone" : "Low Zone"})`}</title>
+                          </circle>
+
+                          {/* Node Value Label Tag */}
+                          <text
+                            x={p.x}
+                            y={p.y - 10}
+                            fill={isLast ? "#ffd700" : "#ffffff"}
+                            fontSize={isLast ? "11" : "9.5"}
+                            fontWeight={900}
+                            fontFamily="monospace"
+                            textAnchor="middle"
+                            filter="drop-shadow(0 1px 3px rgba(0,0,0,0.8))"
+                          >
+                            {twoDigitStr}
+                          </text>
+
+                          {/* X-Axis Draw Label */}
+                          {(idx % 2 === 0 || isLast) && (
                             <text
                               x={p.x}
-                              y={p.y - 10}
-                              fill={isLast ? "#ffd700" : "#ffffff"}
-                              fontSize={isLast ? "11" : "9.5"}
-                              fontWeight={900}
-                              fontFamily="monospace"
+                              y={padTop + plotHeight + 18}
+                              fill="var(--text-secondary)"
+                              fontSize="9"
                               textAnchor="middle"
-                              filter="drop-shadow(0 1px 3px rgba(0,0,0,0.8))"
                             >
-                              {twoDigitStr}
+                              #{idx + 1}
                             </text>
-
-                            {/* X-Axis Draw Label */}
-                            {(idx % 2 === 0 || isLast) && (
-                              <text
-                                x={p.x}
-                                y={padTop + plotHeight + 18}
-                                fill="var(--text-secondary)"
-                                fontSize="9"
-                                textAnchor="middle"
-                              >
-                                #{idx + 1}
-                              </text>
-                            )}
-                          </g>
-                        );
-                      })}
-                    </svg>
-                  </div>
+                          )}
+                        </g>
+                      );
+                    })}
+                  </svg>
                 </div>
-              );
-            })()}
+              </div>
+            );
+          })()}
           {/* 4-Dimension Statistical Grid */}
           <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             <h4 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--accent-cyan)", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
