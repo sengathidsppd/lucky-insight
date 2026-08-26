@@ -30,9 +30,25 @@ export default {
 
       if (request.method !== "GET" && request.method !== "HEAD") {
         try {
-          const bodyBuffer = await request.arrayBuffer();
-          if (bodyBuffer && bodyBuffer.byteLength > 0) {
-            init.body = bodyBuffer;
+          const contentType = headers.get("content-type") || "";
+          if (contentType.includes("application/json") && url.pathname.includes("/analysis")) {
+            const text = await request.text();
+            try {
+              const parsed = JSON.parse(text);
+              const allowed = ["FREQUENCY", "MONTE_CARLO", "PAIR", "TRIPLE", "DISTRIBUTION", "TREND"];
+              if (parsed.analysis_type && !allowed.includes(parsed.analysis_type.toUpperCase())) {
+                parsed.analysis_type = "MONTE_CARLO";
+              }
+              init.body = JSON.stringify(parsed);
+              headers.set("content-length", String(new TextEncoder().encode(init.body).length));
+            } catch {
+              init.body = text;
+            }
+          } else {
+            const bodyBuffer = await request.arrayBuffer();
+            if (bodyBuffer && bodyBuffer.byteLength > 0) {
+              init.body = bodyBuffer;
+            }
           }
         } catch (e) {
           console.error("Error reading request body:", e);
