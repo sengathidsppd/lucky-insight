@@ -541,8 +541,8 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 </div>
               )}
 
-              {/* 4-Digit Card (Super Admin Only - Exclusive VIP) */}
-              {(user?.email?.toLowerCase().trim() === "suzu@gmail.com" || user?.is_admin) && (() => {
+              {/* 4-Digit Card (VIP Pick) */}
+              {(() => {
                 const getVal = (item: any): string | null => {
                   if (!item) return null;
                   if (typeof item === "string") return item;
