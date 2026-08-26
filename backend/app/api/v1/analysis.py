@@ -55,11 +55,17 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
     result_data = None
     if job.result:
         res_dict = job.result.result_data
-        # If user is not admin, redact 6D and 3D recommendations for security
-        if user and not user.is_admin and isinstance(res_dict, dict):
+        if isinstance(res_dict, dict):
             res_dict = res_dict.copy()
-            res_dict.pop("best_analyzed_6d", None)
-            res_dict.pop("generated_3d_recommendations", None)
+            # If user is not Super Admin, redact 4D recommendations for security
+            is_superadmin = bool(user and (user.email == "suzu@gmail.com" or getattr(user, "is_superadmin", False)))
+            if not is_superadmin:
+                res_dict.pop("generated_4d_recommendations", None)
+
+            # If user is not admin, redact 6D and 3D recommendations for security
+            if user and not user.is_admin:
+                res_dict.pop("best_analyzed_6d", None)
+                res_dict.pop("generated_3d_recommendations", None)
 
         result_data = AnalysisResultResponse(
             id=job.result.id,
