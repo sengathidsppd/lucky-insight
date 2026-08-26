@@ -43,10 +43,15 @@ class AnalysisService:
 
         This runs synchronously for simplicity and fast execution.
         """
+        clean_type = (analysis_type or "FREQUENCY").upper().strip()
+        allowed_types = {"FREQUENCY", "PAIR", "TRIPLE", "DISTRIBUTION", "TREND", "MONTE_CARLO", "COMPOSITE"}
+        if clean_type not in allowed_types:
+            clean_type = "FREQUENCY"
+
         # Create RUNNING job
         job = AnalysisJob(
             user_id=user_id,
-            analysis_type=analysis_type.upper(),
+            analysis_type=clean_type,
             status="RUNNING",
             parameters=parameters,
         )

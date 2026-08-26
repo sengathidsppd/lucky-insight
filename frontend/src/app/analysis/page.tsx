@@ -117,8 +117,12 @@ export default function AnalysisPage() {
 
     try {
       const selectedGame = games.find((g) => g.code === gameCode);
+      const safeType = ["FREQUENCY", "MONTE_CARLO", "PAIR", "TRIPLE", "DISTRIBUTION", "TREND"].includes(analysisType)
+        ? analysisType
+        : "FREQUENCY";
+
       const payload = {
-        analysis_type: analysisType,
+        analysis_type: safeType,
         parameters: {
           game_id: selectedGame?.id || undefined,
           start_date: startDate || undefined,
