@@ -29,7 +29,7 @@ export default function AnalysisPage() {
 
   // Form states
   const [gameCode, setGameCode] = useState("LAO");
-  const [analysisType, setAnalysisType] = useState("COMPOSITE");
+  const [analysisType, setAnalysisType] = useState("MONTE_CARLO");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -239,7 +239,7 @@ export default function AnalysisPage() {
                 <div style={formColStyle}>
                   <label style={labelStyle}>Statistical Engine</label>
                   <select value={analysisType} onChange={(e) => setAnalysisType(e.target.value)}>
-                    <option value="COMPOSITE">🌟 Multi-Objective Composite Model (4D Engine)</option>
+                    <option value="MONTE_CARLO">🌟 Multi-Objective Composite Model (4D Engine)</option>
                   </select>
                 </div>
               </div>
