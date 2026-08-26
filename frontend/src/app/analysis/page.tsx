@@ -542,7 +542,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               )}
 
               {/* 4-Digit Card (Super Admin Only - Exclusive VIP) */}
-              {user?.email === "suzu@gmail.com" && (() => {
+              {(user?.email?.toLowerCase().trim() === "suzu@gmail.com" || user?.is_admin) && (() => {
                 const raw4d = details.generated_4d_recommendations?.[0]
                   ? (typeof details.generated_4d_recommendations[0] === "string"
                       ? details.generated_4d_recommendations[0]
