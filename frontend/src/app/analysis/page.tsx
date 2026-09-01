@@ -243,7 +243,7 @@ export default function AnalysisPage() {
                 <div style={formColStyle}>
                   <label style={labelStyle}>Statistical Engine</label>
                   <select value={analysisType} onChange={(e) => setAnalysisType(e.target.value)}>
-                    <option value="MONTE_CARLO">🌟 SUSU Predictive Intelligence Engine</option>
+                    <option value="MONTE_CARLO">SUSU Predictive Intelligence Engine</option>
                   </select>
                 </div>
               </div>
@@ -526,7 +526,7 @@ function RecommendationMeta({ tags, confidence, colorTheme }: { tags?: string[];
           gap: "3px",
         }}
       >
-        ⭐ {safeConf.toFixed(1)}% Confidence
+        {safeConf.toFixed(1)}% Confidence
       </span>
       {safeTags.map((tag, i) => (
         <span
@@ -540,7 +540,7 @@ function RecommendationMeta({ tags, confidence, colorTheme }: { tags?: string[];
             borderRadius: "6px",
           }}
         >
-          {tag.startsWith("Poisson") ? `⚡ ${tag}` : tag.startsWith("High") ? `🎯 ${tag}` : tag.startsWith("Harmonic") ? `⚖️ ${tag}` : `🔥 ${tag}`}
+          {tag}
         </span>
       ))}
     </div>
@@ -633,7 +633,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                   <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(168, 85, 247, 0.05)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
                       <div style={{ fontSize: "0.95rem", color: "#e9d5ff", fontWeight: "bold", minWidth: "150px", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                        👑 4-Digit Pick (Super Admin VIP)
+                        4-Digit Pick (Super Admin VIP)
                       </div>
                       <RecommendationMeta
                         tags={raw4dItem?.tags}
@@ -678,7 +678,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                   <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(14, 165, 233, 0.05)", border: "1px solid rgba(14, 165, 233, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
                       <div style={{ fontSize: "0.95rem", color: "#bae6fd", fontWeight: "bold", minWidth: "150px", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                        🎯 3-Digit Pick (Top 3D)
+                        3-Digit Pick (Top 3D)
                       </div>
                       <RecommendationMeta
                         tags={raw3dItem?.tags}
@@ -830,7 +830,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "1rem" }}>
                   <div>
                     <h4 style={{ ...subPanelTitleStyle, color: "#ffd700", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1.05rem" }}>
-                      <span>📈</span> Winning Flow Wave Trend (2-Digit Ending Trajectory)
+                      Winning Flow Wave Trend (2-Digit Ending Trajectory)
                     </h4>
                     <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", margin: "0.2rem 0 0 0" }}>
                       Mathematical oscillation wave across recent 16 draws (Low Zone 00–49 vs High Zone 50–99)
@@ -1048,7 +1048,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "1rem" }}>
                   <div>
                     <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1.05rem" }}>
-                      <span>🔬</span> Historical Backtest & Model Accuracy Matrix
+                      Historical Backtest & Model Accuracy Matrix
                     </h4>
                     <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", margin: "0.2rem 0 0 0" }}>
                       Rolling-window validation over the last {bt.evaluated_draws || 20} official draws with probability calibration
@@ -1079,7 +1079,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                     <div style={{ fontSize: "1.6rem", fontWeight: 900, fontFamily: "monospace", color: "#38bdf8", marginTop: "0.2rem" }}>
                       {bt.hit_rate_2d?.toFixed(1) || "76.5"}%
                     </div>
-                    <div style={{ fontSize: "0.68rem", color: "#4ade80", marginTop: "0.2rem" }}>⚡ High Convergence</div>
+                    <div style={{ fontSize: "0.68rem", color: "#4ade80", marginTop: "0.2rem" }}>High Convergence</div>
                   </div>
 
                   <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.08)", padding: "1rem", borderRadius: "10px" }}>
@@ -1087,7 +1087,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                     <div style={{ fontSize: "1.6rem", fontWeight: 900, fontFamily: "monospace", color: "#c084fc", marginTop: "0.2rem" }}>
                       {bt.hit_rate_3d?.toFixed(1) || "52.0"}%
                     </div>
-                    <div style={{ fontSize: "0.68rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>🎯 Harmonic Depth</div>
+                    <div style={{ fontSize: "0.68rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>Harmonic Depth</div>
                   </div>
 
                   <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.08)", padding: "1rem", borderRadius: "10px" }}>
@@ -1095,7 +1095,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                     <div style={{ fontSize: "1.6rem", fontWeight: 900, fontFamily: "monospace", color: "#f59e0b", marginTop: "0.2rem" }}>
                       {bt.current_streak || 3} <span style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>draws</span>
                     </div>
-                    <div style={{ fontSize: "0.68rem", color: "#f59e0b", marginTop: "0.2rem" }}>🔥 Active Momentum</div>
+                    <div style={{ fontSize: "0.68rem", color: "#f59e0b", marginTop: "0.2rem" }}>Active Momentum</div>
                   </div>
 
                   <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.08)", padding: "1rem", borderRadius: "10px" }}>
@@ -1103,7 +1103,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                     <div style={{ fontSize: "1.6rem", fontWeight: 900, fontFamily: "monospace", color: "#ffd700", marginTop: "0.2rem" }}>
                       {bt.evaluated_draws || 20} <span style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>draws</span>
                     </div>
-                    <div style={{ fontSize: "0.68rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>📊 Verified Dataset</div>
+                    <div style={{ fontSize: "0.68rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>Verified Dataset</div>
                   </div>
                 </div>
 
@@ -1134,7 +1134,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                             <span style={{ color: "var(--text-muted)" }}>#{item.draw_index}</span>
                             <span style={{ fontWeight: 800, fontFamily: "monospace", color: "#fff" }}>{item.actual}</span>
                             <span style={{ color: isExact ? "#4ade80" : isClose ? "#f59e0b" : "var(--text-secondary)", fontWeight: 700 }}>
-                              {isExact ? "✓ HIT" : isClose ? "≈ CLOSE" : "• TRACK"}
+                              {isExact ? "HIT" : isClose ? "CLOSE" : "TRACK"}
                             </span>
                           </div>
                         );
@@ -1149,7 +1149,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
           {/* 4-Dimension Statistical Grid */}
           <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             <h4 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--accent-cyan)", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <span>🧩</span> 4-Dimension Statistical Analytic Breakdown
+              4-Dimension Statistical Analytic Breakdown
             </h4>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.2rem" }}>
@@ -1157,7 +1157,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               {details.top_single_digits && (
                 <div className="glass-panel" style={{ padding: "1.2rem", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
                   <div style={{ fontWeight: 700, color: "var(--accent-cyan)", fontSize: "0.95rem", marginBottom: "0.8rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <span>🎯 Dim 1: Position Frequency (40%)</span>
+                    <span>Dim 1: Position Frequency (40%)</span>
                   </div>
                   <div style={tableWrapperStyle}>
                     <table style={tableStyle}>
@@ -1186,7 +1186,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               {details.top_digit_pairs && (
                 <div className="glass-panel" style={{ padding: "1.2rem", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
                   <div style={{ fontWeight: 700, color: "var(--accent-purple)", fontSize: "0.95rem", marginBottom: "0.8rem" }}>
-                    <span>🔄 Dim 2: Markov & Digit Pairs (25%)</span>
+                    <span>Dim 2: Markov & Digit Pairs (25%)</span>
                   </div>
                   <div style={tableWrapperStyle}>
                     <table style={tableStyle}>
@@ -1215,7 +1215,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               {details.gaps && (
                 <div className="glass-panel" style={{ padding: "1.2rem", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
                   <div style={{ fontWeight: 700, color: "#f59e0b", fontSize: "0.95rem", marginBottom: "0.8rem" }}>
-                    <span>⏳ Dim 3: Poisson Gap Overdue (20%)</span>
+                    <span>Dim 3: Poisson Gap Overdue (20%)</span>
                   </div>
                   <div style={tableWrapperStyle}>
                     <table style={tableStyle}>
@@ -1248,7 +1248,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
               {/* Dim 4: Distribution Balance */}
               <div className="glass-panel" style={{ padding: "1.2rem", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
                 <div style={{ fontWeight: 700, color: "#4ade80", fontSize: "0.95rem", marginBottom: "0.8rem" }}>
-                  <span>📊 Dim 4: Distribution Balance (15%)</span>
+                  <span>Dim 4: Distribution Balance (15%)</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                   <div>
