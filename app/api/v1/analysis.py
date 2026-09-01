@@ -64,6 +64,8 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
             if not is_superadmin:
                 res_dict.pop("generated_4d_recommendations", None)
                 res_dict.pop("generated_3d_recommendations", None)
+                if "THAI" in game_code.upper():
+                    res_dict.pop("best_analyzed_6d", None)
 
             # Super Admin: exactly 1 set of 2D
             if is_superadmin and "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):

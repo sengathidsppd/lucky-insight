@@ -594,12 +594,12 @@ function AnalysisResultVisualizer({ job, currentGameCode }: { job: AnalysisJob; 
             {isThaiLottery ? (
               /* THAI NATIONAL LOTTERY SPECIALIZED PICKS: 6D (1 set for Admins), Front 3D (2 sets), Back 3D (2 sets), 2D (1 set) */
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
-                {/* 6-Digit Card (Top Prize / รางวัลที่ 1 - Super Admin & Operator Admin: 1 Set) */}
-                {(isSuperAdmin || isOperatorAdmin) && details.best_analyzed_6d?.[0] && (
+                {/* 6-Digit Card (Top Prize / รางวัลที่ 1 - Super Admin Only: 1 Set) */}
+                {isSuperAdmin && details.best_analyzed_6d?.[0] && (
                   <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.12)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                      <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                        6-Digit Pick (Top Prize)
+                      <div style={{ fontSize: "0.95rem", color: "#ffd700", fontWeight: "bold", minWidth: "150px" }}>
+                        6-Digit Pick (Super Admin VIP)
                       </div>
                       <RecommendationMeta
                         tags={details.best_analyzed_6d[0].tags}
