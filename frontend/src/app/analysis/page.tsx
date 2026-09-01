@@ -243,7 +243,7 @@ export default function AnalysisPage() {
                 <div style={formColStyle}>
                   <label style={labelStyle}>Statistical Engine</label>
                   <select value={analysisType} onChange={(e) => setAnalysisType(e.target.value)}>
-                    <option value="MONTE_CARLO">🌟 Multi-Objective Composite Model (4D Engine)</option>
+                    <option value="MONTE_CARLO">🌟 SUSU Predictive Intelligence Engine</option>
                   </select>
                 </div>
               </div>
