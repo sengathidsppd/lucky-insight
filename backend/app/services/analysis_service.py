@@ -294,6 +294,9 @@ class AnalysisService:
             "generated_4d_recommendations": freq_data.get("generated_4d_recommendations", []),
             "generated_3d_recommendations": freq_data.get("generated_3d_recommendations", []),
             "generated_2d_recommendations": freq_data.get("generated_2d_recommendations", []),
+            "front_3digit_picks": freq_data.get("front_3digit_picks", []),
+            "back_3digit_picks": freq_data.get("back_3digit_picks", []),
+            "back_2digit_picks": freq_data.get("back_2digit_picks", []),
             "top_1digit_endings": freq_data.get("top_1digit_endings", []),
             "top_2digit_endings": freq_data.get("top_2digit_endings", []),
             "top_3digit_endings": freq_data.get("top_3digit_endings", []),
@@ -556,7 +559,26 @@ class AnalysisService:
 
         top_3_2d = chosen_2d_list
 
-        # 3D: Filter Top 100 candidates by score, then randomly pick 1 candidate from the pool
+        # Score Front 3-digit combinations (positions 0, 1, 2 of a 6-digit draw)
+        def score_front_3d(num_str: str) -> float:
+            pos_score = (
+                pos_freq_data[0].get(num_str[0], 0)
+                + pos_freq_data[1].get(num_str[1], 0)
+                + pos_freq_data[2].get(num_str[2], 0)
+            ) / 3
+            pos_score_norm = min(100.0, pos_score * 300.0)
+
+            gap_score = sum(recovery_indices.get(char, 1.0) for char in num_str) / 3
+            gap_score_norm = min(100.0, gap_score * 50.0)
+
+            odds = sum(1 for c in num_str if int(c) % 2 != 0)
+            highs = sum(1 for c in num_str if int(c) >= 5)
+            dist_score = 100.0 - (abs(odds - 1.5) * 20.0) - (abs(highs - 1.5) * 20.0)
+
+            weighted_total = (0.4 * pos_score_norm) + (0.3 * gap_score_norm) + (0.3 * dist_score)
+            return round(weighted_total, 2)
+
+        # 3D (Back): Filter Top 100 candidates by score, then pick 2 unique candidates
         scored_3d_all = []
         for x in range(1000):
             num_3d = f"{x:03d}"
@@ -565,6 +587,39 @@ class AnalysisService:
         top_100_3d_raw = list(scored_3d_all[:100])
         chosen_3d = secrets.SystemRandom().choice(top_100_3d_raw) if top_100_3d_raw else {"number": "000"}
         top_100_3d = [chosen_3d] + [x for x in top_100_3d_raw if x["number"] != chosen_3d["number"]]
+
+        # Front 3D: Pick 2 unique candidates for Thai Lottery
+        scored_front_3d_all = []
+        for x in range(1000):
+            num_f3d = f"{x:03d}"
+            scored_front_3d_all.append({"number": num_f3d, "score": score_front_3d(num_f3d)})
+        scored_front_3d_all.sort(key=lambda item: item["score"], reverse=True)
+        top_20_f3d = list(scored_front_3d_all[:20])
+        secrets.SystemRandom().shuffle(top_20_f3d)
+        chosen_f3d_list = []
+        chosen_f3d_set = set()
+        for item in top_20_f3d:
+            if item["number"] not in chosen_f3d_set:
+                chosen_f3d_list.append(item)
+                chosen_f3d_set.add(item["number"])
+            if len(chosen_f3d_list) == 2:
+                break
+        if len(chosen_f3d_list) < 2:
+            chosen_f3d_list = scored_front_3d_all[:2]
+
+        # Back 3D: Pick 2 unique candidates for Thai Lottery
+        chosen_b3d_list = []
+        chosen_b3d_set = set()
+        sample_pool_3d = list(top_100_3d_raw[:20])
+        secrets.SystemRandom().shuffle(sample_pool_3d)
+        for item in sample_pool_3d:
+            if item["number"] not in chosen_b3d_set:
+                chosen_b3d_list.append(item)
+                chosen_b3d_set.add(item["number"])
+            if len(chosen_b3d_list) == 2:
+                break
+        if len(chosen_b3d_list) < 2:
+            chosen_b3d_list = top_100_3d_raw[:2]
 
         # 4D: Filter Top 100 candidates by score, then randomly pick 1 candidate from the pool
         scored_4d_all = []
@@ -623,6 +678,8 @@ class AnalysisService:
         enriched_4d = [enrich_item(x, 4) for x in top_100_4d]
         enriched_3d = [enrich_item(x, 3) for x in top_100_3d]
         enriched_2d = [enrich_item(x, 2) for x in top_3_2d]
+        enriched_f3d = [enrich_item(x, 3) for x in chosen_f3d_list]
+        enriched_b3d = [enrich_item(x, 3) for x in chosen_b3d_list]
 
         result_data = {
             "total_records_analyzed": total_records,
@@ -633,6 +690,9 @@ class AnalysisService:
             "generated_4d_recommendations": enriched_4d,
             "generated_3d_recommendations": enriched_3d,
             "generated_2d_recommendations": enriched_2d,
+            "front_3digit_picks": enriched_f3d,
+            "back_3digit_picks": enriched_b3d,
+            "back_2digit_picks": enriched_2d[:1],
             "recent_draws": [r.number for r in records[:30]],
         }
 

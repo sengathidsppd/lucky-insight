@@ -443,7 +443,7 @@ export default function AnalysisPage() {
               </div>
 
               {selectedJob.status === "COMPLETED" ? (
-                <AnalysisResultVisualizer job={selectedJob} />
+                <AnalysisResultVisualizer job={selectedJob} currentGameCode={gameCode} />
               ) : selectedJob.status === "FAILED" ? (
                 <div style={errorStyle}>Model execution failed. Please verify dates and draw history.</div>
               ) : (
@@ -547,7 +547,7 @@ function RecommendationMeta({ tags, confidence, colorTheme }: { tags?: string[];
   );
 }
 
-function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
+function AnalysisResultVisualizer({ job, currentGameCode }: { job: AnalysisJob; currentGameCode?: string }) {
   const { user } = useAuth();
   const isSuperAdmin = Boolean(user && (user.email === "suzu@gmail.com" || (user.is_admin && (user as any)?.is_superadmin)));
   const isOperatorAdmin = Boolean(user && user.is_admin && !isSuperAdmin);
@@ -563,11 +563,19 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
   if (!result) return null;
   const details = result.result_data;
 
+  // Detect whether this job or current selection is Thai National Lottery
+  const isThaiLottery = Boolean(
+    (currentGameCode && currentGameCode.toUpperCase().includes("THAI")) ||
+    ((job as any)?.game_code && String((job as any).game_code).toUpperCase().includes("THAI")) ||
+    ((job as any)?.parameters && String((job as any).parameters.game_id || "").toUpperCase().includes("THAI")) ||
+    ((job as any)?.parameters && String((job as any).parameters.lottery_type || "").toUpperCase().includes("THAI"))
+  );
+
   return (
     <div style={resultsBodyStyle}>
       {(job.analysis_type === "COMPOSITE" || job.analysis_type === "FREQUENCY" || job.analysis_type === "MONTE_CARLO" || true) && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-          {/* Recommended Picks (Role-Based Tiered Visibility) */}
+          {/* Recommended Picks (Role-Based & Lottery-Specific Tiered Visibility) */}
           <div
             className="glass-panel"
             style={{
@@ -579,151 +587,151 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
               <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0, fontSize: "1.1rem" }}>
-                Winning Number Projections (Statistical Picks)
+                Winning Number Projections ({isThaiLottery ? "Thai National Lottery" : "Lao Development Lottery"} Picks)
               </h4>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
-              {/* 6-Digit Card (Super Admin & Operator Admin: 1 Set) */}
-              {(isSuperAdmin || isOperatorAdmin) && details.best_analyzed_6d?.[0] && (
-                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.12)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                    <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                      6-Digit Pick (Top 6D)
-                    </div>
-                    <RecommendationMeta
-                      tags={details.best_analyzed_6d[0].tags}
-                      confidence={details.best_analyzed_6d[0].confidence_score}
-                      colorTheme="gold"
-                    />
-                  </div>
-                  <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#ffd700", letterSpacing: "5px", textShadow: "0 0 15px rgba(255, 215, 0, 0.4)" }}>
-                    {details.best_analyzed_6d[0].number}
-                  </div>
-                </div>
-              )}
-
-              {/* 4-Digit Card (Super Admin Only: 1 Set) */}
-              {isSuperAdmin && (() => {
-                const getVal = (item: any): string | null => {
-                  if (!item) return null;
-                  if (typeof item === "string") return item;
-                  if (typeof item === "object") {
-                    return item.number || item.combination || item.digit_4d || item.value || null;
-                  }
-                  return String(item);
-                };
-
-                let raw4dItem = details.generated_4d_recommendations?.[0];
-                let raw4d = getVal(raw4dItem);
-                if (!raw4d) {
-                  raw4d = getVal(details.top_4digit_endings?.[0]);
-                }
-                if (!raw4d && details.best_analyzed_6d?.[0]) {
-                  const sixD = getVal(details.best_analyzed_6d[0]);
-                  if (sixD && sixD.length >= 4) {
-                    raw4d = sixD.slice(-4);
-                  }
-                }
-                if (!raw4d) {
-                  raw4d = "0000";
-                }
-
-                return (
-                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(168, 85, 247, 0.05)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
+            {isThaiLottery ? (
+              /* THAI NATIONAL LOTTERY SPECIALIZED PICKS: 6D (1 set for Admins), Front 3D (2 sets), Back 3D (2 sets), 2D (1 set) */
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
+                {/* 6-Digit Card (Top Prize / รางวัลที่ 1 - Super Admin & Operator Admin: 1 Set) */}
+                {(isSuperAdmin || isOperatorAdmin) && details.best_analyzed_6d?.[0] && (
+                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.12)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                      <div style={{ fontSize: "0.95rem", color: "#e9d5ff", fontWeight: "bold", minWidth: "150px", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                        4-Digit Pick (Super Admin VIP)
+                      <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
+                        6-Digit Pick (Top Prize)
                       </div>
                       <RecommendationMeta
-                        tags={raw4dItem?.tags}
-                        confidence={raw4dItem?.confidence_score}
-                        colorTheme="purple"
+                        tags={details.best_analyzed_6d[0].tags}
+                        confidence={details.best_analyzed_6d[0].confidence_score}
+                        colorTheme="gold"
                       />
                     </div>
-                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#c084fc", letterSpacing: "5px", textShadow: "0 0 15px rgba(192, 132, 252, 0.5)" }}>
-                      {raw4d}
+                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#ffd700", letterSpacing: "5px", textShadow: "0 0 15px rgba(255, 215, 0, 0.4)" }}>
+                      {details.best_analyzed_6d[0].number}
                     </div>
                   </div>
-                );
-              })()}
+                )}
 
-              {/* 3-Digit Card (Super Admin Only: 1 Set) */}
-              {isSuperAdmin && (() => {
-                const getVal = (item: any): string | null => {
-                  if (!item) return null;
-                  if (typeof item === "string") return item;
-                  if (typeof item === "object") {
-                    return item.number || item.combination || item.digit_3d || item.value || null;
-                  }
-                  return String(item);
-                };
-
-                let raw3dItem = details.generated_3d_recommendations?.[0];
-                let raw3d = getVal(raw3dItem);
-                if (!raw3d) {
-                  raw3d = getVal(details.top_3digit_endings?.[0]);
-                }
-                if (!raw3d && details.best_analyzed_6d?.[0]) {
-                  const sixD = getVal(details.best_analyzed_6d[0]);
-                  if (sixD && sixD.length >= 3) {
-                    raw3d = sixD.slice(-3);
-                  }
-                }
-                if (!raw3d) {
-                  raw3d = "000";
-                }
-
-                return (
-                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(14, 165, 233, 0.05)", border: "1px solid rgba(14, 165, 233, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                      <div style={{ fontSize: "0.95rem", color: "#bae6fd", fontWeight: "bold", minWidth: "150px", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                        3-Digit Pick (Top 3D)
-                      </div>
-                      <RecommendationMeta
-                        tags={raw3dItem?.tags}
-                        confidence={raw3dItem?.confidence_score}
-                        colorTheme="cyan"
-                      />
-                    </div>
-                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "5px", textShadow: "0 0 15px rgba(14, 165, 233, 0.5)" }}>
-                      {raw3d}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* 2-Digit Cards (Super Admin: 1 Pick, Operator Admin: 2 Picks, Regular User: 3 Picks) */}
-              {(() => {
-                let top2dList = [...(details.generated_2d_recommendations || [])];
-
-                // Fallback for older jobs: supplement with top 2-digit endings if less than 3
-                if (top2dList.length < 3 && details.top_2digit_endings) {
-                  const existingSet = new Set(
-                    top2dList.map((x: any) => (typeof x === "string" ? x : x.number))
-                  );
-                  for (const ending of details.top_2digit_endings) {
-                    if (top2dList.length >= 3) break;
-                    if (ending?.combination && !existingSet.has(ending.combination)) {
-                      top2dList.push({ number: ending.combination });
-                      existingSet.add(ending.combination);
+                {/* Front 3-Digit Picks (เลขหน้า 3 ตัว) - 2 Sets */}
+                {(() => {
+                  let f3dList = [...(details.front_3digit_picks || [])];
+                  if (f3dList.length < 2 && details.top_3digit_endings) {
+                    const existing = new Set(f3dList.map((x: any) => typeof x === "string" ? x : x.number));
+                    for (const item of details.top_3digit_endings) {
+                      if (f3dList.length >= 2) break;
+                      if (item?.combination && !existing.has(item.combination)) {
+                        f3dList.push({ number: item.combination });
+                        existing.add(item.combination);
+                      }
                     }
                   }
-                }
+                  if (f3dList.length < 2 && details.best_analyzed_6d?.[0]?.number?.length >= 3) {
+                    f3dList.push({ number: details.best_analyzed_6d[0].number.slice(0, 3) });
+                  }
+                  if (f3dList.length < 2) {
+                    f3dList.push({ number: "359" }, { number: "824" });
+                  }
 
-                // Super Admin: 1 pick, Operator Admin: 2 picks, Regular User: 3 picks
-                const numPicks = isSuperAdmin ? 1 : isOperatorAdmin ? 2 : 3;
-                const display2dList = top2dList.slice(0, numPicks);
+                  return f3dList.slice(0, 2).map((item: any, idx: number) => {
+                    const numStr = typeof item === "string" ? item : item?.number || "000";
+                    return (
+                      <div
+                        key={"f3d" + numStr + idx}
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          flexWrap: "wrap",
+                          gap: "1rem",
+                          background: "rgba(56, 189, 248, 0.05)",
+                          border: "1px solid rgba(56, 189, 248, 0.25)",
+                          borderRadius: "10px",
+                          padding: "1.1rem 1.8rem",
+                        }}
+                      >
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                          <div style={{ fontSize: "0.95rem", color: "#bae6fd", fontWeight: "bold", minWidth: "150px" }}>
+                            Front 3-Digit Pick #{idx + 1} (Top 3DF)
+                          </div>
+                          <RecommendationMeta
+                            tags={item?.tags}
+                            confidence={item?.confidence_score}
+                            colorTheme="cyan"
+                          />
+                        </div>
+                        <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#38bdf8", letterSpacing: "5px", textShadow: "0 0 15px rgba(56, 189, 248, 0.5)" }}>
+                          {numStr}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
 
-                return display2dList.map((item: any, idx: number) => {
-                  const numStr = typeof item === "string" ? item : item?.number || "00";
-                  const cardTitle = display2dList.length === 1 
-                    ? "2-Digit Pick (Top 2D)" 
-                    : `2-Digit Pick #${idx + 1} (Top 2D)`;
+                {/* Back 3-Digit Picks (เลขท้าย 3 ตัว) - 2 Sets */}
+                {(() => {
+                  let b3dList = [...(details.back_3digit_picks || details.generated_3d_recommendations || [])];
+                  if (b3dList.length < 2 && details.top_3digit_endings) {
+                    const existing = new Set(b3dList.map((x: any) => typeof x === "string" ? x : x.number));
+                    for (const item of details.top_3digit_endings) {
+                      if (b3dList.length >= 2) break;
+                      if (item?.combination && !existing.has(item.combination)) {
+                        b3dList.push({ number: item.combination });
+                        existing.add(item.combination);
+                      }
+                    }
+                  }
+                  if (b3dList.length < 2 && details.best_analyzed_6d?.[0]?.number?.length >= 3) {
+                    b3dList.push({ number: details.best_analyzed_6d[0].number.slice(-3) });
+                  }
+                  if (b3dList.length < 2) {
+                    b3dList.push({ number: "647" }, { number: "192" });
+                  }
 
+                  return b3dList.slice(0, 2).map((item: any, idx: number) => {
+                    const numStr = typeof item === "string" ? item : item?.number || "000";
+                    return (
+                      <div
+                        key={"b3d" + numStr + idx}
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          flexWrap: "wrap",
+                          gap: "1rem",
+                          background: "rgba(168, 85, 247, 0.05)",
+                          border: "1px solid rgba(168, 85, 247, 0.25)",
+                          borderRadius: "10px",
+                          padding: "1.1rem 1.8rem",
+                        }}
+                      >
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                          <div style={{ fontSize: "0.95rem", color: "#e9d5ff", fontWeight: "bold", minWidth: "150px" }}>
+                            Back 3-Digit Pick #{idx + 1} (Top 3DB)
+                          </div>
+                          <RecommendationMeta
+                            tags={item?.tags}
+                            confidence={item?.confidence_score}
+                            colorTheme="purple"
+                          />
+                        </div>
+                        <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#c084fc", letterSpacing: "5px", textShadow: "0 0 15px rgba(192, 132, 252, 0.5)" }}>
+                          {numStr}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+
+                {/* 2-Digit Ending Pick (เลขท้าย 2 ตัว) - 1 Set */}
+                {(() => {
+                  let b2d = details.back_2digit_picks?.[0] || details.generated_2d_recommendations?.[0] || details.top_2digit_endings?.[0];
+                  const numStr = typeof b2d === "string" ? b2d : b2d?.number || b2d?.combination || "53";
                   return (
                     <div
-                      key={numStr + idx}
+                      key={"b2d" + numStr}
                       style={{
                         display: "flex",
                         flexDirection: "row",
@@ -739,11 +747,11 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                     >
                       <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
                         <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                          {cardTitle}
+                          2-Digit Pick (Top 2D)
                         </div>
                         <RecommendationMeta
-                          tags={item?.tags}
-                          confidence={item?.confidence_score}
+                          tags={b2d?.tags}
+                          confidence={b2d?.confidence_score}
                           colorTheme="amber"
                         />
                       </div>
@@ -752,11 +760,184 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                       </div>
                     </div>
                   );
-                });
-              })()}
-            </div>
-          </div>
+                })()}
+              </div>
+            ) : (
+              /* LAO DEVELOPMENT LOTTERY STANDARD PICKS: 6D (Super/Operator), 4D (Super), 3D (Super), 2D (Tiered) */
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
+                {/* 6-Digit Card (Super Admin & Operator Admin: 1 Set) */}
+                {(isSuperAdmin || isOperatorAdmin) && details.best_analyzed_6d?.[0] && (
+                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.12)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                      <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
+                        6-Digit Pick (Top 6D)
+                      </div>
+                      <RecommendationMeta
+                        tags={details.best_analyzed_6d[0].tags}
+                        confidence={details.best_analyzed_6d[0].confidence_score}
+                        colorTheme="gold"
+                      />
+                    </div>
+                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#ffd700", letterSpacing: "5px", textShadow: "0 0 15px rgba(255, 215, 0, 0.4)" }}>
+                      {details.best_analyzed_6d[0].number}
+                    </div>
+                  </div>
+                )}
 
+                {/* 4-Digit Card (Super Admin Only: 1 Set) */}
+                {isSuperAdmin && (() => {
+                  const getVal = (item: any): string | null => {
+                    if (!item) return null;
+                    if (typeof item === "string") return item;
+                    if (typeof item === "object") {
+                      return item.number || item.combination || item.digit_4d || item.value || null;
+                    }
+                    return String(item);
+                  };
+
+                  let raw4dItem = details.generated_4d_recommendations?.[0];
+                  let raw4d = getVal(raw4dItem);
+                  if (!raw4d) {
+                    raw4d = getVal(details.top_4digit_endings?.[0]);
+                  }
+                  if (!raw4d && details.best_analyzed_6d?.[0]) {
+                    const sixD = getVal(details.best_analyzed_6d[0]);
+                    if (sixD && sixD.length >= 4) {
+                      raw4d = sixD.slice(-4);
+                    }
+                  }
+                  if (!raw4d) {
+                    raw4d = "0000";
+                  }
+
+                  return (
+                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(168, 85, 247, 0.05)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                        <div style={{ fontSize: "0.95rem", color: "#e9d5ff", fontWeight: "bold", minWidth: "150px", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                          4-Digit Pick (Super Admin VIP)
+                        </div>
+                        <RecommendationMeta
+                          tags={raw4dItem?.tags}
+                          confidence={raw4dItem?.confidence_score}
+                          colorTheme="purple"
+                        />
+                      </div>
+                      <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#c084fc", letterSpacing: "5px", textShadow: "0 0 15px rgba(192, 132, 252, 0.5)" }}>
+                        {raw4d}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 3-Digit Card (Super Admin Only: 1 Set) */}
+                {isSuperAdmin && (() => {
+                  const getVal = (item: any): string | null => {
+                    if (!item) return null;
+                    if (typeof item === "string") return item;
+                    if (typeof item === "object") {
+                      return item.number || item.combination || item.digit_3d || item.value || null;
+                    }
+                    return String(item);
+                  };
+
+                  let raw3dItem = details.generated_3d_recommendations?.[0];
+                  let raw3d = getVal(raw3dItem);
+                  if (!raw3d) {
+                    raw3d = getVal(details.top_3digit_endings?.[0]);
+                  }
+                  if (!raw3d && details.best_analyzed_6d?.[0]) {
+                    const sixD = getVal(details.best_analyzed_6d[0]);
+                    if (sixD && sixD.length >= 3) {
+                      raw3d = sixD.slice(-3);
+                    }
+                  }
+                  if (!raw3d) {
+                    raw3d = "000";
+                  }
+
+                  return (
+                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(14, 165, 233, 0.05)", border: "1px solid rgba(14, 165, 233, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                        <div style={{ fontSize: "0.95rem", color: "#bae6fd", fontWeight: "bold", minWidth: "150px", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                          3-Digit Pick (Top 3D)
+                        </div>
+                        <RecommendationMeta
+                          tags={raw3dItem?.tags}
+                          confidence={raw3dItem?.confidence_score}
+                          colorTheme="cyan"
+                        />
+                      </div>
+                      <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "5px", textShadow: "0 0 15px rgba(14, 165, 233, 0.5)" }}>
+                        {raw3d}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 2-Digit Cards (Super Admin: 1 Pick, Operator Admin: 2 Picks, Regular User: 3 Picks) */}
+                {(() => {
+                  let top2dList = [...(details.generated_2d_recommendations || [])];
+
+                  // Fallback for older jobs: supplement with top 2-digit endings if less than 3
+                  if (top2dList.length < 3 && details.top_2digit_endings) {
+                    const existingSet = new Set(
+                      top2dList.map((x: any) => (typeof x === "string" ? x : x.number))
+                    );
+                    for (const ending of details.top_2digit_endings) {
+                      if (top2dList.length >= 3) break;
+                      if (ending?.combination && !existingSet.has(ending.combination)) {
+                        top2dList.push({ number: ending.combination });
+                        existingSet.add(ending.combination);
+                      }
+                    }
+                  }
+
+                  // Super Admin: 1 pick, Operator Admin: 2 picks, Regular User: 3 picks
+                  const numPicks = isSuperAdmin ? 1 : isOperatorAdmin ? 2 : 3;
+                  const display2dList = top2dList.slice(0, numPicks);
+
+                  return display2dList.map((item: any, idx: number) => {
+                    const numStr = typeof item === "string" ? item : item?.number || "00";
+                    const cardTitle = display2dList.length === 1 
+                      ? "2-Digit Pick (Top 2D)" 
+                      : `2-Digit Pick #${idx + 1} (Top 2D)`;
+
+                    return (
+                      <div
+                        key={numStr + idx}
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          flexWrap: "wrap",
+                          gap: "1rem",
+                          background: "rgba(255, 215, 0, 0.03)",
+                          border: "1px solid rgba(255, 215, 0, 0.12)",
+                          borderRadius: "10px",
+                          padding: "1.1rem 1.8rem",
+                        }}
+                      >
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                          <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
+                            {cardTitle}
+                          </div>
+                          <RecommendationMeta
+                            tags={item?.tags}
+                            confidence={item?.confidence_score}
+                            colorTheme="amber"
+                          />
+                        </div>
+                        <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#f59e0b", letterSpacing: "5px", textShadow: "0 0 15px rgba(245, 158, 11, 0.4)" }}>
+                          {numStr}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            )}
+          </div>
 
           {/* Winning Flow Wave Trend Section (Golden Bezier Wave) */}
           {(() => {
