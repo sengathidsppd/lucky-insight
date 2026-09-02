@@ -60,22 +60,25 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
             is_superadmin = bool(user and (user.email == "suzu@gmail.com" or getattr(user, "is_superadmin", False)))
             is_operator_admin = bool(user and user.is_admin and not is_superadmin)
 
-            # Redact 3D recommendations completely for Lao development lottery
+            # Redact 3D and 4D recommendations completely
             res_dict.pop("generated_3d_recommendations", None)
+            res_dict.pop("generated_4d_recommendations", None)
 
-            # If user is not Super Admin, redact 4D recommendations for security
-            if not is_superadmin:
-                res_dict.pop("generated_4d_recommendations", None)
+            # Super Admin: exactly 2 sets of 6D, 2 sets of 2D (no 4D, no 3D)
+            if is_superadmin:
+                if "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
+                    res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:2]
+                if "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
+                    res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:2]
+
+            # Operator Admin: exactly 1 set of 6D (if not Thai), 2 sets of 2D (no 4D, no 3D)
+            elif is_operator_admin:
                 if "THAI" in game_code.upper():
                     res_dict.pop("best_analyzed_6d", None)
-
-            # Super Admin: exactly 2 sets of 2D (1x 6D, 1x 4D VIP, 2x 2D, no 3D)
-            if is_superadmin and "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
-                res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:2]
-
-            # Operator Admin: exactly 2 sets of 2D (1x 6D, 2x 2D, no 4D, no 3D)
-            elif is_operator_admin and "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
-                res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:2]
+                elif "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
+                    res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:1]
+                if "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
+                    res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:2]
 
             # Regular User: exactly 3 sets of 2D (no 6D, no 4D, no 3D)
             elif user and not user.is_admin:

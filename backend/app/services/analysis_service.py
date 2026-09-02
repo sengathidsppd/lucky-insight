@@ -372,8 +372,16 @@ class AnalysisService:
             avg_p = (p0 + p1 + p2) / 3.0
             return round(min(100.0, avg_p * 450.0), 2)
 
-        # 4. Generate candidate pools
-        best_6d_num = "".join(max(t_pos_probs[p][latest_draw[p]].items(), key=lambda x: x[1])[0] for p in range(6))
+        # 4. Generate candidate pools (Top 2 sets of 6D)
+        best_6d_num_1 = "".join(max(t_pos_probs[p][latest_draw[p]].items(), key=lambda x: x[1])[0] for p in range(6))
+        best_6d_num_2_digits = []
+        for p in range(6):
+            sorted_p = sorted(t_pos_probs[p][latest_draw[p]].items(), key=lambda x: x[1], reverse=True)
+            if len(sorted_p) > 1 and sorted_p[1][0] != best_6d_num_1[p]:
+                best_6d_num_2_digits.append(sorted_p[1][0])
+            else:
+                best_6d_num_2_digits.append(str((int(best_6d_num_1[p]) + 7) % 10))
+        best_6d_num_2 = "".join(best_6d_num_2_digits)
         
         def enrich_markov(item: dict[str, Any], length: int) -> dict[str, Any]:
             num_str = str(item.get("number", "00"))
@@ -396,7 +404,10 @@ class AnalysisService:
                 "confidence_level": "OPTIMAL" if conf >= 90.0 else "VERY HIGH",
             }
 
-        enriched_6d = [enrich_markov({"number": best_6d_num, "score": score_markov_6d(best_6d_num)}, 6)]
+        enriched_6d = [
+            enrich_markov({"number": best_6d_num_1, "score": score_markov_6d(best_6d_num_1)}, 6),
+            enrich_markov({"number": best_6d_num_2, "score": score_markov_6d(best_6d_num_2)}, 6),
+        ]
 
         # 4D
         scored_4d_all = [{"number": f"{x:04d}", "score": score_markov_4d(f"{x:04d}")} for x in range(10000)]

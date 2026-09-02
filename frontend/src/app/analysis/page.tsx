@@ -601,23 +601,42 @@ function AnalysisResultVisualizer({ job, currentGameCode }: { job: AnalysisJob; 
             {isThaiLottery ? (
               /* THAI NATIONAL LOTTERY SPECIALIZED PICKS: 6D (1 set for Admins), Front 3D (2 sets), Back 3D (2 sets), 2D (1 set) */
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
-                {/* 6-Digit Card (Top Prize / รางวัลที่ 1 - Super Admin Only: 1 Set) */}
-                {isSuperAdmin && details.best_analyzed_6d?.[0] && (
-                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.12)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                      <div style={{ fontSize: "0.95rem", color: "#ffd700", fontWeight: "bold", minWidth: "150px" }}>
-                        6-Digit Pick (Super Admin VIP)
+                {/* 6-Digit Cards (Top Prize / รางวัลที่ 1 - Super Admin Only: 2 Sets) */}
+                {isSuperAdmin && details.best_analyzed_6d && (
+                  (() => {
+                    let list6d = details.best_analyzed_6d.slice(0, 2);
+                    return list6d.map((item: any, idx: number) => (
+                      <div
+                        key={"thai6d" + (item.number || idx) + idx}
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          flexWrap: "wrap",
+                          gap: "1rem",
+                          background: "rgba(255, 215, 0, 0.03)",
+                          border: "1px solid rgba(255, 215, 0, 0.12)",
+                          borderRadius: "10px",
+                          padding: "1.1rem 1.8rem",
+                        }}
+                      >
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                          <div style={{ fontSize: "0.95rem", color: "#ffd700", fontWeight: "bold", minWidth: "150px" }}>
+                            6-Digit Pick #{idx + 1} (Super Admin VIP)
+                          </div>
+                          <RecommendationMeta
+                            tags={item.tags}
+                            confidence={item.confidence_score}
+                            colorTheme="gold"
+                          />
+                        </div>
+                        <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#ffd700", letterSpacing: "5px", textShadow: "0 0 15px rgba(255, 215, 0, 0.4)" }}>
+                          {item.number}
+                        </div>
                       </div>
-                      <RecommendationMeta
-                        tags={details.best_analyzed_6d[0].tags}
-                        confidence={details.best_analyzed_6d[0].confidence_score}
-                        colorTheme="gold"
-                      />
-                    </div>
-                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#ffd700", letterSpacing: "5px", textShadow: "0 0 15px rgba(255, 215, 0, 0.4)" }}>
-                      {details.best_analyzed_6d[0].number}
-                    </div>
-                  </div>
+                    ));
+                  })()
                 )}
 
                 {/* Front 3-Digit Picks (เลขหน้า 3 ตัว) - 2 Sets */}
@@ -770,71 +789,51 @@ function AnalysisResultVisualizer({ job, currentGameCode }: { job: AnalysisJob; 
                 })()}
               </div>
             ) : (
-              /* LAO DEVELOPMENT LOTTERY STANDARD PICKS: 6D (Super/Operator), 4D (Super), 3D (Super), 2D (Tiered) */
+              /* LAO DEVELOPMENT LOTTERY STANDARD PICKS: 6D (Super: 2 Sets / Operator: 1 Set), 2D (Tiered) */
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
-                {/* 6-Digit Card (Super Admin & Operator Admin: 1 Set) */}
-                {(isSuperAdmin || isOperatorAdmin) && details.best_analyzed_6d?.[0] && (
-                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.12)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                      <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                        6-Digit Pick (Top 6D)
-                      </div>
-                      <RecommendationMeta
-                        tags={details.best_analyzed_6d[0].tags}
-                        confidence={details.best_analyzed_6d[0].confidence_score}
-                        colorTheme="gold"
-                      />
-                    </div>
-                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#ffd700", letterSpacing: "5px", textShadow: "0 0 15px rgba(255, 215, 0, 0.4)" }}>
-                      {details.best_analyzed_6d[0].number}
-                    </div>
-                  </div>
-                )}
-
-                {/* 4-Digit Card (Super Admin Only: 1 Set) */}
-                {isSuperAdmin && (() => {
-                  const getVal = (item: any): string | null => {
-                    if (!item) return null;
-                    if (typeof item === "string") return item;
-                    if (typeof item === "object") {
-                      return item.number || item.combination || item.digit_4d || item.value || null;
-                    }
-                    return String(item);
-                  };
-
-                  let raw4dItem = details.generated_4d_recommendations?.[0];
-                  let raw4d = getVal(raw4dItem);
-                  if (!raw4d) {
-                    raw4d = getVal(details.top_4digit_endings?.[0]);
-                  }
-                  if (!raw4d && details.best_analyzed_6d?.[0]) {
-                    const sixD = getVal(details.best_analyzed_6d[0]);
-                    if (sixD && sixD.length >= 4) {
-                      raw4d = sixD.slice(-4);
-                    }
-                  }
-                  if (!raw4d) {
-                    raw4d = "0000";
-                  }
-
-                  return (
-                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(168, 85, 247, 0.05)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                        <div style={{ fontSize: "0.95rem", color: "#e9d5ff", fontWeight: "bold", minWidth: "150px", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                          4-Digit Pick (Super Admin VIP)
+                {/* 6-Digit Cards (Super Admin: 2 Sets, Operator Admin: 1 Set) */}
+                {(isSuperAdmin || isOperatorAdmin) && details.best_analyzed_6d && (
+                  (() => {
+                    const num6dPicks = isSuperAdmin ? 2 : 1;
+                    let list6d = details.best_analyzed_6d.slice(0, num6dPicks);
+                    return list6d.map((item: any, idx: number) => {
+                      const cardTitle = num6dPicks === 1
+                        ? "6-Digit Pick (Top 6D)"
+                        : `6-Digit Pick #${idx + 1} (Top 6D)`;
+                      return (
+                        <div
+                          key={"lao6d" + (item.number || idx) + idx}
+                          style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            flexWrap: "wrap",
+                            gap: "1rem",
+                            background: "rgba(255, 215, 0, 0.03)",
+                            border: "1px solid rgba(255, 215, 0, 0.12)",
+                            borderRadius: "10px",
+                            padding: "1.1rem 1.8rem",
+                          }}
+                        >
+                          <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                            <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
+                              {cardTitle}
+                            </div>
+                            <RecommendationMeta
+                              tags={item.tags}
+                              confidence={item.confidence_score}
+                              colorTheme="gold"
+                            />
+                          </div>
+                          <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#ffd700", letterSpacing: "5px", textShadow: "0 0 15px rgba(255, 215, 0, 0.4)" }}>
+                            {item.number}
+                          </div>
                         </div>
-                        <RecommendationMeta
-                          tags={raw4dItem?.tags}
-                          confidence={raw4dItem?.confidence_score}
-                          colorTheme="purple"
-                        />
-                      </div>
-                      <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#c084fc", letterSpacing: "5px", textShadow: "0 0 15px rgba(192, 132, 252, 0.5)" }}>
-                        {raw4d}
-                      </div>
-                    </div>
-                  );
-                })()}
+                      );
+                    });
+                  })()
+                )}
 
                 {/* 2-Digit Cards (Super Admin: 2 Picks, Operator Admin: 2 Picks, Regular User: 3 Picks) */}
                 {(() => {
