@@ -836,52 +836,7 @@ function AnalysisResultVisualizer({ job, currentGameCode }: { job: AnalysisJob; 
                   );
                 })()}
 
-                {/* 3-Digit Card (Super Admin Only: 1 Set) */}
-                {isSuperAdmin && (() => {
-                  const getVal = (item: any): string | null => {
-                    if (!item) return null;
-                    if (typeof item === "string") return item;
-                    if (typeof item === "object") {
-                      return item.number || item.combination || item.digit_3d || item.value || null;
-                    }
-                    return String(item);
-                  };
-
-                  let raw3dItem = details.generated_3d_recommendations?.[0];
-                  let raw3d = getVal(raw3dItem);
-                  if (!raw3d) {
-                    raw3d = getVal(details.top_3digit_endings?.[0]);
-                  }
-                  if (!raw3d && details.best_analyzed_6d?.[0]) {
-                    const sixD = getVal(details.best_analyzed_6d[0]);
-                    if (sixD && sixD.length >= 3) {
-                      raw3d = sixD.slice(-3);
-                    }
-                  }
-                  if (!raw3d) {
-                    raw3d = "000";
-                  }
-
-                  return (
-                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(14, 165, 233, 0.05)", border: "1px solid rgba(14, 165, 233, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                        <div style={{ fontSize: "0.95rem", color: "#bae6fd", fontWeight: "bold", minWidth: "150px", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                          3-Digit Pick (Top 3D)
-                        </div>
-                        <RecommendationMeta
-                          tags={raw3dItem?.tags}
-                          confidence={raw3dItem?.confidence_score}
-                          colorTheme="cyan"
-                        />
-                      </div>
-                      <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "5px", textShadow: "0 0 15px rgba(14, 165, 233, 0.5)" }}>
-                        {raw3d}
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* 2-Digit Cards (Super Admin: 1 Pick, Operator Admin: 2 Picks, Regular User: 3 Picks) */}
+                {/* 2-Digit Cards (Super Admin: 2 Picks, Operator Admin: 2 Picks, Regular User: 3 Picks) */}
                 {(() => {
                   let top2dList = [...(details.generated_2d_recommendations || [])];
 
@@ -899,8 +854,8 @@ function AnalysisResultVisualizer({ job, currentGameCode }: { job: AnalysisJob; 
                     }
                   }
 
-                  // Super Admin: 1 pick, Operator Admin: 2 picks, Regular User: 3 picks
-                  const numPicks = isSuperAdmin ? 1 : isOperatorAdmin ? 2 : 3;
+                  // Super Admin: 2 picks, Operator Admin: 2 picks, Regular User: 3 picks
+                  const numPicks = (isSuperAdmin || isOperatorAdmin) ? 2 : 3;
                   const display2dList = top2dList.slice(0, numPicks);
 
                   return display2dList.map((item: any, idx: number) => {
