@@ -101,6 +101,68 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
     )
 
 
+@router.get("/quota", summary="Get remaining daily analysis quota for current user")
+@router.get("/quota/", include_in_schema=False)
+def get_user_quota(
+    game_id: str | None = Query(None),
+    game_code: str | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    from datetime import datetime, timezone, timedelta
+    from app.models.lottery_game import LotteryGame
+
+    tz_local = timezone(timedelta(hours=7))
+    start_of_today = datetime.now(tz_local).replace(hour=0, minute=0, second=0, microsecond=0).astimezone(timezone.utc).replace(tzinfo=None)
+    jobs_today = (
+        db.query(AnalysisJob)
+        .filter(
+            AnalysisJob.user_id == current_user.id,
+            AnalysisJob.created_at >= start_of_today,
+        )
+        .all()
+    )
+
+    target_game_id = None
+    if game_id and str(game_id).strip() not in ("undefined", "null", ""):
+        target_game_id = str(game_id).strip()
+    elif game_code and str(game_code).strip() not in ("undefined", "null", ""):
+        g = db.query(LotteryGame).filter(LotteryGame.code == str(game_code).strip().upper()).first()
+        if g:
+            target_game_id = str(g.id)
+
+    used_today = 0
+    if target_game_id:
+        for j in jobs_today:
+            params = j.parameters or {}
+            if params.get("quota_reset"):
+                continue
+            j_gid = str(params.get("game_id")) if params.get("game_id") else None
+            if j_gid == target_game_id:
+                used_today += 1
+
+    is_superadmin = bool(current_user.email == "suzu@gmail.com" or getattr(current_user, "is_superadmin", False))
+    if is_superadmin:
+        return {
+            "success": True,
+            "daily_limit": 999999,
+            "used_today": used_today,
+            "remaining": 999999,
+            "is_unlimited": True,
+        }
+
+    daily_limit = 1
+    remaining = max(0, daily_limit - used_today)
+
+    return {
+        "success": True,
+        "daily_limit": daily_limit,
+        "used_today": used_today,
+        "remaining": remaining,
+        "is_unlimited": False,
+    }
+
+
 @router.post(
     "",
     response_model=AnalysisJobDetailResponse,
@@ -113,7 +175,36 @@ def create_analysis(
     current_user: User = Depends(get_current_active_user),
     service: AnalysisService = Depends(get_analysis_service),
 ) -> AnalysisJobDetailResponse:
-    """Trigger a statistical calculation job. Returns completed or failed job details."""
+    # Check daily limit of 1 analysis run per day PER GAME (Super Admin has UNLIMITED runs)
+    from datetime import datetime, timezone, timedelta
+    from app.models.lottery_game import LotteryGame
+
+    is_superadmin = bool(current_user.email == "suzu@gmail.com" or getattr(current_user, "is_superadmin", False))
+    game_id = (payload.parameters or {}).get("game_id")
+    target_game_id = str(game_id).strip() if (game_id and str(game_id).strip() not in ("undefined", "null", "")) else None
+
+    if not is_superadmin and target_game_id:
+        tz_local = timezone(timedelta(hours=7))
+        start_of_today = datetime.now(tz_local).replace(hour=0, minute=0, second=0, microsecond=0).astimezone(timezone.utc).replace(tzinfo=None)
+        jobs_today = (
+            db.query(AnalysisJob)
+            .filter(
+                AnalysisJob.user_id == current_user.id,
+                AnalysisJob.created_at >= start_of_today,
+            )
+            .all()
+        )
+        used_for_game = sum(
+            1 for j in jobs_today
+            if not (j.parameters or {}).get("quota_reset") and str((j.parameters or {}).get("game_id")) == target_game_id
+        )
+        if used_for_game >= 1:
+            g = db.query(LotteryGame).filter(LotteryGame.id == game_id).first()
+            g_name = g.name if g else "this lottery game"
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Daily analysis quota reached for {g_name}: 1 run per day. Please try again tomorrow or analyze a different game!",
+            )
     try:
         job = service.create_and_run_analysis(
             current_user.id,

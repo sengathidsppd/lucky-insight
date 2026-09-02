@@ -141,6 +141,16 @@ def get_user_quota(
             if j_gid == target_game_id:
                 used_today += 1
 
+    is_superadmin = bool(current_user.email == "suzu@gmail.com" or getattr(current_user, "is_superadmin", False))
+    if is_superadmin:
+        return {
+            "success": True,
+            "daily_limit": 999999,
+            "used_today": used_today,
+            "remaining": 999999,
+            "is_unlimited": True,
+        }
+
     daily_limit = 1
     remaining = max(0, daily_limit - used_today)
 
@@ -149,6 +159,7 @@ def get_user_quota(
         "daily_limit": daily_limit,
         "used_today": used_today,
         "remaining": remaining,
+        "is_unlimited": False,
     }
 
 
@@ -164,25 +175,25 @@ def create_analysis(
     current_user: User = Depends(get_current_active_user),
     service: AnalysisService = Depends(get_analysis_service),
 ) -> AnalysisJobDetailResponse:
-    # Check daily limit of 1 analysis run per day PER GAME for ALL users (including admins)
+    # Check daily limit of 1 analysis run per day PER GAME (Super Admin has UNLIMITED runs)
     from datetime import datetime, timezone, timedelta
     from app.models.lottery_game import LotteryGame
 
+    is_superadmin = bool(current_user.email == "suzu@gmail.com" or getattr(current_user, "is_superadmin", False))
     game_id = (payload.parameters or {}).get("game_id")
     target_game_id = str(game_id).strip() if (game_id and str(game_id).strip() not in ("undefined", "null", "")) else None
 
-    tz_local = timezone(timedelta(hours=7))
-    start_of_today = datetime.now(tz_local).replace(hour=0, minute=0, second=0, microsecond=0).astimezone(timezone.utc).replace(tzinfo=None)
-    jobs_today = (
-        db.query(AnalysisJob)
-        .filter(
-            AnalysisJob.user_id == current_user.id,
-            AnalysisJob.created_at >= start_of_today,
+    if not is_superadmin and target_game_id:
+        tz_local = timezone(timedelta(hours=7))
+        start_of_today = datetime.now(tz_local).replace(hour=0, minute=0, second=0, microsecond=0).astimezone(timezone.utc).replace(tzinfo=None)
+        jobs_today = (
+            db.query(AnalysisJob)
+            .filter(
+                AnalysisJob.user_id == current_user.id,
+                AnalysisJob.created_at >= start_of_today,
+            )
+            .all()
         )
-        .all()
-    )
-
-    if target_game_id:
         used_for_game = sum(
             1 for j in jobs_today
             if not (j.parameters or {}).get("quota_reset") and str((j.parameters or {}).get("game_id")) == target_game_id

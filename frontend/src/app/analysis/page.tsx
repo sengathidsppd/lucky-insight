@@ -22,6 +22,8 @@ interface AnalysisJob {
 }
 
 export default function AnalysisPage() {
+  const { user } = useAuth();
+  const isSuperAdmin = Boolean(user && (user.email === "suzu@gmail.com" || (user.is_admin && (user as any)?.is_superadmin)));
   const [jobs, setJobs] = useState<AnalysisJob[]>([]);
   const [selectedJob, setSelectedJob] = useState<AnalysisJob | null>(null);
   const [games, setGames] = useState<any[]>([]);
@@ -261,13 +263,17 @@ export default function AnalysisPage() {
               </div>
 
               <div style={{ fontSize: "0.85rem", fontWeight: 600, margin: "0.5rem 0", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                {quotaInfo.remaining > 0 ? (
+                {isSuperAdmin ? (
+                  <span style={{ color: "#ffd700", display: "flex", alignItems: "center", gap: "0.4rem", background: "rgba(255, 215, 0, 0.08)", border: "1px solid rgba(255, 215, 0, 0.3)", padding: "0.4rem 0.8rem", borderRadius: "8px", width: "100%", boxShadow: "0 0 10px rgba(255, 215, 0, 0.15)" }}>
+                    <span>VIP Super Admin: Unlimited Analysis Runs Enabled for <strong>{games.find((g) => g.code === gameCode)?.name || gameCode}</strong></span>
+                  </span>
+                ) : quotaInfo.remaining > 0 ? (
                   <span style={{ color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                    <span>💡</span> <span>Daily Analysis Quota for <strong>{games.find((g) => g.code === gameCode)?.name || gameCode}</strong>: <strong>{quotaInfo.remaining} / {quotaInfo.daily_limit}</strong> run remaining today</span>
+                    <span>Daily Analysis Quota for <strong>{games.find((g) => g.code === gameCode)?.name || gameCode}</strong>: <strong>{quotaInfo.remaining} / {quotaInfo.daily_limit}</strong> run remaining today</span>
                   </span>
                 ) : (
                   <span style={{ color: "#f87171", display: "flex", alignItems: "center", gap: "0.4rem", background: "rgba(239, 68, 68, 0.12)", padding: "0.4rem 0.8rem", borderRadius: "8px", border: "1px solid rgba(239, 68, 68, 0.3)", width: "100%" }}>
-                    <span>🔒</span> <span>Daily Quota Reached for <strong>{games.find((g) => g.code === gameCode)?.name || gameCode}</strong>: <strong>0 / {quotaInfo.daily_limit}</strong> runs remaining today</span>
+                    <span>Daily Quota Reached for <strong>{games.find((g) => g.code === gameCode)?.name || gameCode}</strong>: <strong>0 / {quotaInfo.daily_limit}</strong> runs remaining today</span>
                   </span>
                 )}
               </div>
@@ -275,17 +281,17 @@ export default function AnalysisPage() {
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={isSubmitting || quotaInfo.remaining <= 0}
+                disabled={isSubmitting || (!isSuperAdmin && quotaInfo.remaining <= 0)}
                 style={{
-                  opacity: quotaInfo.remaining <= 0 ? 0.5 : 1,
-                  cursor: quotaInfo.remaining <= 0 ? "not-allowed" : "pointer",
+                  opacity: (!isSuperAdmin && quotaInfo.remaining <= 0) ? 0.5 : 1,
+                  cursor: (!isSuperAdmin && quotaInfo.remaining <= 0) ? "not-allowed" : "pointer",
                 }}
               >
                 {isSubmitting
                   ? "Calculating..."
-                  : quotaInfo.remaining <= 0
-                    ? `🔒 Quota Limit Reached (${quotaInfo.daily_limit}/${quotaInfo.daily_limit})`
-                    : " Analyze Data"}
+                  : (!isSuperAdmin && quotaInfo.remaining <= 0)
+                    ? `Quota Limit Reached (${quotaInfo.daily_limit}/${quotaInfo.daily_limit})`
+                    : "Analyze Data"}
               </button>
             </form>
           </div>
