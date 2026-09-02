@@ -29,7 +29,7 @@ export default function AnalysisPage() {
 
   // Form states
   const [gameCode, setGameCode] = useState("LAO");
-  const [analysisType, setAnalysisType] = useState("MONTE_CARLO");
+  const [analysisType, setAnalysisType] = useState("MARKOV_CHAIN");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -119,7 +119,7 @@ export default function AnalysisPage() {
       const selectedGame = games.find((g) => g.code === gameCode);
       const safeType = ["FREQUENCY", "MONTE_CARLO", "MARKOV_CHAIN", "MARKOV", "PAIR", "TRIPLE", "DISTRIBUTION", "TREND"].includes(analysisType)
         ? analysisType
-        : "MONTE_CARLO";
+        : "MARKOV_CHAIN";
 
       const payload = {
         analysis_type: safeType,
@@ -243,8 +243,8 @@ export default function AnalysisPage() {
                 <div style={formColStyle}>
                   <label style={labelStyle}>Statistical Engine</label>
                   <select value={analysisType} onChange={(e) => setAnalysisType(e.target.value)}>
+                    <option value="MARKOV_CHAIN">Markov Pattern Matrix Engine (Primary Engine)</option>
                     <option value="MONTE_CARLO">SUSU Predictive Intelligence Engine</option>
-                    <option value="MARKOV_CHAIN">Markov Pattern Matrix Engine</option>
                   </select>
                 </div>
               </div>
