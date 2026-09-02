@@ -117,9 +117,9 @@ export default function AnalysisPage() {
 
     try {
       const selectedGame = games.find((g) => g.code === gameCode);
-      const safeType = ["FREQUENCY", "MONTE_CARLO", "PAIR", "TRIPLE", "DISTRIBUTION", "TREND"].includes(analysisType)
+      const safeType = ["FREQUENCY", "MONTE_CARLO", "MARKOV_CHAIN", "MARKOV", "PAIR", "TRIPLE", "DISTRIBUTION", "TREND"].includes(analysisType)
         ? analysisType
-        : "FREQUENCY";
+        : "MONTE_CARLO";
 
       const payload = {
         analysis_type: safeType,
@@ -244,6 +244,7 @@ export default function AnalysisPage() {
                   <label style={labelStyle}>Statistical Engine</label>
                   <select value={analysisType} onChange={(e) => setAnalysisType(e.target.value)}>
                     <option value="MONTE_CARLO">SUSU Predictive Intelligence Engine</option>
+                    <option value="MARKOV_CHAIN">Markov Pattern Matrix Engine</option>
                   </select>
                 </div>
               </div>
@@ -1326,6 +1327,99 @@ function AnalysisResultVisualizer({ job, currentGameCode }: { job: AnalysisJob; 
               </div>
             );
           })()}
+
+          {/* Markov Sequential Transition Flow Matrix Panel */}
+          {details.markov_state_flows && details.markov_state_flows.length > 0 && (
+            <div
+              className="glass-panel"
+              style={{
+                background: "linear-gradient(135deg, rgba(168, 85, 247, 0.04) 0%, rgba(56, 189, 248, 0.04) 100%)",
+                border: "1px solid rgba(168, 85, 247, 0.25)",
+                padding: "1.5rem",
+                borderRadius: "14px",
+                marginTop: "1.5rem",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "1rem" }}>
+                <div>
+                  <h4 style={{ ...subPanelTitleStyle, color: "#c084fc", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1.05rem" }}>
+                    Markov Sequential State Transition Flows
+                  </h4>
+                  <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", margin: "0.2rem 0 0 0" }}>
+                    Highest probability state transitions calculated from latest draw ({details.latest_draw_evaluated || "Recent"})
+                  </p>
+                </div>
+                <div>
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      fontWeight: 800,
+                      color: "#c084fc",
+                      background: "rgba(168, 85, 247, 0.15)",
+                      border: "1px solid rgba(168, 85, 247, 0.4)",
+                      padding: "3px 10px",
+                      borderRadius: "20px",
+                    }}
+                  >
+                    1st-Order Markov Chain Model
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+                {details.markov_state_flows.slice(0, 6).map((flow: any, idx: number) => (
+                  <div
+                    key={idx}
+                    style={{
+                      background: "rgba(0, 0, 0, 0.25)",
+                      border: "1px solid rgba(255, 255, 255, 0.08)",
+                      borderRadius: "10px",
+                      padding: "1rem",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", fontWeight: 700 }}>
+                        Position #{flow.position}
+                      </span>
+                      <span style={{ fontSize: "0.72rem", color: "#4ade80", fontWeight: 700 }}>
+                        Lift: {flow.lift}x
+                      </span>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255, 255, 255, 0.03)", padding: "0.5rem 0.8rem", borderRadius: "8px" }}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>From (Last)</span>
+                        <span style={{ fontSize: "1.3rem", fontWeight: 900, fontFamily: "monospace", color: "#f87171" }}>
+                          {flow.from_digit}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: "1.1rem", color: "var(--accent-cyan)", fontWeight: 900 }}>
+                        →
+                      </div>
+
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>To (Projected)</span>
+                        <span style={{ fontSize: "1.3rem", fontWeight: 900, fontFamily: "monospace", color: "#38bdf8" }}>
+                          {flow.to_digit}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem" }}>
+                      <span style={{ color: "var(--text-secondary)" }}>Transition Prob</span>
+                      <span style={{ fontWeight: 800, fontFamily: "monospace", color: "#ffd700" }}>
+                        {flow.probability}%
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 4-Dimension Statistical Grid */}
           <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
