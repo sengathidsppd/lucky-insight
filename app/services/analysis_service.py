@@ -488,11 +488,13 @@ class AnalysisService:
         trip_data, _ = self._calculate_triplets(records)
         dist_data, _ = self._calculate_distribution(records)
         trend_data, _ = self._calculate_trends(records)
-        backtest_data = self._calculate_backtest(records)
+        markov_data, _ = self._calculate_markov_engine(records)
 
         composite_result = {
-            "model_type": "COMPOSITE",
+            "model_type": "HYBRID_ENSEMBLE",
             "total_records_analyzed": len(records),
+            "latest_draw_evaluated": markov_data.get("latest_draw_evaluated", ""),
+            "markov_state_flows": markov_data.get("markov_state_flows", []),
             "top_single_digits": freq_data.get("top_single_digits", []),
             "position_frequencies": freq_data.get("position_frequencies", []),
             "best_analyzed_6d": freq_data.get("best_analyzed_6d", []),
@@ -528,9 +530,9 @@ class AnalysisService:
         }
 
         explanation = (
-            f"Multi-Objective Composite Analysis executed over {len(records)} records. "
+            f"SUSU Hybrid Ensemble Engine Analysis executed over {len(records)} records. "
             f"Evaluated Position Frequency (40%), Markov Transitions (25%), Poisson Gap Overdue (20%), "
-            f"and Distribution Balance (15%)."
+            f"and Monte Carlo Distribution Consensus (15%)."
         )
         return composite_result, explanation
 
