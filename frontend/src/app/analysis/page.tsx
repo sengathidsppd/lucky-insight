@@ -569,13 +569,18 @@ function AnalysisResultVisualizer({ job, currentGameCode }: { job: AnalysisJob; 
   if (!result) return null;
   const details = result.result_data;
 
-  // Detect whether this job or current selection is Thai National Lottery
-  const isThaiLottery = Boolean(
-    (currentGameCode && currentGameCode.toUpperCase().includes("THAI")) ||
-    ((job as any)?.game_code && String((job as any).game_code).toUpperCase().includes("THAI")) ||
-    ((job as any)?.parameters && String((job as any).parameters.game_id || "").toUpperCase().includes("THAI")) ||
-    ((job as any)?.parameters && String((job as any).parameters.lottery_type || "").toUpperCase().includes("THAI"))
-  );
+  // Detect whether this specific job is Thai National Lottery based on the job's own game_code
+  const jobGameCode = String(
+    job.game_code ||
+    (job as any)?.parameters?.game_id ||
+    (job as any)?.parameters?.lottery_type ||
+    (job as any)?.parameters?.game_code ||
+    ""
+  ).toUpperCase();
+
+  const isThaiLottery = jobGameCode
+    ? jobGameCode.includes("THAI")
+    : Boolean(currentGameCode && currentGameCode.toUpperCase().includes("THAI"));
 
   return (
     <div style={resultsBodyStyle}>
