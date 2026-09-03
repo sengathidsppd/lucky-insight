@@ -445,7 +445,7 @@ class AnalysisService:
             "top_single_digits": freq_data.get("top_single_digits", []),
             "position_frequencies": freq_data.get("position_frequencies", []),
             "best_analyzed_6d": enriched_6d,
-            "generated_recommendations": [best_6d_num],
+            "generated_recommendations": [best_6d_num_1],
             "generated_4d_recommendations": enriched_4d,
             "generated_3d_recommendations": enriched_3d,
             "generated_2d_recommendations": enriched_2d,
