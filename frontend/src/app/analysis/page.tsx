@@ -449,7 +449,7 @@ export default function AnalysisPage() {
               </div>
 
               {selectedJob.status === "COMPLETED" ? (
-                <AnalysisResultVisualizer job={selectedJob} currentGameCode={gameCode} />
+                <AnalysisResultVisualizer job={selectedJob} />
               ) : selectedJob.status === "FAILED" ? (
                 <div style={errorStyle}>Model execution failed. Please verify dates and draw history.</div>
               ) : (
@@ -553,7 +553,7 @@ function RecommendationMeta({ tags, confidence, colorTheme }: { tags?: string[];
   );
 }
 
-function AnalysisResultVisualizer({ job, currentGameCode }: { job: AnalysisJob; currentGameCode?: string }) {
+function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
   const { user } = useAuth();
   const isSuperAdmin = Boolean(user && (user.email === "suzu@gmail.com" || (user.is_admin && (user as any)?.is_superadmin)));
   const isOperatorAdmin = Boolean(user && user.is_admin && !isSuperAdmin);
@@ -569,18 +569,16 @@ function AnalysisResultVisualizer({ job, currentGameCode }: { job: AnalysisJob; 
   if (!result) return null;
   const details = result.result_data;
 
-  // Detect whether this specific job is Thai National Lottery based on the job's own game_code
+  // Detect whether this specific job is Thai National Lottery based purely on the job itself
   const jobGameCode = String(
     job.game_code ||
-    (job as any)?.parameters?.game_id ||
-    (job as any)?.parameters?.lottery_type ||
+    (job as any)?.game?.code ||
     (job as any)?.parameters?.game_code ||
+    (job as any)?.parameters?.lottery_type ||
     ""
   ).toUpperCase();
 
-  const isThaiLottery = jobGameCode
-    ? jobGameCode.includes("THAI")
-    : Boolean(currentGameCode && currentGameCode.toUpperCase().includes("THAI"));
+  const isThaiLottery = jobGameCode.includes("THAI");
 
   return (
     <div style={resultsBodyStyle}>
