@@ -492,6 +492,7 @@ class AnalysisService:
         trip_data, _ = self._calculate_triplets(records)
         dist_data, _ = self._calculate_distribution(records)
         trend_data, _ = self._calculate_trends(records)
+        backtest_data = self._calculate_backtest(records)
         markov_data, _ = self._calculate_markov_engine(records)
 
         composite_result = {
