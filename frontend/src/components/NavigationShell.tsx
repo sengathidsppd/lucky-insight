@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/api";
 import DrawCountdown from "./DrawCountdown";
 import { AvatarCustomizerModal } from "./AvatarCustomizerModal";
+import { BirthdayCelebrationModal } from "./BirthdayCelebrationModal";
 
 export default function NavigationShell({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, logout, user, avatar } = useAuth();
@@ -325,6 +326,9 @@ export default function NavigationShell({ children }: { children: React.ReactNod
         isOpen={isAvatarModalOpen}
         onClose={() => setIsAvatarModalOpen(false)}
       />
+
+      {/* Full-Screen Birthday Celebration Modal for Ning */}
+      <BirthdayCelebrationModal />
     </div>
   );
 }
