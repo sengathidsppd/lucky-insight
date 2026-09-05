@@ -29,13 +29,13 @@ export function BirthdayCelebrationModal() {
       return;
     }
 
-    // Date check: September 6 (or September 5-7 window)
+    // Date check: Strictly on Ning's birthday, September 6th only
     const now = new Date();
     const month = now.getMonth(); // 8 = September (0-indexed)
     const date = now.getDate();
 
-    // Trigger on September 5, 6, or 7
-    if (month === 8 && (date === 5 || date === 6 || date === 7)) {
+    // Show exclusively on September 6; automatically turns off on September 7th and beyond
+    if (month === 8 && date === 6) {
       setIsOpen(true);
     }
   }, [user]);
