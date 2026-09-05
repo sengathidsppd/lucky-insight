@@ -87,10 +87,49 @@ export default function FamilyFinancePage() {
   const [description, setDescription] = useState<string>("");
   const [txDate, setTxDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
 
+  // Custom Categories State
+  const [customIncomeCategories, setCustomIncomeCategories] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("family_custom_income_categories");
+        return saved ? JSON.parse(saved) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
+  const [customExpenseCategories, setCustomExpenseCategories] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("family_custom_expense_categories");
+        return saved ? JSON.parse(saved) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
+  const [isAddingNewCategory, setIsAddingNewCategory] = useState<boolean>(false);
+  const [newCategoryInput, setNewCategoryInput] = useState<string>("");
+
   const isFamilyMember =
     user?.email === "suzu@gmail.com" ||
     user?.email === "ning80074@gmail.com" ||
     user?.is_admin;
+
+  // Merged available categories
+  const availableCategories = useMemo(() => {
+    const isInc = modalType === "INCOME";
+    const presets = isInc ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+    const custom = isInc ? customIncomeCategories : customExpenseCategories;
+    const fromTx = transactions
+      .filter((t) => t.transaction_type === modalType)
+      .map((t) => t.category);
+    return Array.from(new Set([...presets, ...custom, ...fromTx]));
+  }, [modalType, customIncomeCategories, customExpenseCategories, transactions]);
 
   // Date range computed from periodFilter
   const dateParams = useMemo(() => {
@@ -146,8 +185,38 @@ export default function FamilyFinancePage() {
     setPayerName(user?.email === "ning80074@gmail.com" ? "Ning" : "Suzu");
     setAmount("");
     setDescription("");
+    setIsAddingNewCategory(false);
+    setNewCategoryInput("");
     setTxDate(new Date().toISOString().split("T")[0]);
     setIsModalOpen(true);
+  };
+
+  const handleAddNewCategory = (nameToSave?: string): string => {
+    const trimmed = (nameToSave || newCategoryInput).trim();
+    if (!trimmed) return category;
+
+    if (modalType === "INCOME") {
+      if (!customIncomeCategories.includes(trimmed)) {
+        const updated = [...customIncomeCategories, trimmed];
+        setCustomIncomeCategories(updated);
+        try {
+          localStorage.setItem("family_custom_income_categories", JSON.stringify(updated));
+        } catch {}
+      }
+    } else {
+      if (!customExpenseCategories.includes(trimmed)) {
+        const updated = [...customExpenseCategories, trimmed];
+        setCustomExpenseCategories(updated);
+        try {
+          localStorage.setItem("family_custom_expense_categories", JSON.stringify(updated));
+        } catch {}
+      }
+    }
+
+    setCategory(trimmed);
+    setNewCategoryInput("");
+    setIsAddingNewCategory(false);
+    return trimmed;
   };
 
   const handleCreateTransaction = async (e: React.FormEvent) => {
@@ -156,6 +225,11 @@ export default function FamilyFinancePage() {
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       alert("Please enter a valid amount greater than zero.");
       return;
+    }
+
+    let finalCategory = category;
+    if (isAddingNewCategory && newCategoryInput.trim()) {
+      finalCategory = handleAddNewCategory(newCategoryInput.trim());
     }
 
     const finalPayer = payerName === "Other" ? (customPayer.trim() || "Other") : payerName;
@@ -168,7 +242,7 @@ export default function FamilyFinancePage() {
           transaction_type: modalType,
           amount: parsedAmount,
           currency,
-          category,
+          category: finalCategory,
           payer_name: finalPayer,
           description: description.trim() || null,
           transaction_date: txDate,
@@ -1140,29 +1214,108 @@ export default function FamilyFinancePage() {
 
               {/* Category */}
               <div>
-                <label style={{ display: "block", color: "rgba(255, 255, 255, 0.8)", fontSize: "0.82rem", fontWeight: 700, marginBottom: "0.4rem" }}>
-                  CATEGORY *
-                </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  style={{
-                    width: "100%",
-                    background: "#18092e",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    borderRadius: "10px",
-                    padding: "0.75rem 1rem",
-                    color: "#ffffff",
-                    fontSize: "0.95rem",
-                    outline: "none",
-                  }}
-                >
-                  {(modalType === "INCOME" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+                  <label style={{ color: "rgba(255, 255, 255, 0.8)", fontSize: "0.82rem", fontWeight: 700 }}>
+                    CATEGORY *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddingNewCategory(!isAddingNewCategory);
+                      setNewCategoryInput("");
+                    }}
+                    style={{
+                      background: "rgba(255, 215, 0, 0.12)",
+                      border: "1px solid rgba(255, 215, 0, 0.3)",
+                      color: "#ffd700",
+                      fontSize: "0.78rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      padding: "0.25rem 0.6rem",
+                      borderRadius: "6px",
+                    }}
+                  >
+                    {isAddingNewCategory ? "Choose Existing" : "+ Add Custom Category"}
+                  </button>
+                </div>
+
+                {isAddingNewCategory ? (
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <input
+                      type="text"
+                      autoFocus
+                      required
+                      placeholder="Enter new category (e.g. Pet Care, Merit, Parents Support...)"
+                      value={newCategoryInput}
+                      onChange={(e) => setNewCategoryInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddNewCategory();
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        background: "rgba(0, 0, 0, 0.35)",
+                        border: "1px solid #ffd700",
+                        borderRadius: "10px",
+                        padding: "0.75rem 1rem",
+                        color: "#ffffff",
+                        fontSize: "0.95rem",
+                        outline: "none",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleAddNewCategory()}
+                      disabled={!newCategoryInput.trim()}
+                      style={{
+                        background: newCategoryInput.trim() ? "linear-gradient(135deg, #ffd700, #f59e0b)" : "rgba(255, 255, 255, 0.1)",
+                        color: newCategoryInput.trim() ? "#000000" : "rgba(255, 255, 255, 0.4)",
+                        border: "none",
+                        padding: "0.75rem 1.1rem",
+                        borderRadius: "10px",
+                        fontWeight: 700,
+                        fontSize: "0.85rem",
+                        cursor: newCategoryInput.trim() ? "pointer" : "not-allowed",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Save
+                    </button>
+                  </div>
+                ) : (
+                  <select
+                    value={category}
+                    onChange={(e) => {
+                      if (e.target.value === "__NEW_CATEGORY__") {
+                        setIsAddingNewCategory(true);
+                        setNewCategoryInput("");
+                      } else {
+                        setCategory(e.target.value);
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      background: "#18092e",
+                      border: "1px solid rgba(255, 255, 255, 0.15)",
+                      borderRadius: "10px",
+                      padding: "0.75rem 1rem",
+                      color: "#ffffff",
+                      fontSize: "0.95rem",
+                      outline: "none",
+                    }}
+                  >
+                    {availableCategories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                    <option value="__NEW_CATEGORY__" style={{ color: "#ffd700", fontWeight: 700 }}>
+                      + Create New Category...
                     </option>
-                  ))}
-                </select>
+                  </select>
+                )}
               </div>
 
               {/* Payer */}
