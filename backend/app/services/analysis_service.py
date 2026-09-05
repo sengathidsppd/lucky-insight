@@ -85,21 +85,10 @@ class AnalysisService:
 
             game_id = uuid.UUID(game_id_str) if game_id_str else None
 
-            # Retrieve user's records (up to 50,000 for safety)
-            user_records, _ = self._record_repository.search(
-                user_id,
-                source_id=src_uuid,
-                category_id=cat_uuid,
-                date_from=dt_from,
-                date_to=dt_to,
-                limit=50000,
-            )
-
             from types import SimpleNamespace
 
-            combined_records = [SimpleNamespace(number=r.number) for r in user_records]
-
-            # If game_id is provided, also fetch official draw results and merge them
+            # Deterministic Option B: If game_id is provided, analyze official lottery results exclusively
+            # so that all users get 100% identical, authoritative calculations unpolluted by personal records.
             if game_id:
                 from sqlalchemy import select
 
@@ -109,10 +98,15 @@ class AnalysisService:
                     select(LotteryResult)
                     .where(LotteryResult.game_id == game_id)
                     .where(LotteryResult.deleted_at.is_(None))
-                    .order_by(LotteryResult.draw_date.desc())
                 )
+                if dt_from:
+                    stmt = stmt.where(LotteryResult.draw_date >= dt_from.date())
+                if dt_to:
+                    stmt = stmt.where(LotteryResult.draw_date <= dt_to.date())
+                stmt = stmt.order_by(LotteryResult.draw_date.desc())
 
                 results = self._lottery_result_repository._session.execute(stmt).scalars().all()
+                combined_records = []
                 for r in results:
                     if r.first_prize:
                         combined_records.append(SimpleNamespace(number=r.first_prize))
@@ -124,6 +118,19 @@ class AnalysisService:
                         combined_records.append(SimpleNamespace(number=r.front3))
                     if r.back3:
                         combined_records.append(SimpleNamespace(number=r.back3))
+
+                user_records = []
+            else:
+                # Retrieve user's personal records only when analyzing general numbers (no lottery game selected)
+                user_records, _ = self._record_repository.search(
+                    user_id,
+                    source_id=src_uuid,
+                    category_id=cat_uuid,
+                    date_from=dt_from,
+                    date_to=dt_to,
+                    limit=50000,
+                )
+                combined_records = [SimpleNamespace(number=r.number) for r in user_records]
 
 
             if not combined_records:
@@ -410,31 +417,31 @@ class AnalysisService:
             enrich_markov({"number": best_6d_num_2, "score": score_markov_6d(best_6d_num_2)}, 6),
         ]
 
-        # 4D
+        # 4D (Deterministic Option B)
         scored_4d_all = [{"number": f"{x:04d}", "score": score_markov_4d(f"{x:04d}")} for x in range(10000)]
-        scored_4d_all.sort(key=lambda x: x["score"], reverse=True)
+        scored_4d_all.sort(key=lambda x: (-x["score"], x["number"]))
         top_5_4d = list(scored_4d_all[:5])
-        chosen_4d = secrets.SystemRandom().choice(top_5_4d) if top_5_4d else {"number": "0000"}
-        enriched_4d = [enrich_markov(chosen_4d, 4)] + [enrich_markov(x, 4) for x in top_5_4d if x["number"] != chosen_4d["number"]]
+        chosen_4d = top_5_4d[0] if top_5_4d else {"number": "0000", "score": 0.0}
+        enriched_4d = [enrich_markov(x, 4) for x in top_5_4d]
 
-        # 3D
+        # 3D (Deterministic Option B)
         scored_3d_all = [{"number": f"{x:03d}", "score": score_markov_3d(f"{x:03d}")} for x in range(1000)]
-        scored_3d_all.sort(key=lambda x: x["score"], reverse=True)
+        scored_3d_all.sort(key=lambda x: (-x["score"], x["number"]))
         top_5_3d = list(scored_3d_all[:5])
-        chosen_3d = secrets.SystemRandom().choice(top_5_3d) if top_5_3d else {"number": "000"}
-        enriched_3d = [enrich_markov(chosen_3d, 3)] + [enrich_markov(x, 3) for x in top_5_3d if x["number"] != chosen_3d["number"]]
+        chosen_3d = top_5_3d[0] if top_5_3d else {"number": "000", "score": 0.0}
+        enriched_3d = [enrich_markov(x, 3) for x in top_5_3d]
 
-        # 2D
+        # 2D (Deterministic Option B)
         scored_2d_all = [{"number": f"{x:02d}", "score": score_markov_2d(f"{x:02d}")} for x in range(100)]
-        scored_2d_all.sort(key=lambda x: x["score"], reverse=True)
+        scored_2d_all.sort(key=lambda x: (-x["score"], x["number"]))
         enriched_2d = [enrich_markov(x, 2) for x in scored_2d_all[:5]]
 
-        # Front 3D
+        # Front 3D (Deterministic Option B)
         scored_f3d_all = [{"number": f"{x:03d}", "score": score_markov_f3d(f"{x:03d}")} for x in range(1000)]
-        scored_f3d_all.sort(key=lambda x: x["score"], reverse=True)
+        scored_f3d_all.sort(key=lambda x: (-x["score"], x["number"]))
         enriched_f3d = [enrich_markov(x, 3) for x in scored_f3d_all[:5]]
 
-        # Back 3D
+        # Back 3D (Deterministic Option B)
         enriched_b3d = [enrich_markov(x, 3) for x in scored_3d_all[:5]]
 
         markov_result = {
@@ -653,27 +660,36 @@ class AnalysisService:
             }
             return round(final_score, 2), audit
 
-        import random
+        import itertools
 
         unique_6d = set(endings_map[6])
-        # Inject 10,000 random combinations to find high-scoring unseen numbers
-        for _ in range(10000):
-            unique_6d.add(f"{random.randint(0, 999999):06d}")
+
+        # Deterministic Option B: Generate candidates from position-wise top probable digits
+        top_digits_per_pos = []
+        for p in range(6):
+            digit_scores = []
+            for d in range(10):
+                d_str = str(d)
+                d_sc = (0.4 * pos_freq_data[p].get(d_str, 0) * 350.0) + (0.3 * recovery_indices.get(d_str, 1.0) * 40.0)
+                digit_scores.append((d_str, d_sc))
+            digit_scores.sort(key=lambda x: (-x[1], x[0]))
+            top_digits_per_pos.append([x[0] for x in digit_scores[:4]])
+
+        for combo in itertools.product(*top_digits_per_pos):
+            unique_6d.add("".join(combo))
 
         scored_6d = []
         for num in unique_6d:
             sc, aud = score_number(num)
             scored_6d.append({"number": num, "score": sc, "audit": aud})
 
-        scored_6d.sort(key=lambda x: x["score"], reverse=True)
+        scored_6d.sort(key=lambda x: (-x["score"], x["number"]))
 
-        import secrets
-
-        # 6D: Filter Top 100 candidates by score, then randomly pick 1 candidate from the Top 100 pool
+        # 6D: Deterministic Rank 1 selection (Option B)
         top_100_6d_raw = list(scored_6d[:100])
-        chosen_6d = secrets.SystemRandom().choice(top_100_6d_raw) if top_100_6d_raw else {"number": "000000"}
+        chosen_6d = top_100_6d_raw[0] if top_100_6d_raw else {"number": "000000", "score": 0.0, "audit": {}}
         pick_1_str = chosen_6d["number"]
-        best_100_6d = [chosen_6d] + [x for x in top_100_6d_raw if x["number"] != pick_1_str]
+        best_100_6d = top_100_6d_raw
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
@@ -737,12 +753,12 @@ class AnalysisService:
             final_score = weighted_total
             return round(final_score, 2)
 
-        # 2D: Filter Top 30 candidates by score, then pick 3 UNIQUE candidates from the pool
+        # 2D: Deterministic Top candidates (Option B)
         scored_2d_all = []
         for x in range(100):
             num_2d = f"{x:02d}"
             scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
-        scored_2d_all.sort(key=lambda item: item["score"], reverse=True)
+        scored_2d_all.sort(key=lambda item: (-item["score"], item["number"]))
         top_30_2d_raw = list(scored_2d_all[:30])
 
         forbidden_2d = {pick_1_str[-2:]} if len(pick_1_str) >= 2 else set()
@@ -750,12 +766,9 @@ class AnalysisService:
         if len(pool_2d) < 3:
             pool_2d = list(top_30_2d_raw)
 
-        sample_pool_2d = list(pool_2d)
-        secrets.SystemRandom().shuffle(sample_pool_2d)
-
         chosen_2d_list = []
         chosen_2d_set = set()
-        for item in sample_pool_2d:
+        for item in pool_2d:
             if item["number"] not in chosen_2d_set:
                 chosen_2d_list.append(item)
                 chosen_2d_set.add(item["number"])
@@ -791,58 +804,36 @@ class AnalysisService:
             weighted_total = (0.4 * pos_score_norm) + (0.3 * gap_score_norm) + (0.3 * dist_score)
             return round(weighted_total, 2)
 
-        # 3D (Back): Filter Top 100 candidates by score, then pick 2 unique candidates
+        # 3D (Back): Deterministic Top candidates (Option B)
         scored_3d_all = []
         for x in range(1000):
             num_3d = f"{x:03d}"
             scored_3d_all.append({"number": num_3d, "score": score_3d(num_3d)})
-        scored_3d_all.sort(key=lambda item: item["score"], reverse=True)
+        scored_3d_all.sort(key=lambda item: (-item["score"], item["number"]))
         top_100_3d_raw = list(scored_3d_all[:100])
-        chosen_3d = secrets.SystemRandom().choice(top_100_3d_raw) if top_100_3d_raw else {"number": "000"}
-        top_100_3d = [chosen_3d] + [x for x in top_100_3d_raw if x["number"] != chosen_3d["number"]]
+        chosen_3d = top_100_3d_raw[0] if top_100_3d_raw else {"number": "000", "score": 0.0}
+        top_100_3d = top_100_3d_raw
 
-        # Front 3D: Pick 2 unique candidates for Thai Lottery
+        # Front 3D: Deterministic top 2 picks for Thai Lottery (Option B)
         scored_front_3d_all = []
         for x in range(1000):
             num_f3d = f"{x:03d}"
             scored_front_3d_all.append({"number": num_f3d, "score": score_front_3d(num_f3d)})
-        scored_front_3d_all.sort(key=lambda item: item["score"], reverse=True)
-        top_20_f3d = list(scored_front_3d_all[:20])
-        secrets.SystemRandom().shuffle(top_20_f3d)
-        chosen_f3d_list = []
-        chosen_f3d_set = set()
-        for item in top_20_f3d:
-            if item["number"] not in chosen_f3d_set:
-                chosen_f3d_list.append(item)
-                chosen_f3d_set.add(item["number"])
-            if len(chosen_f3d_list) == 2:
-                break
-        if len(chosen_f3d_list) < 2:
-            chosen_f3d_list = scored_front_3d_all[:2]
+        scored_front_3d_all.sort(key=lambda item: (-item["score"], item["number"]))
+        chosen_f3d_list = scored_front_3d_all[:2]
 
-        # Back 3D: Pick 2 unique candidates for Thai Lottery
-        chosen_b3d_list = []
-        chosen_b3d_set = set()
-        sample_pool_3d = list(top_100_3d_raw[:20])
-        secrets.SystemRandom().shuffle(sample_pool_3d)
-        for item in sample_pool_3d:
-            if item["number"] not in chosen_b3d_set:
-                chosen_b3d_list.append(item)
-                chosen_b3d_set.add(item["number"])
-            if len(chosen_b3d_list) == 2:
-                break
-        if len(chosen_b3d_list) < 2:
-            chosen_b3d_list = top_100_3d_raw[:2]
+        # Back 3D: Deterministic top 2 picks for Thai Lottery (Option B)
+        chosen_b3d_list = top_100_3d_raw[:2]
 
-        # 4D: Filter Top 100 candidates by score, then randomly pick 1 candidate from the pool
+        # 4D: Deterministic Top candidates (Option B)
         scored_4d_all = []
         for x in range(10000):
             num_4d = f"{x:04d}"
             scored_4d_all.append({"number": num_4d, "score": score_4d(num_4d)})
-        scored_4d_all.sort(key=lambda item: item["score"], reverse=True)
+        scored_4d_all.sort(key=lambda item: (-item["score"], item["number"]))
         top_100_4d_raw = list(scored_4d_all[:100])
-        chosen_4d = secrets.SystemRandom().choice(top_100_4d_raw) if top_100_4d_raw else {"number": "0000"}
-        top_100_4d = [chosen_4d] + [x for x in top_100_4d_raw if x["number"] != chosen_4d["number"]]
+        chosen_4d = top_100_4d_raw[0] if top_100_4d_raw else {"number": "0000", "score": 0.0}
+        top_100_4d = top_100_4d_raw
 
         # AI Reasoning & Explainability Enrichment
         def enrich_item(item: dict[str, Any], length: int) -> dict[str, Any]:
