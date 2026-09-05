@@ -61,6 +61,15 @@ export default function NavigationShell({ children }: { children: React.ReactNod
     { name: "Lotteries", path: "/lotteries" },
   ];
 
+  const isFamilyMember =
+    user?.email === "suzu@gmail.com" ||
+    user?.email === "ning80074@gmail.com" ||
+    user?.is_admin;
+
+  if (isFamilyMember) {
+    navItems.push({ name: "Family Finance", path: "/finance" });
+  }
+
   if (user?.is_admin) {
     navItems.push({ name: "Users", path: "/users" });
   }
