@@ -109,6 +109,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCookie("token", resp.data.access_token, 3600);
     setCookie("refresh_token", resp.data.refresh_token, 7 * 86400);
 
+    // Reset birthday popup dismissal so it shows every time upon fresh login
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("ning_bday_dismissed_2026");
+    }
+
     // Fetch user profile
     const userResp = await apiRequest("/users/me");
     setUser(userResp.data);
@@ -126,6 +131,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     deleteCookie("token");
     deleteCookie("refresh_token");
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("ning_bday_dismissed_2026");
+    }
     setUser(null);
     setAvatar("/user-avatar.jpg");
     router.push("/login");
