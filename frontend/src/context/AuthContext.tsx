@@ -15,6 +15,8 @@ export interface UserProfile {
 
 interface AuthContextType {
   user: UserProfile | null;
+  avatar: string;
+  updateAvatar: (newAvatar: string) => void;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -27,8 +29,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [avatar, setAvatar] = useState<string>("/user-avatar.jpg");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
+
+  const loadAvatarForUser = (userId?: string) => {
+    if (typeof window !== "undefined" && userId) {
+      const saved = localStorage.getItem(`susu_user_avatar_${userId}`);
+      if (saved) {
+        setAvatar(saved);
+        return;
+      }
+    }
+    setAvatar("/user-avatar.jpg");
+  };
+
+  const updateAvatar = (newAvatar: string) => {
+    setAvatar(newAvatar);
+    if (typeof window !== "undefined" && user?.id) {
+      localStorage.setItem(`susu_user_avatar_${user.id}`, newAvatar);
+    }
+  };
 
   const checkAuth = async () => {
     setIsLoading(true);
@@ -46,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Fetch current user details
         const resp = await apiRequest("/users/me");
         setUser(resp.data);
+        loadAvatarForUser(resp.data?.id);
       } else if (refreshToken) {
         // Try refresh token flow
         const resp = await apiRequest("/auth/refresh", {
@@ -60,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Fetch user profile
         const userResp = await apiRequest("/users/me");
         setUser(userResp.data);
+        loadAvatarForUser(userResp.data?.id);
       }
     } catch (err) {
       console.error("Auth check failed:", err);
@@ -89,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Fetch user profile
     const userResp = await apiRequest("/users/me");
     setUser(userResp.data);
+    loadAvatarForUser(userResp.data?.id);
     router.push("/dashboard");
   };
 
@@ -103,11 +127,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     deleteCookie("token");
     deleteCookie("refresh_token");
     setUser(null);
+    setAvatar("/user-avatar.jpg");
     router.push("/login");
   };
 
   const value: AuthContextType = {
     user,
+    avatar,
+    updateAvatar,
     isAuthenticated: !!user,
     isLoading,
     login,

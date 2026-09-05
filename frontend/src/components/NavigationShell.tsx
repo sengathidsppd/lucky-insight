@@ -6,9 +6,11 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/api";
 import DrawCountdown from "./DrawCountdown";
+import { AvatarCustomizerModal } from "./AvatarCustomizerModal";
 
 export default function NavigationShell({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading, logout, user } = useAuth();
+  const { isAuthenticated, isLoading, logout, user, avatar } = useAuth();
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const pathname = usePathname();
 
   const isAuthPage = pathname === "/login" || pathname === "/register" || pathname === "/";
@@ -194,6 +196,8 @@ export default function NavigationShell({ children }: { children: React.ReactNod
 
             {user && (
               <div
+                onClick={() => setIsAvatarModalOpen(true)}
+                title="Click to customize profile avatar"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -209,20 +213,36 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                   boxShadow: user.email === "suzu@gmail.com"
                     ? "0 0 15px rgba(255, 215, 0, 0.25)"
                     : "0 0 15px rgba(14, 165, 233, 0.25)",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
                 }}
               >
-                <img
-                  src="/user-avatar.jpg"
-                  alt="Profile"
-                  style={{
-                    width: "28px",
-                    height: "28px",
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    border: user.email === "suzu@gmail.com" ? "1.5px solid #ffd700" : "1.5px solid var(--accent-cyan)",
-                    boxShadow: "0 0 10px rgba(255, 215, 0, 0.5)",
-                  }}
-                />
+                <div style={{ position: "relative", width: "28px", height: "28px" }}>
+                  <img
+                    src={avatar || "/user-avatar.jpg"}
+                    alt="Profile"
+                    style={{
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      border: user.email === "suzu@gmail.com" ? "1.5px solid #ffd700" : "1.5px solid var(--accent-cyan)",
+                      boxShadow: user.email === "suzu@gmail.com" ? "0 0 10px rgba(255, 215, 0, 0.5)" : "0 0 10px rgba(14, 165, 233, 0.5)",
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "-2px",
+                      right: "-2px",
+                      width: "9px",
+                      height: "9px",
+                      borderRadius: "50%",
+                      background: "#10b981",
+                      border: "1.5px solid #0f0f18",
+                    }}
+                  />
+                </div>
                 <span style={{ fontSize: "0.88rem", color: "#fff", fontWeight: 700 }}>
                   {user.first_name || user.email?.split("@")[0]}
                 </span>
@@ -299,6 +319,12 @@ export default function NavigationShell({ children }: { children: React.ReactNod
         <DrawCountdown />
         {children}
       </main>
+
+      {/* Profile Avatar Customizer Modal */}
+      <AvatarCustomizerModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+      />
     </div>
   );
 }
