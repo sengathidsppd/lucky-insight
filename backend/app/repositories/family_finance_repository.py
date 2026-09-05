@@ -58,7 +58,7 @@ class FamilyFinanceRepository(BaseRepository[FamilyTransaction]):
     def get_summary_transactions(
         self,
         *,
-        currency: str = "THB",
+        currency: str = "LAK",
         date_from: date | None = None,
         date_to: date | None = None,
     ) -> Sequence[FamilyTransaction]:

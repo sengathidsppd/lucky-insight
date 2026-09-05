@@ -53,13 +53,13 @@ def test_family_finance_treasury_balance(
     db_session.add(user)
     db_session.commit()
 
-    # 2. Deposit into Treasury (+100,000 THB)
+    # 2. Deposit into Treasury (+5,000,000 LAK)
     tx_deposit = finance_service.create_transaction(
         user.id,
         FamilyTransactionCreate(
             transaction_type="INCOME",
-            amount=100000.0,
-            currency="THB",
+            amount=5000000.0,
+            currency="LAK",
             category="Salary / Inflow",
             payer_name="Treasury Fund",
             description="Initial September family fund deposit",
@@ -70,13 +70,13 @@ def test_family_finance_treasury_balance(
     assert tx_deposit.id is not None
     assert tx_deposit.transaction_type == "INCOME"
 
-    # 3. Record Expense 1 (-2,500 THB by Suzu)
+    # 3. Record Expense 1 (-250,000 LAK by Suzu)
     tx_exp1 = finance_service.create_transaction(
         user.id,
         FamilyTransactionCreate(
             transaction_type="EXPENSE",
-            amount=2500.0,
-            currency="THB",
+            amount=250000.0,
+            currency="LAK",
             category="Food & Groceries",
             payer_name="Suzu",
             description="Weekly grocery shopping",
@@ -84,13 +84,13 @@ def test_family_finance_treasury_balance(
         ),
     )
 
-    # 4. Record Expense 2 (-1,200 THB by Ning)
+    # 4. Record Expense 2 (-120,000 LAK by Ning)
     tx_exp2 = finance_service.create_transaction(
         user.id,
         FamilyTransactionCreate(
             transaction_type="EXPENSE",
-            amount=1200.0,
-            currency="THB",
+            amount=120000.0,
+            currency="LAK",
             category="Home & Utilities",
             payer_name="Ning",
             description="Electricity bill",
@@ -100,29 +100,29 @@ def test_family_finance_treasury_balance(
     db_session.commit()
 
     # 5. Fetch Summary and verify net remaining balance
-    summary = finance_service.get_summary(currency="THB")
-    assert summary.total_income == 100000.0
-    assert summary.total_expense == 3700.0
-    # Net Balance = 100,000 - 3,700 = 96,300
-    assert summary.net_balance == 96300.0
+    summary = finance_service.get_summary(currency="LAK")
+    assert summary.total_income == 5000000.0
+    assert summary.total_expense == 370000.0
+    # Net Balance = 5,000,000 - 370,000 = 4,630,000
+    assert summary.net_balance == 4630000.0
     assert summary.transaction_count == 3
 
     # Check category breakdown
     cats = {c.category: c.amount for c in summary.expense_by_category}
-    assert cats["Food & Groceries"] == 2500.0
-    assert cats["Home & Utilities"] == 1200.0
+    assert cats["Food & Groceries"] == 250000.0
+    assert cats["Home & Utilities"] == 120000.0
 
     # Check payer breakdown
     payers = {p.payer_name: p.amount for p in summary.expense_by_payer}
-    assert payers["Suzu"] == 2500.0
-    assert payers["Ning"] == 1200.0
+    assert payers["Suzu"] == 250000.0
+    assert payers["Ning"] == 120000.0
 
     # 6. Test soft delete updates net remaining balance dynamically
     finance_service.delete_transaction(tx_exp2.id)
     db_session.commit()
 
-    updated_summary = finance_service.get_summary(currency="THB")
-    assert updated_summary.total_expense == 2500.0
-    # Net Balance after deleting 1,200 expense = 100,000 - 2,500 = 97,500
-    assert updated_summary.net_balance == 97500.0
+    updated_summary = finance_service.get_summary(currency="LAK")
+    assert updated_summary.total_expense == 250000.0
+    # Net Balance after deleting 120,000 expense = 5,000,000 - 250,000 = 4,750,000
+    assert updated_summary.net_balance == 4750000.0
     assert updated_summary.transaction_count == 2

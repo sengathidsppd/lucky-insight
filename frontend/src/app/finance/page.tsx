@@ -67,7 +67,7 @@ const PAYER_PRESETS = ["Suzu", "Ning", "Family Fund", "Other"];
 export default function FamilyFinancePage() {
   const { user } = useAuth();
 
-  const [currency, setCurrency] = useState<"THB" | "LAK">("THB");
+  const currency = "LAK";
   const [periodFilter, setPeriodFilter] = useState<"ALL" | "THIS_MONTH">("ALL");
   const [summary, setSummary] = useState<FamilyFinanceSummary | null>(null);
   const [transactions, setTransactions] = useState<FamilyTransaction[]>([]);
@@ -195,12 +195,8 @@ export default function FamilyFinancePage() {
   };
 
   const formatCurrency = (val: number | undefined) => {
-    const num = val ?? 0;
-    const formatted = num.toLocaleString("en-US", {
-      minimumFractionDigits: currency === "LAK" ? 0 : 2,
-      maximumFractionDigits: currency === "LAK" ? 0 : 2,
-    });
-    return `${currency === "THB" ? "฿" : "₭"} ${formatted}`;
+    const num = Math.round(val ?? 0);
+    return `₭ ${num.toLocaleString("en-US")}`;
   };
 
   // Filtered transactions for the ledger table
@@ -317,47 +313,31 @@ export default function FamilyFinancePage() {
 
         {/* Currency & Period Controls */}
         <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-          {/* Currency Toggle */}
+          {/* Lao Kip Currency Badge */}
           <div
             style={{
-              background: "rgba(26, 11, 46, 0.8)",
-              border: "1px solid rgba(255, 255, 255, 0.12)",
+              background: "rgba(26, 11, 46, 0.85)",
+              border: "1px solid rgba(255, 215, 0, 0.35)",
               borderRadius: "12px",
-              padding: "0.25rem",
+              padding: "0.5rem 1.1rem",
               display: "flex",
-              gap: "0.25rem",
+              alignItems: "center",
+              gap: "0.5rem",
+              boxShadow: "0 0 15px rgba(245, 158, 11, 0.15)",
             }}
           >
-            <button
-              onClick={() => setCurrency("THB")}
+            <span
               style={{
-                background: currency === "THB" ? "linear-gradient(135deg, #ffd700, #f59e0b)" : "transparent",
-                color: currency === "THB" ? "#000000" : "rgba(255, 255, 255, 0.7)",
-                border: "none",
-                fontWeight: 700,
-                padding: "0.45rem 1rem",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "0.85rem",
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                background: "#ffd700",
+                boxShadow: "0 0 8px #ffd700",
               }}
-            >
-              THB (฿)
-            </button>
-            <button
-              onClick={() => setCurrency("LAK")}
-              style={{
-                background: currency === "LAK" ? "linear-gradient(135deg, #ffd700, #f59e0b)" : "transparent",
-                color: currency === "LAK" ? "#000000" : "rgba(255, 255, 255, 0.7)",
-                border: "none",
-                fontWeight: 700,
-                padding: "0.45rem 1rem",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "0.85rem",
-              }}
-            >
-              LAK (₭)
-            </button>
+            />
+            <span style={{ color: "#ffd700", fontWeight: 800, fontSize: "0.85rem", letterSpacing: "1px" }}>
+              LAO KIP (₭)
+            </span>
           </div>
 
           {/* Period Toggle */}
@@ -1121,14 +1101,14 @@ export default function FamilyFinancePage() {
               {/* Amount */}
               <div>
                 <label style={{ display: "block", color: "rgba(255, 255, 255, 0.8)", fontSize: "0.82rem", fontWeight: 700, marginBottom: "0.4rem" }}>
-                  AMOUNT ({currency}) *
+                  AMOUNT (LAK ₭) *
                 </label>
                 <div style={{ position: "relative" }}>
                   <input
                     type="number"
                     step="any"
                     required
-                    placeholder="0.00"
+                    placeholder="0"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     style={{
@@ -1153,7 +1133,7 @@ export default function FamilyFinancePage() {
                       fontWeight: 700,
                     }}
                   >
-                    {currency}
+                    ₭ LAK
                   </span>
                 </div>
               </div>

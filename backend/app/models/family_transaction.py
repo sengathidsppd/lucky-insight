@@ -38,7 +38,7 @@ class FamilyTransaction(BaseEntity):
     currency: Mapped[str] = mapped_column(
         String(5),
         nullable=False,
-        default="THB",
+        default="LAK",
     )
     category: Mapped[str] = mapped_column(
         String(50),

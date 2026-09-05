@@ -69,7 +69,7 @@ class FamilyFinanceService:
     def get_summary(
         self,
         *,
-        currency: str = "THB",
+        currency: str = "LAK",
         date_from: date | None = None,
         date_to: date | None = None,
     ) -> FamilyFinanceSummary:

@@ -13,7 +13,7 @@ class FamilyTransactionBase(BaseModel):
         description="Type of transaction: INCOME (deposit to treasury) or EXPENSE (deduction)",
     )
     amount: float = Field(..., gt=0, description="Transaction monetary amount")
-    currency: str = Field(default="THB", max_length=5, description="Currency code (e.g. THB or LAK)")
+    currency: str = Field(default="LAK", max_length=5, description="Currency code (LAK)")
     category: str = Field(default="General", max_length=50, description="Spending/Income category")
     payer_name: str = Field(default="Family Fund", max_length=50, description="Payer name (e.g. Suzu, Ning)")
     description: str | None = Field(default=None, max_length=255, description="Optional note or description")

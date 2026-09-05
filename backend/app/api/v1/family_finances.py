@@ -41,7 +41,7 @@ def require_family_member(current_user: User = Depends(get_current_active_user))
 
 @router.get("/summary", response_model=FamilyFinanceSummary)
 def get_finance_summary(
-    currency: str = Query(default="THB", description="Currency code (THB or LAK)"),
+    currency: str = Query(default="LAK", description="Currency code (LAK)"),
     date_from: date | None = Query(default=None),
     date_to: date | None = Query(default=None),
     service: FamilyFinanceService = Depends(get_finance_service),
