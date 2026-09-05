@@ -112,6 +112,18 @@ export default function FamilyFinancePage() {
     return [];
   });
 
+  const [removedCategories, setRemovedCategories] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("family_removed_categories");
+        return saved ? JSON.parse(saved) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
   const [isAddingNewCategory, setIsAddingNewCategory] = useState<boolean>(false);
   const [newCategoryInput, setNewCategoryInput] = useState<string>("");
 
@@ -120,16 +132,31 @@ export default function FamilyFinancePage() {
     user?.email === "ning80074@gmail.com" ||
     user?.is_admin;
 
-  // Merged available categories
-  const availableCategories = useMemo(() => {
+  const customCategoriesForType = useMemo(() => {
     const isInc = modalType === "INCOME";
     const presets = isInc ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
     const custom = isInc ? customIncomeCategories : customExpenseCategories;
     const fromTx = transactions
       .filter((t) => t.transaction_type === modalType)
       .map((t) => t.category);
+    return Array.from(new Set([...custom, ...fromTx])).filter(
+      (c) => !presets.includes(c) && !removedCategories.includes(c)
+    );
+  }, [modalType, customIncomeCategories, customExpenseCategories, transactions, removedCategories]);
+
+  // Merged available categories (excluding deleted ones)
+  const availableCategories = useMemo(() => {
+    const isInc = modalType === "INCOME";
+    const presets = isInc ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+    const custom = (isInc ? customIncomeCategories : customExpenseCategories).filter(
+      (c) => !removedCategories.includes(c)
+    );
+    const fromTx = transactions
+      .filter((t) => t.transaction_type === modalType)
+      .map((t) => t.category)
+      .filter((c) => !removedCategories.includes(c));
     return Array.from(new Set([...presets, ...custom, ...fromTx]));
-  }, [modalType, customIncomeCategories, customExpenseCategories, transactions]);
+  }, [modalType, customIncomeCategories, customExpenseCategories, transactions, removedCategories]);
 
   // Date range computed from periodFilter
   const dateParams = useMemo(() => {
@@ -217,6 +244,34 @@ export default function FamilyFinancePage() {
     setNewCategoryInput("");
     setIsAddingNewCategory(false);
     return trimmed;
+  };
+
+  const handleDeleteCustomCategory = (catToDelete: string) => {
+    if (!confirm(`Are you sure you want to remove the category "${catToDelete}" from the list?`)) return;
+
+    if (modalType === "INCOME") {
+      const updated = customIncomeCategories.filter((c) => c !== catToDelete);
+      setCustomIncomeCategories(updated);
+      try {
+        localStorage.setItem("family_custom_income_categories", JSON.stringify(updated));
+      } catch {}
+    } else {
+      const updated = customExpenseCategories.filter((c) => c !== catToDelete);
+      setCustomExpenseCategories(updated);
+      try {
+        localStorage.setItem("family_custom_expense_categories", JSON.stringify(updated));
+      } catch {}
+    }
+
+    const updatedRemoved = Array.from(new Set([...removedCategories, catToDelete]));
+    setRemovedCategories(updatedRemoved);
+    try {
+      localStorage.setItem("family_removed_categories", JSON.stringify(updatedRemoved));
+    } catch {}
+
+    if (category === catToDelete) {
+      setCategory(modalType === "INCOME" ? "Treasury Deposit" : "Food & Groceries");
+    }
   };
 
   const handleCreateTransaction = async (e: React.FormEvent) => {
@@ -1315,6 +1370,51 @@ export default function FamilyFinancePage() {
                       + Create New Category...
                     </option>
                   </select>
+                )}
+
+                {customCategoriesForType.length > 0 && !isAddingNewCategory && (
+                  <div style={{ marginTop: "0.6rem" }}>
+                    <div style={{ color: "rgba(255, 255, 255, 0.5)", fontSize: "0.75rem", marginBottom: "0.35rem" }}>
+                      Custom Categories (Click × to delete):
+                    </div>
+                    <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                      {customCategoriesForType.map((cat) => (
+                        <span
+                          key={cat}
+                          style={{
+                            background: "rgba(255, 215, 0, 0.1)",
+                            border: "1px solid rgba(255, 215, 0, 0.25)",
+                            color: "#ffd700",
+                            padding: "0.2rem 0.55rem",
+                            borderRadius: "6px",
+                            fontSize: "0.78rem",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "0.35rem",
+                          }}
+                        >
+                          {cat}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCustomCategory(cat)}
+                            title={`Remove category "${cat}"`}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: "#ef4444",
+                              cursor: "pointer",
+                              fontWeight: 800,
+                              fontSize: "0.85rem",
+                              lineHeight: 1,
+                              padding: "0 0.15rem",
+                            }}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
 
