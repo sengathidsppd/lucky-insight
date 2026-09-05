@@ -158,16 +158,20 @@ export default function FamilyFinancePage() {
     return Array.from(new Set([...presets, ...custom, ...fromTx]));
   }, [modalType, customIncomeCategories, customExpenseCategories, transactions, removedCategories]);
 
+  // Helper to format Date to YYYY-MM-DD using local time
+  const formatLocalDate = (d: Date): string => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   // Date range computed from periodFilter
   const dateParams = useMemo(() => {
     if (periodFilter === "THIS_MONTH") {
       const now = new Date();
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-        .toISOString()
-        .split("T")[0];
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-        .toISOString()
-        .split("T")[0];
+      const firstDay = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 1));
+      const lastDay = formatLocalDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
       return { date_from: firstDay, date_to: lastDay };
     }
     return {};
@@ -194,7 +198,7 @@ export default function FamilyFinancePage() {
       const txListResp = await apiRequest<FamilyTransaction[]>("/finances", {
         params: listParams,
       });
-      setTransactions(txListResp);
+      setTransactions(Array.isArray(txListResp) ? txListResp : []);
     } catch (err: any) {
       setError(err?.message || "Failed to load financial records.");
     } finally {
@@ -214,7 +218,7 @@ export default function FamilyFinancePage() {
     setDescription("");
     setIsAddingNewCategory(false);
     setNewCategoryInput("");
-    setTxDate(new Date().toISOString().split("T")[0]);
+    setTxDate(formatLocalDate(new Date()));
     setIsModalOpen(true);
   };
 
@@ -291,7 +295,7 @@ export default function FamilyFinancePage() {
 
     setIsSubmitting(true);
     try {
-      await apiRequest("/finances", {
+      const created = await apiRequest<FamilyTransaction>("/finances", {
         method: "POST",
         body: JSON.stringify({
           transaction_type: modalType,
@@ -303,6 +307,10 @@ export default function FamilyFinancePage() {
           transaction_date: txDate,
         }),
       });
+
+      if (created && created.id) {
+        setTransactions((prev) => [created, ...prev.filter((t) => t.id !== created.id)]);
+      }
 
       setIsModalOpen(false);
       await fetchData();
@@ -316,10 +324,12 @@ export default function FamilyFinancePage() {
   const handleDeleteTransaction = async (id: string) => {
     if (!confirm("Are you sure you want to delete this financial record?")) return;
     try {
+      setTransactions((prev) => prev.filter((t) => t.id !== id));
       await apiRequest(`/finances/${id}`, { method: "DELETE" });
       await fetchData();
     } catch (err: any) {
       alert(err?.message || "Failed to delete record.");
+      await fetchData();
     }
   };
 

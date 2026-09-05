@@ -81,9 +81,11 @@ def create_transaction(
     payload: FamilyTransactionCreate,
     current_user: User = Depends(require_family_member),
     service: FamilyFinanceService = Depends(get_finance_service),
+    db: Session = Depends(get_db),
 ) -> FamilyTransactionResponse:
     """Record a new financial transaction (Income deposit or Expense deduction)."""
     created = service.create_transaction(current_user.id, payload)
+    db.commit()
     return FamilyTransactionResponse.model_validate(created)
 
 
@@ -92,6 +94,8 @@ def delete_transaction(
     transaction_id: uuid.UUID,
     service: FamilyFinanceService = Depends(get_finance_service),
     _: User = Depends(require_family_member),
+    db: Session = Depends(get_db),
 ) -> None:
     """Delete a transaction by UUID."""
     service.delete_transaction(transaction_id)
+    db.commit()
