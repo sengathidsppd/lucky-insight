@@ -772,7 +772,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                 })()}
               </div>
             ) : (
-              /* LAO DEVELOPMENT LOTTERY PICKS: Super (6D:1, 4D:1, 3D:1, 2D:2), Operator (6D:1, 2D:3), User (2D:3) */
+              /* LAO DEVELOPMENT LOTTERY PICKS: 6D (1 Set for Admins), 2D (3 Sets for All) */
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
                 {/* 6-Digit Card (Super Admin & Operator Admin: 1 Set) */}
                 {(isSuperAdmin || isOperatorAdmin) && details.best_analyzed_6d?.[0] && (
@@ -793,45 +793,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                   </div>
                 )}
 
-                {/* 4-Digit Card (Super Admin Only: 1 Set) */}
-                {isSuperAdmin && details.generated_4d_recommendations?.[0] && (
-                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(168, 85, 247, 0.05)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                      <div style={{ fontSize: "0.95rem", color: "#e9d5ff", fontWeight: "bold", minWidth: "150px", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                        4-Digit Pick (Super Admin VIP)
-                      </div>
-                      <RecommendationMeta
-                        tags={details.generated_4d_recommendations[0].tags}
-                        confidence={details.generated_4d_recommendations[0].confidence_score}
-                        colorTheme="purple"
-                      />
-                    </div>
-                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#c084fc", letterSpacing: "5px", textShadow: "0 0 15px rgba(192, 132, 252, 0.5)" }}>
-                      {details.generated_4d_recommendations[0].number}
-                    </div>
-                  </div>
-                )}
-
-                {/* 3-Digit Card (Super Admin Only: 1 Set) */}
-                {isSuperAdmin && details.generated_3d_recommendations?.[0] && (
-                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(14, 165, 233, 0.05)", border: "1px solid rgba(14, 165, 233, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                      <div style={{ fontSize: "0.95rem", color: "#bae6fd", fontWeight: "bold", minWidth: "150px", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                        3-Digit Pick (Top 3D)
-                      </div>
-                      <RecommendationMeta
-                        tags={details.generated_3d_recommendations[0].tags}
-                        confidence={details.generated_3d_recommendations[0].confidence_score}
-                        colorTheme="cyan"
-                      />
-                    </div>
-                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "var(--accent-cyan)", letterSpacing: "5px", textShadow: "0 0 15px rgba(14, 165, 233, 0.5)" }}>
-                      {details.generated_3d_recommendations[0].number}
-                    </div>
-                  </div>
-                )}
-
-                {/* 2-Digit Cards (Super Admin: 2 Sets, Operator Admin: 3 Sets, Regular User: 3 Sets) */}
+                {/* 2-Digit Cards (3 Sets: Super Admin, Operator Admin, and Regular User) */}
                 {(() => {
                   let top2dList = [...(details.generated_2d_recommendations || [])];
 
@@ -849,9 +811,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                     }
                   }
 
-                  // Super Admin: 2 picks, Operator Admin: 3 picks, Regular User: 3 picks
-                  const numPicks = isSuperAdmin ? 2 : 3;
-                  const display2dList = top2dList.slice(0, numPicks);
+                  const display2dList = top2dList.slice(0, 3);
 
                   return display2dList.map((item: any, idx: number) => {
                     const numStr = typeof item === "string" ? item : item?.number || "00";
