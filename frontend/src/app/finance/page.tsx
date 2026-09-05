@@ -333,6 +333,100 @@ export default function FamilyFinancePage() {
     }
   };
 
+  const handleExportToExcel = () => {
+    if (displayedTransactions.length === 0) {
+      alert("No transaction records to export.");
+      return;
+    }
+
+    const headers = [
+      "Date",
+      "Type",
+      "Category",
+      "Payer / Beneficiary",
+      "Amount (LAK)",
+      "Currency",
+      "Note / Description",
+    ];
+
+    const escapeCsv = (str: string | number | undefined | null) => {
+      if (str === undefined || str === null) return '""';
+      const s = String(str).replace(/"/g, '""');
+      return `"${s}"`;
+    };
+
+    const rows = displayedTransactions.map((tx) => [
+      escapeCsv(tx.transaction_date),
+      escapeCsv(tx.transaction_type),
+      escapeCsv(tx.category),
+      escapeCsv(tx.payer_name),
+      Math.round(tx.amount),
+      escapeCsv(tx.currency || "LAK"),
+      escapeCsv(tx.description || ""),
+    ]);
+
+    let totalInflow = 0;
+    let totalExpense = 0;
+    displayedTransactions.forEach((tx) => {
+      if (tx.transaction_type === "INCOME") totalInflow += tx.amount;
+      else if (tx.transaction_type === "EXPENSE") totalExpense += tx.amount;
+    });
+    const netBalance = totalInflow - totalExpense;
+
+    const separatorRow = ['""', '""', '""', '""', '""', '""', '""'];
+
+    const summaryInflowRow = [
+      escapeCsv("SUMMARY"),
+      escapeCsv("TOTAL INFLOW / DEPOSITS"),
+      escapeCsv("-"),
+      escapeCsv("-"),
+      Math.round(totalInflow),
+      escapeCsv("LAK"),
+      escapeCsv("Total Treasury Inflow"),
+    ];
+    const summaryExpenseRow = [
+      escapeCsv("SUMMARY"),
+      escapeCsv("TOTAL EXPENSES"),
+      escapeCsv("-"),
+      escapeCsv("-"),
+      Math.round(totalExpense),
+      escapeCsv("LAK"),
+      escapeCsv("Total Expense Deductions"),
+    ];
+    const summaryNetRow = [
+      escapeCsv("SUMMARY"),
+      escapeCsv("NET REMAINING BALANCE"),
+      escapeCsv("-"),
+      escapeCsv("-"),
+      Math.round(netBalance),
+      escapeCsv("LAK"),
+      escapeCsv(netBalance >= 0 ? "Treasury Surplus" : "Treasury Deficit"),
+    ];
+
+    const allCsvLines = [
+      headers.map(escapeCsv).join(","),
+      ...rows.map((r) => r.join(",")),
+      separatorRow.join(","),
+      summaryInflowRow.join(","),
+      summaryExpenseRow.join(","),
+      summaryNetRow.join(","),
+    ];
+
+    const csvContent = "\uFEFF" + allCsvLines.join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const periodLabel = periodFilter === "THIS_MONTH" ? "this_month" : "all_time";
+    const typeLabel = typeFilter.toLowerCase();
+    const dateStr = formatLocalDate(new Date());
+    link.setAttribute("href", url);
+    link.setAttribute("download", `family_finance_${periodLabel}_${typeLabel}_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const formatCurrency = (val: number | undefined) => {
     const num = Math.round(val ?? 0);
     return `₭ ${num.toLocaleString("en-US")}`;
@@ -996,35 +1090,67 @@ export default function FamilyFinancePage() {
             </p>
           </div>
 
-          {/* Filter Tabs */}
-          <div
-            style={{
-              background: "rgba(10, 2, 18, 0.7)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              borderRadius: "10px",
-              padding: "0.25rem",
-              display: "flex",
-              gap: "0.3rem",
-            }}
-          >
-            {(["ALL", "INCOME", "EXPENSE"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTypeFilter(t)}
-                style={{
-                  background: typeFilter === t ? "rgba(255, 255, 255, 0.15)" : "transparent",
-                  color: typeFilter === t ? "#ffffff" : "rgba(255, 255, 255, 0.6)",
-                  border: "none",
-                  fontWeight: 600,
-                  fontSize: "0.82rem",
-                  padding: "0.4rem 0.85rem",
-                  borderRadius: "7px",
-                  cursor: "pointer",
-                }}
-              >
-                {t === "ALL" ? "All Entries" : t === "INCOME" ? "Inflows Only" : "Expenses Only"}
-              </button>
-            ))}
+          {/* Controls: Filter Tabs & Export */}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+            {/* Filter Tabs */}
+            <div
+              style={{
+                background: "rgba(10, 2, 18, 0.7)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                borderRadius: "10px",
+                padding: "0.25rem",
+                display: "flex",
+                gap: "0.3rem",
+              }}
+            >
+              {(["ALL", "INCOME", "EXPENSE"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTypeFilter(t)}
+                  style={{
+                    background: typeFilter === t ? "rgba(255, 255, 255, 0.15)" : "transparent",
+                    color: typeFilter === t ? "#ffffff" : "rgba(255, 255, 255, 0.6)",
+                    border: "none",
+                    fontWeight: 600,
+                    fontSize: "0.82rem",
+                    padding: "0.4rem 0.85rem",
+                    borderRadius: "7px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {t === "ALL" ? "All Entries" : t === "INCOME" ? "Inflows Only" : "Expenses Only"}
+                </button>
+              ))}
+            </div>
+
+            {/* Export to Excel Button */}
+            <button
+              onClick={handleExportToExcel}
+              disabled={displayedTransactions.length === 0}
+              title="Export displayed records to Microsoft Excel CSV format"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.45rem",
+                background: "rgba(16, 185, 129, 0.12)",
+                border: "1px solid rgba(16, 185, 129, 0.35)",
+                color: "#10b981",
+                padding: "0.42rem 0.9rem",
+                borderRadius: "9px",
+                fontWeight: 700,
+                fontSize: "0.82rem",
+                cursor: displayedTransactions.length === 0 ? "not-allowed" : "pointer",
+                opacity: displayedTransactions.length === 0 ? 0.5 : 1,
+                transition: "all 0.2s ease",
+              }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Export to Excel
+            </button>
           </div>
         </div>
 
