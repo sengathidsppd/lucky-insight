@@ -30,6 +30,7 @@ _TABLES = [
 
 @pytest.fixture(scope="module", autouse=True)
 def _setup_tables() -> Generator[None]:
+    Base.metadata.drop_all(bind=engine, tables=list(reversed(_TABLES)))
     Base.metadata.create_all(bind=engine, tables=_TABLES)
     yield
     Base.metadata.drop_all(bind=engine, tables=list(reversed(_TABLES)))

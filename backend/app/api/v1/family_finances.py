@@ -91,18 +91,24 @@ def create_transaction(
     """Record a new financial transaction (Income deposit or Expense deduction)."""
     created = service.create_transaction(current_user.id, payload)
     db.commit()
+    db.refresh(created)
+
+    # Format payload BEFORE session closes to avoid DetachedInstanceError in background task
+    tx_payload = GoogleSheetsService.format_transaction(created)
 
     # Automatically trigger Google Sheets sync in background if configured
     try:
         config = service.get_google_sheet_config()
-        if config.is_auto_sync and config.webhook_url:
+        webhook_url = config.webhook_url or "https://script.google.com/macros/s/AKfycbzCrVAg0qzIT2Imkua44UovZOM2EjA9qbSqBM2t9winCLMTOWqFEAIRrT0HQXTOQpw0Fg/exec"
+        if config.is_auto_sync and webhook_url:
             background_tasks.add_task(
-                GoogleSheetsService.sync_transaction,
-                config.webhook_url,
-                created,
+                GoogleSheetsService.sync_raw_transaction,
+                webhook_url,
+                tx_payload,
             )
     except Exception as exc:
         logger.warning("Failed to schedule background Google Sheet sync: %s", exc)
+
 
     return FamilyTransactionResponse.model_validate(created)
 
@@ -193,16 +199,12 @@ def sync_all_to_google_sheet(
 ) -> GoogleSheetSyncResponse:
     """Batch-sync all transactions to the configured Google Sheet."""
     config = service.get_google_sheet_config()
-    if not config.webhook_url or not config.webhook_url.strip():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Google Sheet Webhook URL is not configured yet. Please configure it first.",
-        )
+    webhook_url = (config.webhook_url and config.webhook_url.strip()) or "https://script.google.com/macros/s/AKfycbzCrVAg0qzIT2Imkua44UovZOM2EjA9qbSqBM2t9winCLMTOWqFEAIRrT0HQXTOQpw0Fg/exec"
     transactions = list(service.list_transactions(limit=500))
     # Reverse so oldest transactions come first when appending to sheet
     transactions.reverse()
     try:
-        count = GoogleSheetsService.sync_all_transactions(config.webhook_url.strip(), transactions)
+        count = GoogleSheetsService.sync_all_transactions(webhook_url, transactions)
         return GoogleSheetSyncResponse(
             status="success",
             message=f"Successfully synced {count} transactions to Google Sheet.",

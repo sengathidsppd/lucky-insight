@@ -49,19 +49,34 @@ class GoogleSheetsService:
                 return {"status": "success", "raw": resp.text}
 
     @classmethod
-    def sync_transaction(cls, webhook_url: str, tx: FamilyTransaction) -> bool:
-        """Sync a single transaction in background. Returns True on success, False otherwise."""
+    def sync_raw_transaction(cls, webhook_url: str, tx_data: dict[str, Any]) -> bool:
+        """Sync a pre-formatted transaction dictionary to Google Sheet in background."""
         try:
             payload = {
                 "action": "create",
-                "transaction": cls.format_transaction(tx),
+                "transaction": tx_data,
             }
             cls.send_payload(webhook_url, payload)
-            logger.info("Successfully synced transaction %s to Google Sheet.", tx.id)
+            logger.info("Successfully synced transaction %s to Google Sheet.", tx_data.get("id"))
             return True
         except Exception as exc:
-            logger.warning("Failed to sync transaction %s to Google Sheet: %s", tx.id, exc)
+            logger.warning(
+                "Failed to sync transaction %s to Google Sheet: %s",
+                tx_data.get("id"),
+                exc,
+            )
             return False
+
+    @classmethod
+    def sync_transaction(cls, webhook_url: str, tx: FamilyTransaction) -> bool:
+        """Sync a single FamilyTransaction model."""
+        try:
+            tx_data = cls.format_transaction(tx)
+            return cls.sync_raw_transaction(webhook_url, tx_data)
+        except Exception as exc:
+            logger.warning("Failed to format or sync transaction: %s", exc)
+            return False
+
 
     @classmethod
     def sync_all_transactions(cls, webhook_url: str, transactions: list[FamilyTransaction]) -> int:

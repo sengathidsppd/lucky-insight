@@ -249,8 +249,24 @@ export default function FamilyFinancePage() {
       // Load Google Sheets config
       try {
         const sheetCfg = await apiRequest<GoogleSheetConfig>("/finances/google-sheets");
-        if (sheetCfg) {
+        if (sheetCfg && sheetCfg.webhook_url) {
           setSheetConfig(sheetCfg);
+          setInputWebhookUrl(sheetCfg.webhook_url);
+          setInputSheetUrl(sheetCfg.sheet_url || DEFAULT_SHEET_URL);
+          setInputAutoSync(sheetCfg.is_auto_sync !== false);
+        } else {
+          // Auto-persist default configured webhook to backend so Render DB has it immediately
+          const savedCfg = await apiRequest<GoogleSheetConfig>("/finances/google-sheets", {
+            method: "POST",
+            body: JSON.stringify({
+              webhook_url: DEFAULT_WEBHOOK_URL,
+              sheet_url: DEFAULT_SHEET_URL,
+              is_auto_sync: true,
+            }),
+          });
+          if (savedCfg) {
+            setSheetConfig(savedCfg);
+          }
         }
       } catch (sheetErr) {
         console.warn("Could not load Google Sheet config:", sheetErr);
@@ -552,7 +568,9 @@ export default function FamilyFinancePage() {
   };
 
   const handleSyncAllToSheet = async () => {
-    if (!sheetConfig.webhook_url) {
+    const webhookToUse =
+      inputWebhookUrl.trim() || sheetConfig.webhook_url || DEFAULT_WEBHOOK_URL;
+    if (!webhookToUse) {
       setSheetStatusMessage({ type: "error", text: "Please save a valid Webhook URL first before syncing history." });
       return;
     }
@@ -562,6 +580,16 @@ export default function FamilyFinancePage() {
     setIsSyncingAll(true);
     setSheetStatusMessage(null);
     try {
+      // Ensure backend has current webhook before syncing
+      await apiRequest<GoogleSheetConfig>("/finances/google-sheets", {
+        method: "POST",
+        body: JSON.stringify({
+          webhook_url: webhookToUse,
+          sheet_url: inputSheetUrl.trim() || sheetConfig.sheet_url || DEFAULT_SHEET_URL,
+          is_auto_sync: inputAutoSync,
+        }),
+      }).catch((e) => console.warn("Auto save config error:", e));
+
       const res = await apiRequest<{ status: string; message: string; synced_count: number }>(
         "/finances/google-sheets/sync-all",
         { method: "POST" }
