@@ -77,6 +77,10 @@ export default function FamilyFinancePage() {
   const [transactions, setTransactions] = useState<FamilyTransaction[]>([]);
   const [typeFilter, setTypeFilter] = useState<"ALL" | "INCOME" | "EXPENSE">("ALL");
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(20);
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -206,7 +210,7 @@ export default function FamilyFinancePage() {
       });
       setSummary(summaryResp);
 
-      const listParams: Record<string, string | number | boolean> = { currency, limit: 100 };
+      const listParams: Record<string, string | number | boolean> = { currency, limit: 500 };
       if (dateParams.date_from) listParams.date_from = dateParams.date_from;
       if (dateParams.date_to) listParams.date_to = dateParams.date_to;
 
@@ -523,6 +527,40 @@ export default function FamilyFinancePage() {
     });
   }, [transactions, typeFilter, payerFilter, categoryFilter, periodFilter, customDateFrom, customDateTo]);
 
+  // Pagination calculations
+  const totalPages = Math.max(1, Math.ceil(displayedTransactions.length / pageSize));
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [typeFilter, payerFilter, categoryFilter, periodFilter, customDateFrom, customDateTo, pageSize]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedTransactions = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return displayedTransactions.slice(startIndex, startIndex + pageSize);
+  }, [displayedTransactions, currentPage, pageSize]);
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 4) {
+        pages.push(1, 2, 3, 4, 5, "...", totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        pages.push(1, "...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+      } else {
+        pages.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages);
+      }
+    }
+    return pages;
+  };
+
   // Micro-summary computed strictly from displayed transactions
   const filteredMetrics = useMemo(() => {
     let inflow = 0;
@@ -554,6 +592,7 @@ export default function FamilyFinancePage() {
     setPeriodFilter("THIS_MONTH");
     setCustomDateFrom("");
     setCustomDateTo("");
+    setCurrentPage(1);
   };
 
   if (!isFamilyMember) {
@@ -1524,7 +1563,7 @@ export default function FamilyFinancePage() {
             </thead>
             <tbody>
               {displayedTransactions.length > 0 ? (
-                displayedTransactions.map((tx) => {
+                paginatedTransactions.map((tx) => {
                   const isInc = tx.transaction_type === "INCOME";
                   return (
                     <tr
@@ -1643,6 +1682,171 @@ export default function FamilyFinancePage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Bar */}
+        {displayedTransactions.length > 0 && (
+          <div
+            style={{
+              padding: "1rem 1.25rem",
+              borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "1rem",
+              fontSize: "0.85rem",
+              color: "rgba(255, 255, 255, 0.7)",
+            }}
+          >
+            {/* Left info & Page Size */}
+            <div style={{ display: "flex", alignItems: "center", gap: "1.2rem", flexWrap: "wrap" }}>
+              <div>
+                Showing{" "}
+                <span style={{ color: "#ffd700", fontWeight: 700 }}>
+                  {(currentPage - 1) * pageSize + 1}
+                </span>
+                {" – "}
+                <span style={{ color: "#ffd700", fontWeight: 700 }}>
+                  {Math.min(currentPage * pageSize, displayedTransactions.length)}
+                </span>{" "}
+                of{" "}
+                <span style={{ color: "#ffffff", fontWeight: 700 }}>
+                  {displayedTransactions.length}
+                </span>{" "}
+                records
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span style={{ color: "rgba(255, 255, 255, 0.5)", fontSize: "0.8rem" }}>Per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    background: "#18092e",
+                    border: "1px solid rgba(255, 255, 255, 0.15)",
+                    color: "#ffffff",
+                    padding: "0.25rem 0.6rem",
+                    borderRadius: "6px",
+                    fontSize: "0.82rem",
+                    outline: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Right page buttons */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                title="Previous page"
+                style={{
+                  background: "rgba(255, 255, 255, 0.08)",
+                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                  color: currentPage === 1 ? "rgba(255, 255, 255, 0.3)" : "#ffffff",
+                  padding: "0.35rem 0.65rem",
+                  borderRadius: "6px",
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.25rem",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                <span>Prev</span>
+              </button>
+
+              {getPageNumbers().map((item, idx) => {
+                if (item === "...") {
+                  return (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      style={{
+                        padding: "0 0.4rem",
+                        color: "rgba(255, 255, 255, 0.4)",
+                        fontWeight: 700,
+                        userSelect: "none",
+                      }}
+                    >
+                      ...
+                    </span>
+                  );
+                }
+
+                const pageNum = Number(item);
+                const isActive = pageNum === currentPage;
+                return (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => setCurrentPage(pageNum)}
+                    style={{
+                      minWidth: "32px",
+                      height: "32px",
+                      padding: "0 0.5rem",
+                      borderRadius: "6px",
+                      fontSize: "0.82rem",
+                      fontWeight: isActive ? 800 : 600,
+                      cursor: "pointer",
+                      background: isActive
+                        ? "linear-gradient(135deg, #ffd700, #f59e0b)"
+                        : "rgba(255, 255, 255, 0.08)",
+                      border: isActive ? "none" : "1px solid rgba(255, 255, 255, 0.12)",
+                      color: isActive ? "#000000" : "#ffffff",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                title="Next page"
+                style={{
+                  background: "rgba(255, 255, 255, 0.08)",
+                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                  color: currentPage === totalPages ? "rgba(255, 255, 255, 0.3)" : "#ffffff",
+                  padding: "0.35rem 0.65rem",
+                  borderRadius: "6px",
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.25rem",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <span>Next</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* RECORD TRANSACTION MODAL */}
