@@ -93,15 +93,17 @@ export default function FamilyFinancePage() {
 
   const DEFAULT_SHEET_URL =
     "https://docs.google.com/spreadsheets/d/1zgDD-TVtAAseMyuBfLG_saz9ejn_c0_RcOhvQfkSimc/edit?usp=sharing";
+  const DEFAULT_WEBHOOK_URL =
+    "https://script.google.com/macros/s/AKfycbzCrVAg0qzIT2Imkua44UovZOM2EjA9qbSqBM2t9winCLMTOWqFEAIRrT0HQXTOQpw0Fg/exec";
 
   // Google Sheets Integration State
   const [sheetConfig, setSheetConfig] = useState<GoogleSheetConfig>({
-    webhook_url: null,
+    webhook_url: DEFAULT_WEBHOOK_URL,
     sheet_url: DEFAULT_SHEET_URL,
     is_auto_sync: true,
   });
   const [isSheetModalOpen, setIsSheetModalOpen] = useState<boolean>(false);
-  const [inputWebhookUrl, setInputWebhookUrl] = useState<string>("");
+  const [inputWebhookUrl, setInputWebhookUrl] = useState<string>(DEFAULT_WEBHOOK_URL);
   const [inputSheetUrl, setInputSheetUrl] = useState<string>(DEFAULT_SHEET_URL);
   const [inputAutoSync, setInputAutoSync] = useState<boolean>(true);
   const [activeGuideTab, setActiveGuideTab] = useState<"settings" | "instructions">("settings");
