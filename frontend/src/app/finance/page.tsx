@@ -138,8 +138,7 @@ export default function FamilyFinancePage() {
 
   const isFamilyMember =
     user?.email === "suzu@gmail.com" ||
-    user?.email === "ning80074@gmail.com" ||
-    user?.is_admin;
+    user?.email === "ning80074@gmail.com";
 
   const customCategoriesForType = useMemo(() => {
     const isInc = modalType === "INCOME";

@@ -1,16 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, user, isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      if (user.email === "suzu@gmail.com" || user.email === "ning80074@gmail.com") {
+        router.push("/finance");
+      } else {
+        router.push("/dashboard");
+      }
+    }
+  }, [isLoading, isAuthenticated, user, router]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {

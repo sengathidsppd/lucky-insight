@@ -116,9 +116,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Fetch user profile
     const userResp = await apiRequest("/users/me");
-    setUser(userResp.data);
-    loadAvatarForUser(userResp.data?.id);
-    router.push("/dashboard");
+    const loggedUser = userResp.data;
+    setUser(loggedUser);
+    loadAvatarForUser(loggedUser?.id);
+
+    if (loggedUser?.email === "suzu@gmail.com" || loggedUser?.email === "ning80074@gmail.com") {
+      router.push("/finance");
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   const register = async (payload: Record<string, any>) => {

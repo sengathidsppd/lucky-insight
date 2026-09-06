@@ -3,17 +3,21 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getCookie } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LandingPage() {
   const router = useRouter();
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    // If user is already logged in, redirect to dashboard
-    if (getCookie("token")) {
-      router.push("/dashboard");
+    if (!isLoading && isAuthenticated && user) {
+      if (user.email === "suzu@gmail.com" || user.email === "ning80074@gmail.com") {
+        router.push("/finance");
+      } else {
+        router.push("/dashboard");
+      }
     }
-  }, []);
+  }, [isLoading, isAuthenticated, user, router]);
 
   return (
     <div style={containerStyle}>

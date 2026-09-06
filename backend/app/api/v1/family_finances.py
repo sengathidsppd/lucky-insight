@@ -31,8 +31,8 @@ def get_finance_service(db: Session = Depends(get_db)) -> FamilyFinanceService:
 
 
 def require_family_member(current_user: User = Depends(get_current_active_user)) -> User:
-    """Ensure user is an authorized family member or administrator."""
-    if current_user.email not in ALLOWED_FAMILY_EMAILS and not current_user.is_admin:
+    """Ensure user is an authorized family member."""
+    if current_user.email not in ALLOWED_FAMILY_EMAILS:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access restricted to authorized family members.",
