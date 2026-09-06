@@ -8,6 +8,7 @@ created.
 from app.models.analysis_job import AnalysisJob
 from app.models.analysis_result import AnalysisResult
 from app.models.base import Base, BaseEntity
+from app.models.family_setting import FamilySetting
 from app.models.family_transaction import FamilyTransaction
 from app.models.lottery_game import LotteryGame
 from app.models.lottery_result import LotteryResult
@@ -24,6 +25,7 @@ __all__ = [
     "AnalysisResult",
     "Base",
     "BaseEntity",
+    "FamilySetting",
     "FamilyTransaction",
     "LotteryGame",
     "LotteryResult",

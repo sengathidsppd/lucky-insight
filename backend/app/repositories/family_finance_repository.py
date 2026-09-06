@@ -8,6 +8,7 @@ from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.models.family_setting import FamilySetting
 from app.models.family_transaction import FamilyTransaction
 from app.repositories.base_repository import BaseRepository
 
@@ -74,3 +75,34 @@ class FamilyFinanceRepository(BaseRepository[FamilyTransaction]):
             stmt = stmt.where(FamilyTransaction.transaction_date <= date_to)
 
         return self._session.execute(stmt).scalars().all()
+
+    def get_setting(self, key: str) -> str | None:
+        """Retrieve a family setting by key."""
+        setting = (
+            self._session.execute(
+                select(FamilySetting)
+                .where(FamilySetting.key == key)
+                .where(FamilySetting.deleted_at.is_(None))
+            )
+            .scalars()
+            .first()
+        )
+        return setting.value if setting else None
+
+    def set_setting(self, key: str, value: str | None) -> None:
+        """Upsert a family setting by key."""
+        setting = (
+            self._session.execute(
+                select(FamilySetting)
+                .where(FamilySetting.key == key)
+                .where(FamilySetting.deleted_at.is_(None))
+            )
+            .scalars()
+            .first()
+        )
+        if setting:
+            setting.value = value
+        else:
+            new_setting = FamilySetting(key=key, value=value)
+            self._session.add(new_setting)
+        self._session.flush()

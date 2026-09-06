@@ -12,6 +12,7 @@ from app.schemas.family_finance import (
     FamilyFinanceSummary,
     FamilyTransactionCreate,
     FamilyTransactionUpdate,
+    GoogleSheetConfig,
     PayerBreakdown,
 )
 
@@ -158,3 +159,32 @@ class FamilyFinanceService:
             expense_by_payer=by_payer,
             transaction_count=len(transactions),
         )
+
+    def get_google_sheet_config(self) -> GoogleSheetConfig:
+        """Get Google Sheets sync configuration."""
+        webhook_url = self._repository.get_setting("google_sheet_webhook_url")
+        sheet_url = self._repository.get_setting("google_sheet_view_url")
+        auto_sync_val = self._repository.get_setting("google_sheet_auto_sync")
+        is_auto_sync = True if auto_sync_val is None else auto_sync_val.lower() == "true"
+        return GoogleSheetConfig(
+            webhook_url=webhook_url,
+            sheet_url=sheet_url,
+            is_auto_sync=is_auto_sync,
+        )
+
+    def set_google_sheet_config(self, config: GoogleSheetConfig) -> GoogleSheetConfig:
+        """Update Google Sheets sync configuration."""
+        self._repository.set_setting(
+            "google_sheet_webhook_url",
+            config.webhook_url.strip() if config.webhook_url else None,
+        )
+        self._repository.set_setting(
+            "google_sheet_view_url",
+            config.sheet_url.strip() if config.sheet_url else None,
+        )
+        self._repository.set_setting(
+            "google_sheet_auto_sync",
+            "true" if config.is_auto_sync else "false",
+        )
+        return self.get_google_sheet_config()
+

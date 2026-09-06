@@ -63,3 +63,16 @@ class FamilyFinanceSummary(BaseModel):
     expense_by_category: list[CategoryBreakdown]
     expense_by_payer: list[PayerBreakdown]
     transaction_count: int
+
+
+class GoogleSheetConfig(BaseModel):
+    webhook_url: str | None = Field(default=None, description="Google Apps Script Webhook URL")
+    sheet_url: str | None = Field(default=None, description="Spreadsheet browser direct link URL")
+    is_auto_sync: bool = Field(default=True, description="Whether to auto-sync transactions on creation")
+
+
+class GoogleSheetSyncResponse(BaseModel):
+    status: str
+    message: str
+    synced_count: int = 0
+

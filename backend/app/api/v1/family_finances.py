@@ -3,7 +3,7 @@
 import uuid
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies.auth import get_current_active_user
@@ -16,8 +16,11 @@ from app.schemas.family_finance import (
     FamilyTransactionCreate,
     FamilyTransactionResponse,
     FamilyTransactionUpdate,
+    GoogleSheetConfig,
+    GoogleSheetSyncResponse,
 )
 from app.services.family_finance_service import FamilyFinanceService
+from app.services.google_sheets_service import GoogleSheetsService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/finances", tags=["Family Finance"])
@@ -80,6 +83,7 @@ def list_transactions(
 @router.post("", response_model=FamilyTransactionResponse, status_code=status.HTTP_201_CREATED)
 def create_transaction(
     payload: FamilyTransactionCreate,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(require_family_member),
     service: FamilyFinanceService = Depends(get_finance_service),
     db: Session = Depends(get_db),
@@ -87,6 +91,19 @@ def create_transaction(
     """Record a new financial transaction (Income deposit or Expense deduction)."""
     created = service.create_transaction(current_user.id, payload)
     db.commit()
+
+    # Automatically trigger Google Sheets sync in background if configured
+    try:
+        config = service.get_google_sheet_config()
+        if config.is_auto_sync and config.webhook_url:
+            background_tasks.add_task(
+                GoogleSheetsService.sync_transaction,
+                config.webhook_url,
+                created,
+            )
+    except Exception as exc:
+        logger.warning("Failed to schedule background Google Sheet sync: %s", exc)
+
     return FamilyTransactionResponse.model_validate(created)
 
 
@@ -119,3 +136,83 @@ def delete_transaction(
     """Delete a transaction by UUID."""
     service.delete_transaction(transaction_id)
     db.commit()
+
+
+@router.get("/google-sheets", response_model=GoogleSheetConfig)
+def get_google_sheet_settings(
+    service: FamilyFinanceService = Depends(get_finance_service),
+    _: User = Depends(require_family_member),
+) -> GoogleSheetConfig:
+    """Get family Google Sheets sync configuration."""
+    return service.get_google_sheet_config()
+
+
+@router.post("/google-sheets", response_model=GoogleSheetConfig)
+def update_google_sheet_settings(
+    payload: GoogleSheetConfig,
+    service: FamilyFinanceService = Depends(get_finance_service),
+    _: User = Depends(require_family_member),
+    db: Session = Depends(get_db),
+) -> GoogleSheetConfig:
+    """Update family Google Sheets sync configuration."""
+    updated = service.set_google_sheet_config(payload)
+    db.commit()
+    return updated
+
+
+@router.post("/google-sheets/test", response_model=GoogleSheetSyncResponse)
+def test_google_sheet_connection(
+    payload: GoogleSheetConfig,
+    _: User = Depends(require_family_member),
+) -> GoogleSheetSyncResponse:
+    """Test ping to Google Apps Script Webhook."""
+    if not payload.webhook_url or not payload.webhook_url.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Webhook URL cannot be empty.",
+        )
+    try:
+        GoogleSheetsService.test_connection(payload.webhook_url.strip())
+        return GoogleSheetSyncResponse(
+            status="success",
+            message="Successfully connected to Google Sheet Webhook!",
+            synced_count=0,
+        )
+    except Exception as exc:
+        logger.error("Google Sheet test ping failed: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to connect to Google Sheet Webhook: {str(exc)}",
+        ) from exc
+
+
+@router.post("/google-sheets/sync-all", response_model=GoogleSheetSyncResponse)
+def sync_all_to_google_sheet(
+    service: FamilyFinanceService = Depends(get_finance_service),
+    _: User = Depends(require_family_member),
+) -> GoogleSheetSyncResponse:
+    """Batch-sync all transactions to the configured Google Sheet."""
+    config = service.get_google_sheet_config()
+    if not config.webhook_url or not config.webhook_url.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Google Sheet Webhook URL is not configured yet. Please configure it first.",
+        )
+    transactions = list(service.list_transactions(limit=500))
+    # Reverse so oldest transactions come first when appending to sheet
+    transactions.reverse()
+    try:
+        count = GoogleSheetsService.sync_all_transactions(config.webhook_url.strip(), transactions)
+        return GoogleSheetSyncResponse(
+            status="success",
+            message=f"Successfully synced {count} transactions to Google Sheet.",
+            synced_count=count,
+        )
+    except Exception as exc:
+        logger.error("Batch sync to Google Sheet failed: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Google Sheet sync failed: {str(exc)}",
+        ) from exc
+
+

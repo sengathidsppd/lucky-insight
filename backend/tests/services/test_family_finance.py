@@ -9,14 +9,21 @@ from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal, engine
 from app.models.base import Base
+from app.models.family_setting import FamilySetting
 from app.models.family_transaction import FamilyTransaction
 from app.models.user import User
 from app.repositories.family_finance_repository import FamilyFinanceRepository
-from app.schemas.family_finance import FamilyTransactionCreate, FamilyTransactionUpdate
+from app.schemas.family_finance import (
+    FamilyTransactionCreate,
+    FamilyTransactionUpdate,
+    GoogleSheetConfig,
+)
 from app.services.family_finance_service import FamilyFinanceService
+from app.services.google_sheets_service import GoogleSheetsService
 
 _TABLES = [
     Base.metadata.tables[User.__tablename__],
+    Base.metadata.tables[FamilySetting.__tablename__],
     Base.metadata.tables[FamilyTransaction.__tablename__],
 ]
 
@@ -145,3 +152,53 @@ def test_family_finance_treasury_balance(
     # Net Balance after deleting 120,000 expense = 5,000,000 - 300,000 = 4,700,000
     assert updated_summary.net_balance == 4700000.0
     assert updated_summary.transaction_count == 2
+
+
+def test_family_google_sheets_config_and_formatting(
+    db_session: Session,
+    finance_service: FamilyFinanceService,
+) -> None:
+    # 1. Default config should have null URLs and auto_sync True
+    cfg = finance_service.get_google_sheet_config()
+    assert cfg.webhook_url is None
+    assert cfg.sheet_url is None
+    assert cfg.is_auto_sync is True
+
+    # 2. Update config
+    updated_cfg = finance_service.set_google_sheet_config(
+        GoogleSheetConfig(
+            webhook_url="https://script.google.com/macros/s/TEST/exec",
+            sheet_url="https://docs.google.com/spreadsheets/d/TEST",
+            is_auto_sync=True,
+        )
+    )
+    db_session.commit()
+    assert updated_cfg.webhook_url == "https://script.google.com/macros/s/TEST/exec"
+    assert updated_cfg.sheet_url == "https://docs.google.com/spreadsheets/d/TEST"
+    assert updated_cfg.is_auto_sync is True
+
+    # Check persistence
+    re_read = finance_service.get_google_sheet_config()
+    assert re_read.webhook_url == "https://script.google.com/macros/s/TEST/exec"
+    assert re_read.sheet_url == "https://docs.google.com/spreadsheets/d/TEST"
+
+    # 3. Test transaction payload formatting
+    sample_tx = FamilyTransaction(
+        id=uuid.uuid4(),
+        user_id=uuid.uuid4(),
+        transaction_type="EXPENSE",
+        amount=150000.00,
+        currency="LAK",
+        category="Dining Out",
+        payer_name="Ning",
+        description="Dinner at Riverside",
+        transaction_date=date(2026, 9, 6),
+    )
+    formatted = GoogleSheetsService.format_transaction(sample_tx)
+    assert formatted["type"] == "EXPENSE"
+    assert formatted["amount"] == 150000.00
+    assert formatted["currency"] == "LAK"
+    assert formatted["category"] == "Dining Out"
+    assert formatted["payer"] == "Ning"
+    assert formatted["description"] == "Dinner at Riverside"
+    assert formatted["date"] == "2026-09-06"

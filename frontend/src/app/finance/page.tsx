@@ -41,6 +41,12 @@ interface FamilyTransaction {
   updated_at: string;
 }
 
+interface GoogleSheetConfig {
+  webhook_url: string | null;
+  sheet_url: string | null;
+  is_auto_sync: boolean;
+}
+
 const INCOME_CATEGORIES = [
   "Salary & Earnings",
   "Business Revenue",
@@ -84,6 +90,23 @@ export default function FamilyFinancePage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Google Sheets Integration State
+  const [sheetConfig, setSheetConfig] = useState<GoogleSheetConfig>({
+    webhook_url: null,
+    sheet_url: null,
+    is_auto_sync: true,
+  });
+  const [isSheetModalOpen, setIsSheetModalOpen] = useState<boolean>(false);
+  const [inputWebhookUrl, setInputWebhookUrl] = useState<string>("");
+  const [inputSheetUrl, setInputSheetUrl] = useState<string>("");
+  const [inputAutoSync, setInputAutoSync] = useState<boolean>(true);
+  const [activeGuideTab, setActiveGuideTab] = useState<"settings" | "instructions">("settings");
+  const [isTestingSheet, setIsTestingSheet] = useState<boolean>(false);
+  const [isSyncingAll, setIsSyncingAll] = useState<boolean>(false);
+  const [isSavingSheetConfig, setIsSavingSheetConfig] = useState<boolean>(false);
+  const [sheetStatusMessage, setSheetStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [copiedScript, setCopiedScript] = useState<boolean>(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -217,6 +240,16 @@ export default function FamilyFinancePage() {
         params: listParams,
       });
       setTransactions(Array.isArray(txListResp) ? txListResp : []);
+
+      // Load Google Sheets config
+      try {
+        const sheetCfg = await apiRequest<GoogleSheetConfig>("/finances/google-sheets");
+        if (sheetCfg) {
+          setSheetConfig(sheetCfg);
+        }
+      } catch (sheetErr) {
+        console.warn("Could not load Google Sheet config:", sheetErr);
+      }
     } catch (err: any) {
       setError(err?.message || "Failed to load financial records.");
     } finally {
@@ -387,6 +420,160 @@ export default function FamilyFinancePage() {
     } catch (err: any) {
       alert(err?.message || "Failed to delete record.");
       await fetchData();
+    }
+  };
+
+  const GOOGLE_APPS_SCRIPT_CODE = `function doPost(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getActiveSheet();
+    
+    // Auto-create headers if sheet is empty
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow([
+        "Date",
+        "Type",
+        "Category",
+        "Payer / Beneficiary",
+        "Amount (LAK)",
+        "Currency",
+        "Note / Description",
+        "Created At",
+        "Transaction ID"
+      ]);
+      sheet.getRange("A1:I1").setFontWeight("bold").setBackground("#1e293b").setFontColor("#ffffff");
+      sheet.setFrozenRows(1);
+    }
+    
+    var data = JSON.parse(e.postData.contents);
+    
+    // 1. Connection Test Ping
+    if (data.action === "test") {
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Connected successfully!" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Helper to append a single record
+    function appendTx(tx) {
+      sheet.appendRow([
+        tx.date || "",
+        tx.type || "",
+        tx.category || "",
+        tx.payer || "",
+        tx.amount || 0,
+        tx.currency || "LAK",
+        tx.description || "",
+        tx.created_at || "",
+        tx.id || ""
+      ]);
+    }
+    
+    // 2. Batch Sync
+    if (data.action === "batch_sync" && Array.isArray(data.transactions)) {
+      data.transactions.forEach(function(tx) {
+        appendTx(tx);
+      });
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", count: data.transactions.length }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // 3. Single Transaction Sync
+    var tx = data.transaction || data;
+    appendTx(tx);
+    
+    return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+
+  const handleOpenSheetModal = () => {
+    setInputWebhookUrl(sheetConfig.webhook_url || "");
+    setInputSheetUrl(sheetConfig.sheet_url || "");
+    setInputAutoSync(sheetConfig.is_auto_sync !== false);
+    setSheetStatusMessage(null);
+    setIsSheetModalOpen(true);
+  };
+
+  const handleSaveSheetConfig = async () => {
+    setIsSavingSheetConfig(true);
+    setSheetStatusMessage(null);
+    try {
+      const payload: GoogleSheetConfig = {
+        webhook_url: inputWebhookUrl.trim() || null,
+        sheet_url: inputSheetUrl.trim() || null,
+        is_auto_sync: inputAutoSync,
+      };
+      const updated = await apiRequest<GoogleSheetConfig>("/finances/google-sheets", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      if (updated) {
+        setSheetConfig(updated);
+        setSheetStatusMessage({ type: "success", text: "Google Sheets configuration saved successfully." });
+      }
+    } catch (err: any) {
+      setSheetStatusMessage({ type: "error", text: err?.message || "Failed to save Google Sheets configuration." });
+    } finally {
+      setIsSavingSheetConfig(false);
+    }
+  };
+
+  const handleTestSheetConnection = async () => {
+    if (!inputWebhookUrl.trim()) {
+      setSheetStatusMessage({ type: "error", text: "Please enter a Webhook URL before testing connection." });
+      return;
+    }
+    setIsTestingSheet(true);
+    setSheetStatusMessage(null);
+    try {
+      const res = await apiRequest<{ status: string; message: string }>("/finances/google-sheets/test", {
+        method: "POST",
+        body: JSON.stringify({
+          webhook_url: inputWebhookUrl.trim(),
+          sheet_url: inputSheetUrl.trim() || null,
+          is_auto_sync: inputAutoSync,
+        }),
+      });
+      setSheetStatusMessage({ type: "success", text: res?.message || "Connection to Google Sheet verified successfully!" });
+    } catch (err: any) {
+      setSheetStatusMessage({ type: "error", text: err?.message || "Failed to connect to Google Sheet Webhook." });
+    } finally {
+      setIsTestingSheet(false);
+    }
+  };
+
+  const handleSyncAllToSheet = async () => {
+    if (!sheetConfig.webhook_url) {
+      setSheetStatusMessage({ type: "error", text: "Please save a valid Webhook URL first before syncing history." });
+      return;
+    }
+    if (!confirm("This will push all recorded transactions in the database to your Google Sheet. Continue?")) {
+      return;
+    }
+    setIsSyncingAll(true);
+    setSheetStatusMessage(null);
+    try {
+      const res = await apiRequest<{ status: string; message: string; synced_count: number }>(
+        "/finances/google-sheets/sync-all",
+        { method: "POST" }
+      );
+      setSheetStatusMessage({ type: "success", text: res?.message || `Successfully synced ${res?.synced_count || 0} records.` });
+    } catch (err: any) {
+      setSheetStatusMessage({ type: "error", text: err?.message || "Failed to batch-sync transactions to Google Sheet." });
+    } finally {
+      setIsSyncingAll(false);
+    }
+  };
+
+  const handleCopyScript = () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(GOOGLE_APPS_SCRIPT_CODE);
+      setCopiedScript(true);
+      setTimeout(() => setCopiedScript(false), 2500);
     }
   };
 
@@ -1180,34 +1367,94 @@ export default function FamilyFinancePage() {
             </p>
           </div>
 
-          <button
-            onClick={handleExportToExcel}
-            disabled={displayedTransactions.length === 0}
-            title="Export displayed records to Microsoft Excel CSV format"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.45rem",
-              background: "rgba(16, 185, 129, 0.12)",
-              border: "1px solid rgba(16, 185, 129, 0.35)",
-              color: "#10b981",
-              padding: "0.5rem 1.1rem",
-              borderRadius: "10px",
-              fontWeight: 700,
-              fontSize: "0.85rem",
-              cursor: displayedTransactions.length === 0 ? "not-allowed" : "pointer",
-              opacity: displayedTransactions.length === 0 ? 0.5 : 1,
-              transition: "all 0.2s ease",
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            Export to Excel
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+            {sheetConfig.sheet_url && (
+              <a
+                href={sheetConfig.sheet_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open your Google Spreadsheet directly in a new tab"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.45rem",
+                  background: "rgba(34, 197, 94, 0.15)",
+                  border: "1px solid rgba(34, 197, 94, 0.4)",
+                  color: "#4ade80",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "10px",
+                  fontWeight: 700,
+                  fontSize: "0.85rem",
+                  textDecoration: "none",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+                Open Google Sheet
+              </a>
+            )}
+
+            <button
+              onClick={handleOpenSheetModal}
+              title="Configure real-time Google Sheets sync and settings"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.45rem",
+                background: sheetConfig.webhook_url ? "rgba(59, 130, 246, 0.15)" : "rgba(255, 255, 255, 0.07)",
+                border: sheetConfig.webhook_url ? "1px solid rgba(59, 130, 246, 0.4)" : "1px solid rgba(255, 255, 255, 0.18)",
+                color: sheetConfig.webhook_url ? "#60a5fa" : "#cbd5e1",
+                padding: "0.5rem 1rem",
+                borderRadius: "10px",
+                fontWeight: 700,
+                fontSize: "0.85rem",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="8" y1="13" x2="16" y2="13" />
+                <line x1="8" y1="17" x2="16" y2="17" />
+              </svg>
+              {sheetConfig.webhook_url ? "Google Sheets (Active)" : "Google Sheets Sync"}
+            </button>
+
+            <button
+              onClick={handleExportToExcel}
+              disabled={displayedTransactions.length === 0}
+              title="Export displayed records to Microsoft Excel CSV format"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.45rem",
+                background: "rgba(16, 185, 129, 0.12)",
+                border: "1px solid rgba(16, 185, 129, 0.35)",
+                color: "#10b981",
+                padding: "0.5rem 1.1rem",
+                borderRadius: "10px",
+                fontWeight: 700,
+                fontSize: "0.85rem",
+                cursor: displayedTransactions.length === 0 ? "not-allowed" : "pointer",
+                opacity: displayedTransactions.length === 0 ? 0.5 : 1,
+                transition: "all 0.2s ease",
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Export to Excel
+            </button>
+          </div>
         </div>
+
 
         {/* Enhanced Filter Toolbar */}
         <div
@@ -2192,6 +2439,423 @@ export default function FamilyFinancePage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* GOOGLE SHEETS SYNC MODAL */}
+      {isSheetModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(0, 0, 0, 0.85)",
+            backdropFilter: "blur(12px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1.5rem",
+          }}
+        >
+          <div
+            className="finance-modal-content"
+            style={{
+              maxWidth: "680px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+            }}
+          >
+            {/* Modal Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <div
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "10px",
+                    background: "rgba(34, 197, 94, 0.2)",
+                    border: "1px solid rgba(34, 197, 94, 0.4)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#4ade80",
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="8" y1="13" x2="16" y2="13" />
+                    <line x1="8" y1="17" x2="16" y2="17" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{ color: "#ffffff", fontSize: "1.25rem", fontWeight: 800 }}>
+                    Google Sheets Synchronization
+                  </h3>
+                  <p style={{ color: "rgba(255, 255, 255, 0.5)", fontSize: "0.8rem" }}>
+                    Real-time linking and automated export to your Google Spreadsheet
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsSheetModalOpen(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "rgba(255, 255, 255, 0.6)",
+                  cursor: "pointer",
+                }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Tabs: Settings vs Instructions */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "0.5rem",
+                background: "rgba(0, 0, 0, 0.4)",
+                padding: "0.3rem",
+                borderRadius: "12px",
+                marginBottom: "1.25rem",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setActiveGuideTab("settings")}
+                style={{
+                  padding: "0.6rem 1rem",
+                  borderRadius: "10px",
+                  border: "none",
+                  fontWeight: 700,
+                  fontSize: "0.85rem",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  background: activeGuideTab === "settings" ? "rgba(99, 102, 241, 0.25)" : "transparent",
+                  color: activeGuideTab === "settings" ? "#a5b4fc" : "rgba(255, 255, 255, 0.5)",
+                }}
+              >
+                Configuration
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveGuideTab("instructions")}
+                style={{
+                  padding: "0.6rem 1rem",
+                  borderRadius: "10px",
+                  border: "none",
+                  fontWeight: 700,
+                  fontSize: "0.85rem",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  background: activeGuideTab === "instructions" ? "rgba(99, 102, 241, 0.25)" : "transparent",
+                  color: activeGuideTab === "instructions" ? "#a5b4fc" : "rgba(255, 255, 255, 0.5)",
+                }}
+              >
+                Setup Guide & Script
+              </button>
+            </div>
+
+            {/* Status Feedback Banner */}
+            {sheetStatusMessage && (
+              <div
+                style={{
+                  padding: "0.75rem 1rem",
+                  borderRadius: "10px",
+                  marginBottom: "1.25rem",
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
+                  background:
+                    sheetStatusMessage.type === "success"
+                      ? "rgba(16, 185, 129, 0.15)"
+                      : "rgba(239, 68, 68, 0.15)",
+                  border:
+                    sheetStatusMessage.type === "success"
+                      ? "1px solid rgba(16, 185, 129, 0.4)"
+                      : "1px solid rgba(239, 68, 68, 0.4)",
+                  color: sheetStatusMessage.type === "success" ? "#34d399" : "#f87171",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <span>{sheetStatusMessage.text}</span>
+                <button
+                  type="button"
+                  onClick={() => setSheetStatusMessage(null)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "inherit",
+                    cursor: "pointer",
+                    fontSize: "0.8rem",
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+
+            {/* TAB 1: CONFIGURATION */}
+            {activeGuideTab === "settings" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                <div>
+                  <label style={{ display: "block", color: "rgba(255, 255, 255, 0.8)", fontSize: "0.85rem", fontWeight: 700, marginBottom: "0.4rem" }}>
+                    Google Spreadsheet Link (Direct View)
+                  </label>
+                  <input
+                    type="url"
+                    value={inputSheetUrl}
+                    onChange={(e) => setInputSheetUrl(e.target.value)}
+                    placeholder="https://docs.google.com/spreadsheets/d/your-spreadsheet-id/edit"
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem 1rem",
+                      borderRadius: "10px",
+                      background: "rgba(0, 0, 0, 0.4)",
+                      border: "1px solid rgba(255, 255, 255, 0.15)",
+                      color: "#ffffff",
+                      fontSize: "0.9rem",
+                    }}
+                  />
+                  <p style={{ color: "rgba(255, 255, 255, 0.45)", fontSize: "0.75rem", marginTop: "0.3rem" }}>
+                    Enables the "Open Google Sheet" button directly in Transaction History for instant access.
+                  </p>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", color: "rgba(255, 255, 255, 0.8)", fontSize: "0.85rem", fontWeight: 700, marginBottom: "0.4rem" }}>
+                    Google Apps Script Webhook URL
+                  </label>
+                  <input
+                    type="url"
+                    value={inputWebhookUrl}
+                    onChange={(e) => setInputWebhookUrl(e.target.value)}
+                    placeholder="https://script.google.com/macros/s/AKfycb.../exec"
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem 1rem",
+                      borderRadius: "10px",
+                      background: "rgba(0, 0, 0, 0.4)",
+                      border: "1px solid rgba(255, 255, 255, 0.15)",
+                      color: "#ffffff",
+                      fontSize: "0.9rem",
+                    }}
+                  />
+                  <p style={{ color: "rgba(255, 255, 255, 0.45)", fontSize: "0.75rem", marginTop: "0.3rem" }}>
+                    The Web App URL deployed from your Google Sheet Apps Script.
+                  </p>
+                </div>
+
+                {/* Auto-Sync Switch */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "0.85rem 1rem",
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    borderRadius: "10px",
+                  }}
+                >
+                  <div>
+                    <div style={{ color: "#ffffff", fontSize: "0.9rem", fontWeight: 700 }}>
+                      Automatic Real-time Sync
+                    </div>
+                    <div style={{ color: "rgba(255, 255, 255, 0.5)", fontSize: "0.75rem" }}>
+                      Automatically sync every new income or expense transaction to Google Sheets when saved
+                    </div>
+                  </div>
+                  <label style={{ position: "relative", display: "inline-block", width: "48px", height: "26px", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={inputAutoSync}
+                      onChange={(e) => setInputAutoSync(e.target.checked)}
+                      style={{ opacity: 0, width: 0, height: 0 }}
+                    />
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: inputAutoSync ? "#6366f1" : "rgba(255, 255, 255, 0.2)",
+                        borderRadius: "26px",
+                        transition: "0.3s",
+                      }}
+                    >
+                      <span
+                        style={{
+                          position: "absolute",
+                          content: '""',
+                          height: "20px",
+                          width: "20px",
+                          left: inputAutoSync ? "24px" : "3px",
+                          bottom: "3px",
+                          backgroundColor: "white",
+                          borderRadius: "50%",
+                          transition: "0.3s",
+                        }}
+                      />
+                    </span>
+                  </label>
+                </div>
+
+                {/* Button Controls */}
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
+                  <button
+                    type="button"
+                    onClick={handleSaveSheetConfig}
+                    disabled={isSavingSheetConfig}
+                    style={{
+                      flex: 1,
+                      padding: "0.75rem 1.25rem",
+                      background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
+                      border: "none",
+                      borderRadius: "10px",
+                      color: "#ffffff",
+                      fontWeight: 700,
+                      fontSize: "0.9rem",
+                      cursor: isSavingSheetConfig ? "not-allowed" : "pointer",
+                      opacity: isSavingSheetConfig ? 0.7 : 1,
+                    }}
+                  >
+                    {isSavingSheetConfig ? "Saving..." : "Save Configuration"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleTestSheetConnection}
+                    disabled={isTestingSheet || !inputWebhookUrl.trim()}
+                    style={{
+                      padding: "0.75rem 1.15rem",
+                      background: "rgba(59, 130, 246, 0.15)",
+                      border: "1px solid rgba(59, 130, 246, 0.4)",
+                      borderRadius: "10px",
+                      color: "#60a5fa",
+                      fontWeight: 700,
+                      fontSize: "0.85rem",
+                      cursor: isTestingSheet || !inputWebhookUrl.trim() ? "not-allowed" : "pointer",
+                      opacity: !inputWebhookUrl.trim() ? 0.5 : 1,
+                    }}
+                  >
+                    {isTestingSheet ? "Testing..." : "Test Connection"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSyncAllToSheet}
+                    disabled={isSyncingAll || !sheetConfig.webhook_url}
+                    style={{
+                      padding: "0.75rem 1.15rem",
+                      background: "rgba(16, 185, 129, 0.15)",
+                      border: "1px solid rgba(16, 185, 129, 0.4)",
+                      borderRadius: "10px",
+                      color: "#34d399",
+                      fontWeight: 700,
+                      fontSize: "0.85rem",
+                      cursor: isSyncingAll || !sheetConfig.webhook_url ? "not-allowed" : "pointer",
+                      opacity: !sheetConfig.webhook_url ? 0.5 : 1,
+                    }}
+                  >
+                    {isSyncingAll ? "Syncing..." : "Sync All Records"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: SETUP GUIDE & SCRIPT */}
+            {activeGuideTab === "instructions" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div
+                  style={{
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    borderRadius: "10px",
+                    padding: "1rem",
+                    fontSize: "0.85rem",
+                    color: "rgba(255, 255, 255, 0.8)",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  <div style={{ fontWeight: 800, color: "#ffffff", marginBottom: "0.5rem" }}>
+                    Quick 4-Step Setup Guide
+                  </div>
+                  <ol style={{ paddingLeft: "1.25rem", margin: 0, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                    <li>
+                      Create a new Google Sheet at <strong style={{ color: "#a5b4fc" }}>sheets.google.com</strong> or open your existing sheet.
+                    </li>
+                    <li>
+                      In Google Sheet top menu, click <strong>Extensions (ส่วนขยาย)</strong> &rarr; <strong>Apps Script</strong>.
+                    </li>
+                    <li>
+                      Replace everything in the code editor with the script below, then press <strong>Save (Ctrl+S)</strong>.
+                    </li>
+                    <li>
+                      Click <strong>Deploy (ทำให้ใช้งานได้)</strong> &rarr; <strong>New deployment (การทำให้ใช้งานได้ใหม่)</strong>:
+                      <ul style={{ paddingLeft: "1rem", marginTop: "0.2rem" }}>
+                        <li>Type: <strong>Web app (เว็บแอป)</strong></li>
+                        <li>Execute as: <strong>Me (ฉัน)</strong></li>
+                        <li>Who has access: <strong>Anyone (ทุกคน)</strong></li>
+                      </ul>
+                      Click <strong>Deploy</strong> &rarr; Copy the generated <strong>Web app URL</strong> and paste it into the Configuration tab!
+                    </li>
+                  </ol>
+                </div>
+
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+                    <span style={{ color: "rgba(255, 255, 255, 0.75)", fontSize: "0.8rem", fontWeight: 700 }}>
+                      Google Apps Script Code (Ready to Copy)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopyScript}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.35rem",
+                        padding: "0.35rem 0.75rem",
+                        borderRadius: "8px",
+                        background: copiedScript ? "rgba(16, 185, 129, 0.2)" : "rgba(99, 102, 241, 0.2)",
+                        border: copiedScript ? "1px solid rgba(16, 185, 129, 0.5)" : "1px solid rgba(99, 102, 241, 0.4)",
+                        color: copiedScript ? "#34d399" : "#a5b4fc",
+                        fontSize: "0.78rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {copiedScript ? "Copied to Clipboard!" : "Copy Script"}
+                    </button>
+                  </div>
+                  <pre
+                    style={{
+                      background: "rgba(0, 0, 0, 0.6)",
+                      border: "1px solid rgba(255, 255, 255, 0.12)",
+                      borderRadius: "10px",
+                      padding: "0.85rem",
+                      fontSize: "0.76rem",
+                      color: "#e2e8f0",
+                      maxHeight: "220px",
+                      overflowY: "auto",
+                      fontFamily: "monospace",
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    <code>{GOOGLE_APPS_SCRIPT_CODE}</code>
+                  </pre>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
