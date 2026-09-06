@@ -663,18 +663,9 @@ export default function FamilyFinancePage() {
   const isSurplus = netBalance >= 0;
 
   return (
-    <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "2rem 1.5rem" }}>
+    <div className="finance-container">
       {/* Top Header & Global Actions */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "1.5rem",
-          marginBottom: "2rem",
-        }}
-      >
+      <div className="finance-header">
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.4rem" }}>
             <span
@@ -695,13 +686,13 @@ export default function FamilyFinancePage() {
               Authorized: Suzu & Ning
             </span>
           </div>
-          <h1 style={{ color: "#ffffff", fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.5px" }}>
+          <h1 className="finance-header-title">
             Family Finance & Treasury
           </h1>
         </div>
 
         {/* Currency & Period Controls */}
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+        <div className="finance-controls-row">
           {/* Lao Kip Currency Badge */}
           <div
             style={{
@@ -731,6 +722,7 @@ export default function FamilyFinancePage() {
 
           {/* Period Toggle */}
           <div
+            className="finance-period-toggle"
             style={{
               background: "rgba(26, 11, 46, 0.8)",
               border: "1px solid rgba(255, 255, 255, 0.12)",
@@ -788,52 +780,58 @@ export default function FamilyFinancePage() {
           </div>
 
           {/* Action Buttons */}
-          <button
-            onClick={() => openModal("INCOME")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              background: "linear-gradient(135deg, #10b981, #059669)",
-              color: "#ffffff",
-              border: "none",
-              padding: "0.65rem 1.25rem",
-              borderRadius: "12px",
-              fontWeight: 700,
-              fontSize: "0.9rem",
-              cursor: "pointer",
-              boxShadow: "0 4px 15px rgba(16, 185, 129, 0.3)",
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Deposit Inflow
-          </button>
+          <div className="finance-action-group">
+            <button
+              onClick={() => openModal("INCOME")}
+              className="finance-action-btn"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.45rem",
+                background: "linear-gradient(135deg, #10b981, #059669)",
+                color: "#ffffff",
+                border: "none",
+                padding: "0.65rem 1.15rem",
+                borderRadius: "12px",
+                fontWeight: 700,
+                fontSize: "0.9rem",
+                cursor: "pointer",
+                boxShadow: "0 4px 15px rgba(16, 185, 129, 0.3)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Deposit Inflow
+            </button>
 
-          <button
-            onClick={() => openModal("EXPENSE")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              background: "linear-gradient(135deg, #ef4444, #dc2626)",
-              color: "#ffffff",
-              border: "none",
-              padding: "0.65rem 1.25rem",
-              borderRadius: "12px",
-              fontWeight: 700,
-              fontSize: "0.9rem",
-              cursor: "pointer",
-              boxShadow: "0 4px 15px rgba(239, 68, 68, 0.3)",
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Record Expense
-          </button>
+            <button
+              onClick={() => openModal("EXPENSE")}
+              className="finance-action-btn"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.45rem",
+                background: "linear-gradient(135deg, #ef4444, #dc2626)",
+                color: "#ffffff",
+                border: "none",
+                padding: "0.65rem 1.15rem",
+                borderRadius: "12px",
+                fontWeight: 700,
+                fontSize: "0.9rem",
+                cursor: "pointer",
+                boxShadow: "0 4px 15px rgba(239, 68, 68, 0.3)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Record Expense
+            </button>
+          </div>
         </div>
       </div>
 
@@ -855,22 +853,18 @@ export default function FamilyFinancePage() {
 
       {/* HERO CARD: REMAINING TREASURY BALANCE */}
       <div
+        className="finance-hero-card"
         style={{
           background: isSurplus
             ? "radial-gradient(ellipse at top left, rgba(16, 185, 129, 0.18), transparent 70%), linear-gradient(145deg, rgba(26, 11, 46, 0.9), rgba(15, 6, 26, 0.95))"
             : "radial-gradient(ellipse at top left, rgba(239, 68, 68, 0.22), transparent 70%), linear-gradient(145deg, rgba(26, 11, 46, 0.9), rgba(15, 6, 26, 0.95))",
           border: isSurplus ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid rgba(239, 68, 68, 0.5)",
-          borderRadius: "24px",
-          padding: "2.5rem 3rem",
-          marginBottom: "2rem",
           boxShadow: isSurplus
             ? "0 20px 50px rgba(0, 0, 0, 0.6), 0 0 35px rgba(16, 185, 129, 0.15)"
             : "0 20px 50px rgba(0, 0, 0, 0.6), 0 0 35px rgba(239, 68, 68, 0.2)",
-          position: "relative",
-          overflow: "hidden",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1.5rem" }}>
+        <div className="finance-hero-content">
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", marginBottom: "0.8rem" }}>
               <span
@@ -906,13 +900,9 @@ export default function FamilyFinancePage() {
             </div>
 
             <div
+              className="finance-hero-balance"
               style={{
-                fontSize: "3.4rem",
-                fontWeight: 900,
                 color: isSurplus ? "#10b981" : "#ef4444",
-                letterSpacing: "-1px",
-                lineHeight: 1.15,
-                margin: "0.6rem 0",
                 textShadow: isSurplus ? "0 0 25px rgba(16, 185, 129, 0.35)" : "0 0 25px rgba(239, 68, 68, 0.35)",
               }}
             >
@@ -920,38 +910,17 @@ export default function FamilyFinancePage() {
             </div>
 
             {/* Clear deduction formula */}
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.6rem",
-                flexWrap: "wrap",
-                background: "rgba(0, 0, 0, 0.3)",
-                padding: "0.6rem 1rem",
-                borderRadius: "10px",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
-                fontSize: "0.88rem",
-                color: "rgba(255, 255, 255, 0.75)",
-              }}
-            >
+            <div className="finance-formula-box">
               <span>Treasury Inflow: <strong style={{ color: "#10b981" }}>+{formatCurrency(summary?.total_income)}</strong></span>
-              <span>-</span>
+              <span style={{ color: "rgba(255, 255, 255, 0.3)" }}>•</span>
               <span>Deductions: <strong style={{ color: "#ef4444" }}>-{formatCurrency(summary?.total_expense)}</strong></span>
-              <span>=</span>
+              <span style={{ color: "rgba(255, 255, 255, 0.3)" }}>•</span>
               <span>Remaining: <strong style={{ color: isSurplus ? "#34d399" : "#f87171" }}>{formatCurrency(netBalance)}</strong></span>
             </div>
           </div>
 
           {/* Quick Stats Block */}
-          <div
-            style={{
-              background: "rgba(10, 2, 18, 0.6)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              borderRadius: "16px",
-              padding: "1.4rem 1.8rem",
-              minWidth: "260px",
-            }}
-          >
+          <div className="finance-solvency-box">
             <div style={{ color: "rgba(255, 255, 255, 0.5)", fontSize: "0.8rem", fontWeight: 700, letterSpacing: "1px", marginBottom: "0.6rem" }}>
               SOLVENCY METRICS
             </div>
@@ -976,24 +945,12 @@ export default function FamilyFinancePage() {
       </div>
 
       {/* 3 KPI SUMMARY CARDS */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          gap: "1.5rem",
-          marginBottom: "2.5rem",
-        }}
-      >
+      <div className="finance-kpi-grid">
         {/* Total Inflow */}
         <div
+          className="finance-kpi-card"
           style={{
-            background: "rgba(26, 11, 46, 0.65)",
             border: "1px solid rgba(16, 185, 129, 0.25)",
-            borderRadius: "18px",
-            padding: "1.6rem 1.8rem",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem" }}>
@@ -1018,7 +975,7 @@ export default function FamilyFinancePage() {
               </svg>
             </div>
           </div>
-          <div style={{ color: "#10b981", fontSize: "1.9rem", fontWeight: 800, marginBottom: "0.4rem" }}>
+          <div style={{ color: "#10b981", fontSize: "1.75rem", fontWeight: 800, marginBottom: "0.4rem" }}>
             +{formatCurrency(summary?.total_income)}
           </div>
           <div style={{ color: "rgba(255, 255, 255, 0.45)", fontSize: "0.82rem" }}>
@@ -1028,14 +985,9 @@ export default function FamilyFinancePage() {
 
         {/* Total Outflow */}
         <div
+          className="finance-kpi-card"
           style={{
-            background: "rgba(26, 11, 46, 0.65)",
             border: "1px solid rgba(239, 68, 68, 0.25)",
-            borderRadius: "18px",
-            padding: "1.6rem 1.8rem",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem" }}>
@@ -1060,7 +1012,7 @@ export default function FamilyFinancePage() {
               </svg>
             </div>
           </div>
-          <div style={{ color: "#ef4444", fontSize: "1.9rem", fontWeight: 800, marginBottom: "0.4rem" }}>
+          <div style={{ color: "#ef4444", fontSize: "1.75rem", fontWeight: 800, marginBottom: "0.4rem" }}>
             -{formatCurrency(summary?.total_expense)}
           </div>
           <div style={{ color: "rgba(255, 255, 255, 0.45)", fontSize: "0.82rem" }}>
@@ -1070,14 +1022,9 @@ export default function FamilyFinancePage() {
 
         {/* Net Retained */}
         <div
+          className="finance-kpi-card"
           style={{
-            background: "rgba(26, 11, 46, 0.65)",
             border: "1px solid rgba(255, 215, 0, 0.25)",
-            borderRadius: "18px",
-            padding: "1.6rem 1.8rem",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem" }}>
@@ -1102,7 +1049,7 @@ export default function FamilyFinancePage() {
               </svg>
             </div>
           </div>
-          <div style={{ color: isSurplus ? "#ffd700" : "#ef4444", fontSize: "1.9rem", fontWeight: 800, marginBottom: "0.4rem" }}>
+          <div style={{ color: isSurplus ? "#ffd700" : "#ef4444", fontSize: "1.75rem", fontWeight: 800, marginBottom: "0.4rem" }}>
             {formatCurrency(netBalance)}
           </div>
           <div style={{ color: "rgba(255, 255, 255, 0.45)", fontSize: "0.82rem" }}>
@@ -1112,23 +1059,9 @@ export default function FamilyFinancePage() {
       </div>
 
       {/* ANALYTICS SECTION: CATEGORY & PAYER BREAKDOWNS */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))",
-          gap: "1.8rem",
-          marginBottom: "2.5rem",
-        }}
-      >
+      <div className="finance-analytics-grid">
         {/* Category Breakdown */}
-        <div
-          style={{
-            background: "rgba(26, 11, 46, 0.65)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            borderRadius: "20px",
-            padding: "1.8rem",
-          }}
-        >
+        <div className="finance-analytics-card">
           <h3 style={{ color: "#ffffff", fontSize: "1.1rem", fontWeight: 700, marginBottom: "1.2rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffd700" strokeWidth="2">
               <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
@@ -1176,14 +1109,7 @@ export default function FamilyFinancePage() {
         </div>
 
         {/* Payer Breakdown */}
-        <div
-          style={{
-            background: "rgba(26, 11, 46, 0.65)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            borderRadius: "20px",
-            padding: "1.8rem",
-          }}
-        >
+        <div className="finance-analytics-card">
           <h3 style={{ color: "#ffffff", fontSize: "1.1rem", fontWeight: 700, marginBottom: "1.2rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffd700" strokeWidth="2">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -1234,14 +1160,7 @@ export default function FamilyFinancePage() {
       </div>
 
       {/* TRANSACTION LEDGER TABLE */}
-      <div
-        style={{
-          background: "rgba(26, 11, 46, 0.65)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          borderRadius: "20px",
-          padding: "2rem",
-        }}
-      >
+      <div className="finance-table-card">
         <div
           style={{
             display: "flex",
@@ -1547,8 +1466,8 @@ export default function FamilyFinancePage() {
         </div>
 
         {/* Table */}
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <table style={{ width: "100%", minWidth: "640px", borderCollapse: "collapse", fontSize: "0.9rem" }}>
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.1)", textAlign: "left" }}>
                 <th style={{ padding: "0.85rem 1rem", color: "rgba(255, 255, 255, 0.5)", fontWeight: 700, fontSize: "0.78rem" }}>DATE</th>
@@ -1863,17 +1782,7 @@ export default function FamilyFinancePage() {
             padding: "1.5rem",
           }}
         >
-          <div
-            style={{
-              background: "linear-gradient(145deg, #18092e, #0e051b)",
-              border: "1px solid rgba(255, 215, 0, 0.25)",
-              borderRadius: "24px",
-              width: "100%",
-              maxWidth: "520px",
-              padding: "2.2rem 2.5rem",
-              boxShadow: "0 25px 60px rgba(0, 0, 0, 0.8)",
-            }}
-          >
+          <div className="finance-modal-content">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
               <h3 style={{ color: "#ffffff", fontSize: "1.35rem", fontWeight: 800 }}>
                 {editingId

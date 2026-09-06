@@ -92,22 +92,7 @@ export default function DrawCountdown() {
   }, [selectedGame]);
 
   return (
-    <div
-      style={{
-        background: "linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(245, 158, 11, 0.05) 100%)",
-        border: "1px solid rgba(255, 215, 0, 0.25)",
-        borderRadius: "14px",
-        padding: "0.75rem 1.25rem",
-        marginBottom: "1.5rem",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        flexWrap: "wrap",
-        gap: "1rem",
-        backdropFilter: "blur(12px)",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-      }}
-    >
+    <div className="draw-countdown-box">
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
         <div
           style={{
