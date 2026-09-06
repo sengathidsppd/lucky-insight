@@ -489,8 +489,61 @@ export default function FamilyFinancePage() {
       ]);
     }
     
-    // 2. Batch Sync
+    // 2. Delete Transaction by ID
+    if (data.action === "delete" && data.id) {
+      var lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        var idValues = sheet.getRange(2, 9, lastRow - 1, 1).getValues();
+        for (var i = idValues.length - 1; i >= 0; i--) {
+          if (String(idValues[i][0]).trim() === String(data.id).trim()) {
+            sheet.deleteRow(i + 2);
+            return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Deleted row" }))
+              .setMimeType(ContentService.MimeType.JSON);
+          }
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ status: "not_found" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // 3. Update Transaction in-place by ID
+    if (data.action === "update" && (data.transaction || data)) {
+      var tx = data.transaction || data;
+      var lastRow = sheet.getLastRow();
+      if (lastRow > 1 && tx.id) {
+        var idValues = sheet.getRange(2, 9, lastRow - 1, 1).getValues();
+        for (var j = 0; j < idValues.length; j++) {
+          if (String(idValues[j][0]).trim() === String(tx.id).trim()) {
+            var rowIdx = j + 2;
+            sheet.getRange(rowIdx, 1, 1, 9).setValues([[
+              tx.date || "",
+              tx.type || "",
+              tx.category || "",
+              tx.payer || "",
+              tx.amount || 0,
+              tx.currency || "LAK",
+              tx.description || "",
+              tx.created_at || "",
+              tx.id
+            ]]);
+            return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Updated row" }))
+              .setMimeType(ContentService.MimeType.JSON);
+          }
+        }
+      }
+      appendTx(tx);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Appended updated" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // 4. Batch Sync (Wipes old rows if wipe_existing is true)
     if (data.action === "batch_sync" && Array.isArray(data.transactions)) {
+      if (data.wipe_existing) {
+        var totalRows = sheet.getLastRow();
+        if (totalRows > 1) {
+          sheet.deleteRows(2, totalRows - 1);
+        }
+      }
       data.transactions.forEach(function(tx) {
         appendTx(tx);
       });
@@ -498,9 +551,9 @@ export default function FamilyFinancePage() {
         .setMimeType(ContentService.MimeType.JSON);
     }
     
-    // 3. Single Transaction Sync
-    var tx = data.transaction || data;
-    appendTx(tx);
+    // 5. Single Transaction Sync (Create)
+    var newTx = data.transaction || data;
+    appendTx(newTx);
     
     return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
       .setMimeType(ContentService.MimeType.JSON);

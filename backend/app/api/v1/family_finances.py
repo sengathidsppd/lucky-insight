@@ -117,6 +117,7 @@ def create_transaction(
 def update_transaction(
     transaction_id: uuid.UUID,
     payload: FamilyTransactionUpdate,
+    background_tasks: BackgroundTasks,
     service: FamilyFinanceService = Depends(get_finance_service),
     _: User = Depends(require_family_member),
     db: Session = Depends(get_db),
@@ -129,12 +130,32 @@ def update_transaction(
             detail="Transaction not found.",
         )
     db.commit()
+    db.refresh(updated)
+
+    # Format payload BEFORE session closes
+    tx_payload = GoogleSheetsService.format_transaction(updated)
+
+    try:
+        config = service.get_google_sheet_config()
+        webhook_url = (
+            config.webhook_url and config.webhook_url.strip()
+        ) or "https://script.google.com/macros/s/AKfycbzCrVAg0qzIT2Imkua44UovZOM2EjA9qbSqBM2t9winCLMTOWqFEAIRrT0HQXTOQpw0Fg/exec"
+        if config.is_auto_sync and webhook_url:
+            background_tasks.add_task(
+                GoogleSheetsService.update_transaction,
+                webhook_url,
+                tx_payload,
+            )
+    except Exception as exc:
+        logger.warning("Failed to schedule background Google Sheet update: %s", exc)
+
     return FamilyTransactionResponse.model_validate(updated)
 
 
 @router.delete("/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_transaction(
     transaction_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
     service: FamilyFinanceService = Depends(get_finance_service),
     _: User = Depends(require_family_member),
     db: Session = Depends(get_db),
@@ -142,6 +163,20 @@ def delete_transaction(
     """Delete a transaction by UUID."""
     service.delete_transaction(transaction_id)
     db.commit()
+
+    try:
+        config = service.get_google_sheet_config()
+        webhook_url = (
+            config.webhook_url and config.webhook_url.strip()
+        ) or "https://script.google.com/macros/s/AKfycbzCrVAg0qzIT2Imkua44UovZOM2EjA9qbSqBM2t9winCLMTOWqFEAIRrT0HQXTOQpw0Fg/exec"
+        if config.is_auto_sync and webhook_url:
+            background_tasks.add_task(
+                GoogleSheetsService.delete_transaction,
+                webhook_url,
+                str(transaction_id),
+            )
+    except Exception as exc:
+        logger.warning("Failed to schedule background Google Sheet delete: %s", exc)
 
 
 @router.get("/google-sheets", response_model=GoogleSheetConfig)

@@ -79,13 +79,57 @@ class GoogleSheetsService:
 
 
     @classmethod
-    def sync_all_transactions(cls, webhook_url: str, transactions: list[FamilyTransaction]) -> int:
+    def delete_transaction(cls, webhook_url: str, transaction_id: str) -> bool:
+        """Delete a transaction from Google Sheet by its ID in background."""
+        try:
+            payload = {
+                "action": "delete",
+                "id": str(transaction_id),
+            }
+            cls.send_payload(webhook_url, payload)
+            logger.info("Successfully deleted transaction %s from Google Sheet.", transaction_id)
+            return True
+        except Exception as exc:
+            logger.warning(
+                "Failed to delete transaction %s from Google Sheet: %s",
+                transaction_id,
+                exc,
+            )
+            return False
+
+    @classmethod
+    def update_transaction(cls, webhook_url: str, tx_data: dict[str, Any]) -> bool:
+        """Update a transaction in Google Sheet by its ID in background."""
+        try:
+            payload = {
+                "action": "update",
+                "transaction": tx_data,
+            }
+            cls.send_payload(webhook_url, payload)
+            logger.info("Successfully updated transaction %s in Google Sheet.", tx_data.get("id"))
+            return True
+        except Exception as exc:
+            logger.warning(
+                "Failed to update transaction %s in Google Sheet: %s",
+                tx_data.get("id"),
+                exc,
+            )
+            return False
+
+    @classmethod
+    def sync_all_transactions(
+        cls,
+        webhook_url: str,
+        transactions: list[FamilyTransaction],
+        wipe_existing: bool = True,
+    ) -> int:
         """Batch sync a list of transactions to Google Sheet. Returns count of synced items."""
         if not transactions:
             return 0
 
         payload = {
             "action": "batch_sync",
+            "wipe_existing": wipe_existing,
             "transactions": [cls.format_transaction(tx) for tx in transactions],
         }
         cls.send_payload(webhook_url, payload)
