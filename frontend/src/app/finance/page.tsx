@@ -83,6 +83,7 @@ export default function FamilyFinancePage() {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [modalType, setModalType] = useState<"INCOME" | "EXPENSE">("EXPENSE");
   const [amount, setAmount] = useState<string>("");
   const [category, setCategory] = useState<string>("Food & Groceries");
@@ -159,8 +160,12 @@ export default function FamilyFinancePage() {
       .filter((t) => t.transaction_type === modalType)
       .map((t) => t.category)
       .filter((c) => !removedCategories.includes(c));
-    return Array.from(new Set([...presets, ...custom, ...fromTx]));
-  }, [modalType, customIncomeCategories, customExpenseCategories, transactions, removedCategories]);
+    const list = Array.from(new Set([...presets, ...custom, ...fromTx]));
+    if (category && !list.includes(category)) {
+      list.push(category);
+    }
+    return list;
+  }, [modalType, customIncomeCategories, customExpenseCategories, transactions, removedCategories, category]);
 
   // Helper to format Date to YYYY-MM-DD using local time
   const formatLocalDate = (d: Date): string => {
@@ -220,7 +225,13 @@ export default function FamilyFinancePage() {
     fetchData();
   }, [currency, periodFilter, customDateFrom, customDateTo, isFamilyMember]);
 
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
+  };
+
   const openModal = (type: "INCOME" | "EXPENSE") => {
+    setEditingId(null);
     setModalType(type);
     setCategory(type === "INCOME" ? "Treasury Deposit" : "Food & Groceries");
     setPayerName(user?.email === "ning80074@gmail.com" ? "Ning" : "Suzu");
@@ -229,6 +240,25 @@ export default function FamilyFinancePage() {
     setIsAddingNewCategory(false);
     setNewCategoryInput("");
     setTxDate(formatLocalDate(new Date()));
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (tx: FamilyTransaction) => {
+    setEditingId(tx.id);
+    setModalType(tx.transaction_type);
+    setAmount(String(tx.amount));
+    setCategory(tx.category);
+    if (PAYER_PRESETS.filter((p) => p !== "Other").includes(tx.payer_name)) {
+      setPayerName(tx.payer_name);
+      setCustomPayer("");
+    } else {
+      setPayerName("Other");
+      setCustomPayer(tx.payer_name);
+    }
+    setDescription(tx.description || "");
+    setIsAddingNewCategory(false);
+    setNewCategoryInput("");
+    setTxDate(tx.transaction_date);
     setIsModalOpen(true);
   };
 
@@ -288,7 +318,7 @@ export default function FamilyFinancePage() {
     }
   };
 
-  const handleCreateTransaction = async (e: React.FormEvent) => {
+  const handleSaveTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
@@ -305,27 +335,41 @@ export default function FamilyFinancePage() {
 
     setIsSubmitting(true);
     try {
-      const created = await apiRequest<FamilyTransaction>("/finances", {
-        method: "POST",
-        body: JSON.stringify({
-          transaction_type: modalType,
-          amount: parsedAmount,
-          currency,
-          category: finalCategory,
-          payer_name: finalPayer,
-          description: description.trim() || null,
-          transaction_date: txDate,
-        }),
-      });
+      const payload = {
+        transaction_type: modalType,
+        amount: parsedAmount,
+        currency,
+        category: finalCategory,
+        payer_name: finalPayer,
+        description: description.trim() || null,
+        transaction_date: txDate,
+      };
 
-      if (created && created.id) {
-        setTransactions((prev) => [created, ...prev.filter((t) => t.id !== created.id)]);
+      if (editingId) {
+        const updated = await apiRequest<FamilyTransaction>(`/finances/${editingId}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+
+        if (updated && updated.id) {
+          setTransactions((prev) => prev.map((t) => (t.id === editingId ? updated : t)));
+        }
+      } else {
+        const created = await apiRequest<FamilyTransaction>("/finances", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+
+        if (created && created.id) {
+          setTransactions((prev) => [created, ...prev.filter((t) => t.id !== created.id)]);
+        }
       }
 
       setIsModalOpen(false);
+      setEditingId(null);
       await fetchData();
     } catch (err: any) {
-      alert(err?.message || "Failed to record transaction.");
+      alert(err?.message || (editingId ? "Failed to update transaction." : "Failed to record transaction."));
     } finally {
       setIsSubmitting(false);
     }
@@ -1537,27 +1581,54 @@ export default function FamilyFinancePage() {
                         {isInc ? "+" : "-"}{formatCurrency(tx.amount)}
                       </td>
                       <td style={{ padding: "1rem", textAlign: "center" }}>
-                        <button
-                          onClick={() => handleDeleteTransaction(tx.id)}
-                          title="Delete transaction"
-                          style={{
-                            background: "rgba(239, 68, 68, 0.12)",
-                            border: "1px solid rgba(239, 68, 68, 0.3)",
-                            color: "#ef4444",
-                            width: "32px",
-                            height: "32px",
-                            borderRadius: "8px",
-                            cursor: "pointer",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          </svg>
-                        </button>
+                        <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.45rem" }}>
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(tx)}
+                            title="Edit transaction"
+                            style={{
+                              background: "rgba(56, 189, 248, 0.12)",
+                              border: "1px solid rgba(56, 189, 248, 0.35)",
+                              color: "#38bdf8",
+                              width: "32px",
+                              height: "32px",
+                              borderRadius: "8px",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              transition: "all 0.15s ease",
+                            }}
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteTransaction(tx.id)}
+                            title="Delete transaction"
+                            style={{
+                              background: "rgba(239, 68, 68, 0.12)",
+                              border: "1px solid rgba(239, 68, 68, 0.3)",
+                              color: "#ef4444",
+                              width: "32px",
+                              height: "32px",
+                              borderRadius: "8px",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              transition: "all 0.15s ease",
+                            }}
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1602,10 +1673,14 @@ export default function FamilyFinancePage() {
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
               <h3 style={{ color: "#ffffff", fontSize: "1.35rem", fontWeight: 800 }}>
-                {modalType === "INCOME" ? "Deposit to Treasury" : "Record Expense Deduction"}
+                {editingId
+                  ? "Edit Transaction Record"
+                  : modalType === "INCOME"
+                  ? "Deposit to Treasury"
+                  : "Record Expense Deduction"}
               </h3>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 style={{
                   background: "transparent",
                   border: "none",
@@ -1672,7 +1747,7 @@ export default function FamilyFinancePage() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateTransaction} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <form onSubmit={handleSaveTransaction} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {/* Amount */}
               <div>
                 <label style={{ display: "block", color: "rgba(255, 255, 255, 0.8)", fontSize: "0.82rem", fontWeight: 700, marginBottom: "0.4rem" }}>
@@ -1960,7 +2035,7 @@ export default function FamilyFinancePage() {
               <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={closeModal}
                   style={{
                     flex: 1,
                     background: "rgba(255, 255, 255, 0.08)",
@@ -1995,7 +2070,13 @@ export default function FamilyFinancePage() {
                         : "0 4px 20px rgba(239, 68, 68, 0.35)",
                   }}
                 >
-                  {isSubmitting ? "Recording..." : modalType === "INCOME" ? "Confirm Deposit" : "Record Expense"}
+                  {isSubmitting
+                    ? "Saving..."
+                    : editingId
+                    ? "Update Transaction"
+                    : modalType === "INCOME"
+                    ? "Confirm Deposit"
+                    : "Record Expense"}
                 </button>
               </div>
             </form>

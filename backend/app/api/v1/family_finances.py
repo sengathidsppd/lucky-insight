@@ -15,6 +15,7 @@ from app.schemas.family_finance import (
     FamilyFinanceSummary,
     FamilyTransactionCreate,
     FamilyTransactionResponse,
+    FamilyTransactionUpdate,
 )
 from app.services.family_finance_service import FamilyFinanceService
 
@@ -87,6 +88,25 @@ def create_transaction(
     created = service.create_transaction(current_user.id, payload)
     db.commit()
     return FamilyTransactionResponse.model_validate(created)
+
+
+@router.put("/{transaction_id}", response_model=FamilyTransactionResponse)
+def update_transaction(
+    transaction_id: uuid.UUID,
+    payload: FamilyTransactionUpdate,
+    service: FamilyFinanceService = Depends(get_finance_service),
+    _: User = Depends(require_family_member),
+    db: Session = Depends(get_db),
+) -> FamilyTransactionResponse:
+    """Update an existing financial transaction."""
+    updated = service.update_transaction(transaction_id, payload)
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transaction not found.",
+        )
+    db.commit()
+    return FamilyTransactionResponse.model_validate(updated)
 
 
 @router.delete("/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -12,7 +12,7 @@ from app.models.base import Base
 from app.models.family_transaction import FamilyTransaction
 from app.models.user import User
 from app.repositories.family_finance_repository import FamilyFinanceRepository
-from app.schemas.family_finance import FamilyTransactionCreate
+from app.schemas.family_finance import FamilyTransactionCreate, FamilyTransactionUpdate
 from app.services.family_finance_service import FamilyFinanceService
 
 _TABLES = [
@@ -117,12 +117,31 @@ def test_family_finance_treasury_balance(
     assert payers["Suzu"] == 250000.0
     assert payers["Ning"] == 120000.0
 
-    # 6. Test soft delete updates net remaining balance dynamically
+    # 6. Test updating an existing transaction
+    updated_tx = finance_service.update_transaction(
+        tx_exp1.id,
+        FamilyTransactionUpdate(
+            amount=300000.0,
+            category="Dining Out",
+            description="Updated grocery bill with drinks",
+        ),
+    )
+    db_session.commit()
+    assert updated_tx is not None
+    assert updated_tx.amount == 300000.0
+    assert updated_tx.category == "Dining Out"
+    assert updated_tx.description == "Updated grocery bill with drinks"
+
+    summary_after_update = finance_service.get_summary(currency="LAK")
+    assert summary_after_update.total_expense == 420000.0
+    assert summary_after_update.net_balance == 4580000.0
+
+    # 7. Test soft delete updates net remaining balance dynamically
     finance_service.delete_transaction(tx_exp2.id)
     db_session.commit()
 
     updated_summary = finance_service.get_summary(currency="LAK")
-    assert updated_summary.total_expense == 250000.0
-    # Net Balance after deleting 120,000 expense = 5,000,000 - 250,000 = 4,750,000
-    assert updated_summary.net_balance == 4750000.0
+    assert updated_summary.total_expense == 300000.0
+    # Net Balance after deleting 120,000 expense = 5,000,000 - 300,000 = 4,700,000
+    assert updated_summary.net_balance == 4700000.0
     assert updated_summary.transaction_count == 2

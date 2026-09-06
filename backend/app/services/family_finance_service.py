@@ -11,6 +11,7 @@ from app.schemas.family_finance import (
     CategoryBreakdown,
     FamilyFinanceSummary,
     FamilyTransactionCreate,
+    FamilyTransactionUpdate,
     PayerBreakdown,
 )
 
@@ -38,6 +39,33 @@ class FamilyFinanceService:
             transaction_date=payload.transaction_date,
         )
         return self._repository.create(transaction)
+
+    def update_transaction(
+        self,
+        transaction_id: uuid.UUID,
+        payload: FamilyTransactionUpdate,
+    ) -> FamilyTransaction | None:
+        """Update an existing financial transaction."""
+        transaction = self._repository.get_by_id(transaction_id)
+        if not transaction:
+            return None
+
+        if payload.transaction_type is not None:
+            transaction.transaction_type = payload.transaction_type
+        if payload.amount is not None:
+            transaction.amount = round(payload.amount, 2)
+        if payload.currency is not None:
+            transaction.currency = payload.currency.upper()
+        if payload.category is not None:
+            transaction.category = payload.category.strip()
+        if payload.payer_name is not None:
+            transaction.payer_name = payload.payer_name.strip()
+        if payload.description is not None:
+            transaction.description = payload.description.strip() if payload.description else None
+        if payload.transaction_date is not None:
+            transaction.transaction_date = payload.transaction_date
+
+        return self._repository.update(transaction)
 
     def delete_transaction(self, transaction_id: uuid.UUID) -> None:
         """Soft-delete a transaction by its UUID."""
