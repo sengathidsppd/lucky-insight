@@ -68,7 +68,11 @@ export default function FamilyFinancePage() {
   const { user } = useAuth();
 
   const currency = "LAK";
-  const [periodFilter, setPeriodFilter] = useState<"ALL" | "THIS_MONTH">("ALL");
+  const [periodFilter, setPeriodFilter] = useState<"ALL" | "THIS_MONTH" | "CUSTOM">("THIS_MONTH");
+  const [customDateFrom, setCustomDateFrom] = useState<string>("");
+  const [customDateTo, setCustomDateTo] = useState<string>("");
+  const [payerFilter, setPayerFilter] = useState<string>("ALL");
+  const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [summary, setSummary] = useState<FamilyFinanceSummary | null>(null);
   const [transactions, setTransactions] = useState<FamilyTransaction[]>([]);
   const [typeFilter, setTypeFilter] = useState<"ALL" | "INCOME" | "EXPENSE">("ALL");
@@ -174,8 +178,14 @@ export default function FamilyFinancePage() {
       const lastDay = formatLocalDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
       return { date_from: firstDay, date_to: lastDay };
     }
+    if (periodFilter === "CUSTOM") {
+      const params: { date_from?: string; date_to?: string } = {};
+      if (customDateFrom) params.date_from = customDateFrom;
+      if (customDateTo) params.date_to = customDateTo;
+      return params;
+    }
     return {};
-  }, [periodFilter]);
+  }, [periodFilter, customDateFrom, customDateTo]);
 
   const fetchData = async () => {
     if (!isFamilyMember) return;
@@ -208,7 +218,7 @@ export default function FamilyFinancePage() {
 
   useEffect(() => {
     fetchData();
-  }, [currency, periodFilter, isFamilyMember]);
+  }, [currency, periodFilter, customDateFrom, customDateTo, isFamilyMember]);
 
   const openModal = (type: "INCOME" | "EXPENSE") => {
     setModalType(type);
@@ -415,12 +425,18 @@ export default function FamilyFinancePage() {
     const csvContent = "\uFEFF" + allCsvLines.join("\r\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    const periodLabel = periodFilter === "THIS_MONTH" ? "this_month" : "all_time";
-    const typeLabel = typeFilter.toLowerCase();
     const dateStr = formatLocalDate(new Date());
+    const parts = ["family_finance"];
+    if (periodFilter === "THIS_MONTH") parts.push("this_month");
+    else if (periodFilter === "ALL") parts.push("all_time");
+    else parts.push("custom_period");
+    if (typeFilter !== "ALL") parts.push(typeFilter.toLowerCase());
+    if (payerFilter !== "ALL") parts.push(payerFilter.toLowerCase().replace(/\s+/g, "_"));
+    if (categoryFilter !== "ALL") parts.push(categoryFilter.toLowerCase().replace(/\s+/g, "_"));
+    parts.push(dateStr);
+    const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `family_finance_${periodLabel}_${typeLabel}_${dateStr}.csv`);
+    link.setAttribute("download", `${parts.join("_")}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -432,11 +448,69 @@ export default function FamilyFinancePage() {
     return `₭ ${num.toLocaleString("en-US")}`;
   };
 
+  // List of available payers for filtering
+  const availablePayers = useMemo(() => {
+    const presets = PAYER_PRESETS.filter((p) => p !== "Other");
+    const fromTx = transactions.map((t) => t.payer_name).filter(Boolean);
+    return ["ALL", ...Array.from(new Set([...presets, ...fromTx]))];
+  }, [transactions]);
+
+  // List of all categories for filtering
+  const allFilterCategories = useMemo(() => {
+    const presets = [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES];
+    const custom = [...customIncomeCategories, ...customExpenseCategories].filter(
+      (c) => !removedCategories.includes(c)
+    );
+    const fromTx = transactions.map((t) => t.category).filter((c) => !removedCategories.includes(c));
+    return ["ALL", ...Array.from(new Set([...presets, ...custom, ...fromTx]))];
+  }, [customIncomeCategories, customExpenseCategories, transactions, removedCategories]);
+
   // Filtered transactions for the ledger table
   const displayedTransactions = useMemo(() => {
-    if (typeFilter === "ALL") return transactions;
-    return transactions.filter((t) => t.transaction_type === typeFilter);
-  }, [transactions, typeFilter]);
+    return transactions.filter((t) => {
+      if (typeFilter !== "ALL" && t.transaction_type !== typeFilter) return false;
+      if (payerFilter !== "ALL" && t.payer_name !== payerFilter) return false;
+      if (categoryFilter !== "ALL" && t.category !== categoryFilter) return false;
+      if (periodFilter === "CUSTOM") {
+        if (customDateFrom && t.transaction_date < customDateFrom) return false;
+        if (customDateTo && t.transaction_date > customDateTo) return false;
+      }
+      return true;
+    });
+  }, [transactions, typeFilter, payerFilter, categoryFilter, periodFilter, customDateFrom, customDateTo]);
+
+  // Micro-summary computed strictly from displayed transactions
+  const filteredMetrics = useMemo(() => {
+    let inflow = 0;
+    let expense = 0;
+    displayedTransactions.forEach((tx) => {
+      if (tx.transaction_type === "INCOME") inflow += tx.amount;
+      else if (tx.transaction_type === "EXPENSE") expense += tx.amount;
+    });
+    return {
+      count: displayedTransactions.length,
+      inflow,
+      expense,
+      net: inflow - expense,
+    };
+  }, [displayedTransactions]);
+
+  const isFilteredActive =
+    typeFilter !== "ALL" ||
+    payerFilter !== "ALL" ||
+    categoryFilter !== "ALL" ||
+    periodFilter !== "THIS_MONTH" ||
+    customDateFrom !== "" ||
+    customDateTo !== "";
+
+  const handleResetFilters = () => {
+    setTypeFilter("ALL");
+    setPayerFilter("ALL");
+    setCategoryFilter("ALL");
+    setPeriodFilter("THIS_MONTH");
+    setCustomDateFrom("");
+    setCustomDateTo("");
+  };
 
   if (!isFamilyMember) {
     return (
@@ -613,6 +687,21 @@ export default function FamilyFinancePage() {
               }}
             >
               This Month
+            </button>
+            <button
+              onClick={() => setPeriodFilter("CUSTOM")}
+              style={{
+                background: periodFilter === "CUSTOM" ? "rgba(255, 255, 255, 0.15)" : "transparent",
+                color: periodFilter === "CUSTOM" ? "#ffffff" : "rgba(255, 255, 255, 0.6)",
+                border: "none",
+                fontWeight: 600,
+                padding: "0.45rem 0.9rem",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "0.85rem",
+              }}
+            >
+              Custom Dates
             </button>
           </div>
 
@@ -1078,7 +1167,7 @@ export default function FamilyFinancePage() {
             alignItems: "center",
             flexWrap: "wrap",
             gap: "1rem",
-            marginBottom: "1.5rem",
+            marginBottom: "1.25rem",
           }}
         >
           <div>
@@ -1090,67 +1179,288 @@ export default function FamilyFinancePage() {
             </p>
           </div>
 
-          {/* Controls: Filter Tabs & Export */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-            {/* Filter Tabs */}
-            <div
-              style={{
-                background: "rgba(10, 2, 18, 0.7)",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
-                borderRadius: "10px",
-                padding: "0.25rem",
-                display: "flex",
-                gap: "0.3rem",
-              }}
-            >
-              {(["ALL", "INCOME", "EXPENSE"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTypeFilter(t)}
-                  style={{
-                    background: typeFilter === t ? "rgba(255, 255, 255, 0.15)" : "transparent",
-                    color: typeFilter === t ? "#ffffff" : "rgba(255, 255, 255, 0.6)",
-                    border: "none",
-                    fontWeight: 600,
-                    fontSize: "0.82rem",
-                    padding: "0.4rem 0.85rem",
-                    borderRadius: "7px",
-                    cursor: "pointer",
-                  }}
-                >
-                  {t === "ALL" ? "All Entries" : t === "INCOME" ? "Inflows Only" : "Expenses Only"}
-                </button>
-              ))}
+          <button
+            onClick={handleExportToExcel}
+            disabled={displayedTransactions.length === 0}
+            title="Export displayed records to Microsoft Excel CSV format"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.45rem",
+              background: "rgba(16, 185, 129, 0.12)",
+              border: "1px solid rgba(16, 185, 129, 0.35)",
+              color: "#10b981",
+              padding: "0.5rem 1.1rem",
+              borderRadius: "10px",
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              cursor: displayedTransactions.length === 0 ? "not-allowed" : "pointer",
+              opacity: displayedTransactions.length === 0 ? 0.5 : 1,
+              transition: "all 0.2s ease",
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Export to Excel
+          </button>
+        </div>
+
+        {/* Enhanced Filter Toolbar */}
+        <div
+          style={{
+            background: "rgba(10, 2, 18, 0.7)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            borderRadius: "14px",
+            padding: "1rem 1.25rem",
+            marginBottom: "1.5rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.85rem",
+          }}
+        >
+          {/* Row 1: Period Tabs & Type Tabs */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "0.85rem",
+            }}
+          >
+            {/* Period Quick Select */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+              <span style={{ color: "rgba(255, 255, 255, 0.5)", fontSize: "0.78rem", fontWeight: 700, textTransform: "uppercase" }}>
+                Period:
+              </span>
+              <div
+                style={{
+                  background: "rgba(0, 0, 0, 0.4)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderRadius: "8px",
+                  padding: "0.2rem",
+                  display: "flex",
+                  gap: "0.2rem",
+                }}
+              >
+                {(["THIS_MONTH", "ALL", "CUSTOM"] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPeriodFilter(p)}
+                    style={{
+                      background: periodFilter === p ? "rgba(255, 255, 255, 0.15)" : "transparent",
+                      color: periodFilter === p ? "#ffffff" : "rgba(255, 255, 255, 0.6)",
+                      border: "none",
+                      fontWeight: 600,
+                      fontSize: "0.8rem",
+                      padding: "0.35rem 0.75rem",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {p === "THIS_MONTH" ? "This Month" : p === "ALL" ? "All Time" : "Custom Dates"}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Export to Excel Button */}
-            <button
-              onClick={handleExportToExcel}
-              disabled={displayedTransactions.length === 0}
-              title="Export displayed records to Microsoft Excel CSV format"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.45rem",
-                background: "rgba(16, 185, 129, 0.12)",
-                border: "1px solid rgba(16, 185, 129, 0.35)",
-                color: "#10b981",
-                padding: "0.42rem 0.9rem",
-                borderRadius: "9px",
-                fontWeight: 700,
-                fontSize: "0.82rem",
-                cursor: displayedTransactions.length === 0 ? "not-allowed" : "pointer",
-                opacity: displayedTransactions.length === 0 ? 0.5 : 1,
-                transition: "all 0.2s ease",
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              Export to Excel
-            </button>
+            {/* Type Quick Select */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+              <span style={{ color: "rgba(255, 255, 255, 0.5)", fontSize: "0.78rem", fontWeight: 700, textTransform: "uppercase" }}>
+                Type:
+              </span>
+              <div
+                style={{
+                  background: "rgba(0, 0, 0, 0.4)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderRadius: "8px",
+                  padding: "0.2rem",
+                  display: "flex",
+                  gap: "0.2rem",
+                }}
+              >
+                {(["ALL", "INCOME", "EXPENSE"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTypeFilter(t)}
+                    style={{
+                      background: typeFilter === t ? "rgba(255, 255, 255, 0.15)" : "transparent",
+                      color: typeFilter === t ? "#ffffff" : "rgba(255, 255, 255, 0.6)",
+                      border: "none",
+                      fontWeight: 600,
+                      fontSize: "0.8rem",
+                      padding: "0.35rem 0.75rem",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {t === "ALL" ? "All Types" : t === "INCOME" ? "Inflows Only" : "Expenses Only"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2: Selectors for Payer, Category, and Custom Date Inputs */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "0.85rem",
+              paddingTop: "0.75rem",
+              borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+            }}
+          >
+            {/* Payer Dropdown */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              <label style={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "0.8rem", fontWeight: 600 }}>
+                Payer:
+              </label>
+              <select
+                value={payerFilter}
+                onChange={(e) => setPayerFilter(e.target.value)}
+                style={{
+                  background: "#18092e",
+                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                  borderRadius: "8px",
+                  padding: "0.4rem 0.75rem",
+                  color: "#ffffff",
+                  fontSize: "0.82rem",
+                  outline: "none",
+                  cursor: "pointer",
+                }}
+              >
+                {availablePayers.map((p) => (
+                  <option key={p} value={p}>
+                    {p === "ALL" ? "All Payers" : p}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Category Dropdown */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              <label style={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "0.8rem", fontWeight: 600 }}>
+                Category:
+              </label>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                style={{
+                  background: "#18092e",
+                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                  borderRadius: "8px",
+                  padding: "0.4rem 0.75rem",
+                  color: "#ffffff",
+                  fontSize: "0.82rem",
+                  outline: "none",
+                  cursor: "pointer",
+                  maxWidth: "220px",
+                }}
+              >
+                {allFilterCategories.map((c) => (
+                  <option key={c} value={c}>
+                    {c === "ALL" ? "All Categories" : c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Custom Dates Inputs (shown if periodFilter === "CUSTOM") */}
+            {periodFilter === "CUSTOM" && (
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                <label style={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "0.8rem", fontWeight: 600 }}>
+                  From:
+                </label>
+                <input
+                  type="date"
+                  value={customDateFrom}
+                  onChange={(e) => setCustomDateFrom(e.target.value)}
+                  style={{
+                    background: "#18092e",
+                    border: "1px solid rgba(255, 255, 255, 0.15)",
+                    borderRadius: "8px",
+                    padding: "0.35rem 0.6rem",
+                    color: "#ffffff",
+                    fontSize: "0.82rem",
+                    outline: "none",
+                  }}
+                />
+                <label style={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "0.8rem", fontWeight: 600 }}>
+                  To:
+                </label>
+                <input
+                  type="date"
+                  value={customDateTo}
+                  onChange={(e) => setCustomDateTo(e.target.value)}
+                  style={{
+                    background: "#18092e",
+                    border: "1px solid rgba(255, 255, 255, 0.15)",
+                    borderRadius: "8px",
+                    padding: "0.35rem 0.6rem",
+                    color: "#ffffff",
+                    fontSize: "0.82rem",
+                    outline: "none",
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Reset Filters button */}
+            {isFilteredActive && (
+              <button
+                onClick={handleResetFilters}
+                title="Reset all filters back to default"
+                style={{
+                  background: "rgba(239, 68, 68, 0.12)",
+                  border: "1px solid rgba(239, 68, 68, 0.35)",
+                  color: "#f87171",
+                  padding: "0.38rem 0.85rem",
+                  borderRadius: "8px",
+                  fontSize: "0.8rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  marginLeft: "auto",
+                }}
+              >
+                Reset Filters
+              </button>
+            )}
+          </div>
+
+          {/* Row 3: Active Filter Status Strip */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "0.6rem",
+              fontSize: "0.8rem",
+              color: "rgba(255, 255, 255, 0.6)",
+              paddingTop: "0.5rem",
+            }}
+          >
+            <div>
+              Showing <span style={{ color: "#ffd700", fontWeight: 800 }}>{filteredMetrics.count}</span> matching {filteredMetrics.count === 1 ? "record" : "records"}
+              {payerFilter !== "ALL" && <span> • Payer: <strong style={{ color: "#ffffff" }}>{payerFilter}</strong></span>}
+              {categoryFilter !== "ALL" && <span> • Category: <strong style={{ color: "#ffffff" }}>{categoryFilter}</strong></span>}
+              {periodFilter === "CUSTOM" && (customDateFrom || customDateTo) && (
+                <span> • Range: <strong style={{ color: "#ffffff" }}>{customDateFrom || "Start"} to {customDateTo || "End"}</strong></span>
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: "0.9rem", flexWrap: "wrap", fontWeight: 700 }}>
+              <span style={{ color: "#10b981" }}>Inflow: +{formatCurrency(filteredMetrics.inflow)}</span>
+              <span style={{ color: "#ef4444" }}>Outflow: -{formatCurrency(filteredMetrics.expense)}</span>
+              <span style={{ color: filteredMetrics.net >= 0 ? "#ffd700" : "#f87171" }}>
+                Net: {formatCurrency(filteredMetrics.net)}
+              </span>
+            </div>
           </div>
         </div>
 
