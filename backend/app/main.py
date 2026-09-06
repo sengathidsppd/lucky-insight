@@ -71,6 +71,17 @@ def _initialize_db() -> None:
             ).delete(synchronize_session=False)
             db.commit()
 
+            # Seed default Google Sheet URL if not set
+            from app.models.family_setting import FamilySetting
+            default_sheet_url = "https://docs.google.com/spreadsheets/d/1zgDD-TVtAAseMyuBfLG_saz9ejn_c0_RcOhvQfkSimc/edit?usp=sharing"
+            sheet_setting = db.query(FamilySetting).filter(FamilySetting.key == "google_sheet_view_url").first()
+            if not sheet_setting:
+                db.add(FamilySetting(key="google_sheet_view_url", value=default_sheet_url))
+                db.commit()
+            elif not sheet_setting.value:
+                sheet_setting.value = default_sheet_url
+                db.commit()
+
         finally:
             db.close()
 

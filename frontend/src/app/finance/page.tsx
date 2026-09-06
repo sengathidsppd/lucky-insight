@@ -91,15 +91,18 @@ export default function FamilyFinancePage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const DEFAULT_SHEET_URL =
+    "https://docs.google.com/spreadsheets/d/1zgDD-TVtAAseMyuBfLG_saz9ejn_c0_RcOhvQfkSimc/edit?usp=sharing";
+
   // Google Sheets Integration State
   const [sheetConfig, setSheetConfig] = useState<GoogleSheetConfig>({
     webhook_url: null,
-    sheet_url: null,
+    sheet_url: DEFAULT_SHEET_URL,
     is_auto_sync: true,
   });
   const [isSheetModalOpen, setIsSheetModalOpen] = useState<boolean>(false);
   const [inputWebhookUrl, setInputWebhookUrl] = useState<string>("");
-  const [inputSheetUrl, setInputSheetUrl] = useState<string>("");
+  const [inputSheetUrl, setInputSheetUrl] = useState<string>(DEFAULT_SHEET_URL);
   const [inputAutoSync, setInputAutoSync] = useState<boolean>(true);
   const [activeGuideTab, setActiveGuideTab] = useState<"settings" | "instructions">("settings");
   const [isTestingSheet, setIsTestingSheet] = useState<boolean>(false);
