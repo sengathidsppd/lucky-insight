@@ -432,11 +432,11 @@ class AnalysisService:
         chosen_3d = top_5_3d[0] if top_5_3d else {"number": "000", "score": 0.0}
         enriched_3d = [enrich_markov(x, 3) for x in top_5_3d]
 
-        # 2D: Sample 3 from top 10
+        # 2D: Sample 3 from top 25
         scored_2d_all = [{"number": f"{x:02d}", "score": score_markov_2d(f"{x:02d}")} for x in range(100)]
         scored_2d_all.sort(key=lambda x: (-x["score"], x["number"]))
-        top_10_2d_markov = list(scored_2d_all[:10])
-        sampled_2d_markov = random.sample(top_10_2d_markov, min(3, len(top_10_2d_markov)))
+        top_25_2d_markov = list(scored_2d_all[:25])
+        sampled_2d_markov = random.sample(top_25_2d_markov, min(3, len(top_25_2d_markov)))
         sampled_2d_markov.sort(key=lambda x: -x["score"])
         enriched_2d = [enrich_markov(x, 2) for x in sampled_2d_markov]
 
@@ -689,9 +689,9 @@ class AnalysisService:
 
         scored_6d.sort(key=lambda x: (-x["score"], x["number"]))
 
-        # 6D: Random selection from top 50 candidates
-        top_50_6d = list(scored_6d[:50])
-        chosen_6d = secrets.choice(top_50_6d) if top_50_6d else (scored_6d[0] if scored_6d else {"number": "000000", "score": 0.0, "audit": {}})
+        # 6D: Random selection from top 100 candidates
+        top_100_6d = list(scored_6d[:100])
+        chosen_6d = secrets.choice(top_100_6d) if top_100_6d else (scored_6d[0] if scored_6d else {"number": "000000", "score": 0.0, "audit": {}})
         pick_1_str = chosen_6d["number"]
         remaining_6d = [x for x in scored_6d if x["number"] != chosen_6d["number"]]
         best_100_6d = [chosen_6d] + remaining_6d[:99]
@@ -758,15 +758,15 @@ class AnalysisService:
             final_score = weighted_total
             return round(final_score, 2)
 
-        # 2D: Randomly sample 3 sets from top 10 candidates
+        # 2D: Randomly sample 3 sets from top 25 candidates
         scored_2d_all = []
         for x in range(100):
             num_2d = f"{x:02d}"
             scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
         scored_2d_all.sort(key=lambda item: (-item["score"], item["number"]))
-        top_10_2d = list(scored_2d_all[:10])
+        top_25_2d = list(scored_2d_all[:25])
 
-        top_3_2d = random.sample(top_10_2d, min(3, len(top_10_2d)))
+        top_3_2d = random.sample(top_25_2d, min(3, len(top_25_2d)))
         top_3_2d.sort(key=lambda item: -item["score"])
 
         # Score Front 3-digit combinations (positions 0, 1, 2 of a 6-digit draw)
