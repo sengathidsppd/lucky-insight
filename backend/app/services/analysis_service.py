@@ -2,6 +2,7 @@
 
 import itertools
 import math
+import random
 import secrets
 import uuid
 from collections import Counter, defaultdict
@@ -431,10 +432,13 @@ class AnalysisService:
         chosen_3d = top_5_3d[0] if top_5_3d else {"number": "000", "score": 0.0}
         enriched_3d = [enrich_markov(x, 3) for x in top_5_3d]
 
-        # 2D (Deterministic Option B)
+        # 2D: Sample 3 from top 10
         scored_2d_all = [{"number": f"{x:02d}", "score": score_markov_2d(f"{x:02d}")} for x in range(100)]
         scored_2d_all.sort(key=lambda x: (-x["score"], x["number"]))
-        enriched_2d = [enrich_markov(x, 2) for x in scored_2d_all[:5]]
+        top_10_2d_markov = list(scored_2d_all[:10])
+        sampled_2d_markov = random.sample(top_10_2d_markov, min(3, len(top_10_2d_markov)))
+        sampled_2d_markov.sort(key=lambda x: -x["score"])
+        enriched_2d = [enrich_markov(x, 2) for x in sampled_2d_markov]
 
         # Front 3D (Deterministic Option B)
         scored_f3d_all = [{"number": f"{x:03d}", "score": score_markov_f3d(f"{x:03d}")} for x in range(1000)]
@@ -685,11 +689,12 @@ class AnalysisService:
 
         scored_6d.sort(key=lambda x: (-x["score"], x["number"]))
 
-        # 6D: Deterministic Rank 1 selection (Option B)
-        top_100_6d_raw = list(scored_6d[:100])
-        chosen_6d = top_100_6d_raw[0] if top_100_6d_raw else {"number": "000000", "score": 0.0, "audit": {}}
+        # 6D: Random selection from top 50 candidates
+        top_50_6d = list(scored_6d[:50])
+        chosen_6d = secrets.choice(top_50_6d) if top_50_6d else (scored_6d[0] if scored_6d else {"number": "000000", "score": 0.0, "audit": {}})
         pick_1_str = chosen_6d["number"]
-        best_100_6d = top_100_6d_raw
+        remaining_6d = [x for x in scored_6d if x["number"] != chosen_6d["number"]]
+        best_100_6d = [chosen_6d] + remaining_6d[:99]
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
@@ -753,37 +758,16 @@ class AnalysisService:
             final_score = weighted_total
             return round(final_score, 2)
 
-        # 2D: Deterministic Top candidates (Option B)
+        # 2D: Randomly sample 3 sets from top 10 candidates
         scored_2d_all = []
         for x in range(100):
             num_2d = f"{x:02d}"
             scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
         scored_2d_all.sort(key=lambda item: (-item["score"], item["number"]))
-        top_30_2d_raw = list(scored_2d_all[:30])
+        top_10_2d = list(scored_2d_all[:10])
 
-        forbidden_2d = {pick_1_str[-2:]} if len(pick_1_str) >= 2 else set()
-        pool_2d = [x for x in top_30_2d_raw if x["number"] not in forbidden_2d]
-        if len(pool_2d) < 3:
-            pool_2d = list(top_30_2d_raw)
-
-        chosen_2d_list = []
-        chosen_2d_set = set()
-        for item in pool_2d:
-            if item["number"] not in chosen_2d_set:
-                chosen_2d_list.append(item)
-                chosen_2d_set.add(item["number"])
-            if len(chosen_2d_list) == 3:
-                break
-
-        if len(chosen_2d_list) < 3:
-            for item in scored_2d_all:
-                if item["number"] not in chosen_2d_set:
-                    chosen_2d_list.append(item)
-                    chosen_2d_set.add(item["number"])
-                if len(chosen_2d_list) == 3:
-                    break
-
-        top_3_2d = chosen_2d_list
+        top_3_2d = random.sample(top_10_2d, min(3, len(top_10_2d)))
+        top_3_2d.sort(key=lambda item: -item["score"])
 
         # Score Front 3-digit combinations (positions 0, 1, 2 of a 6-digit draw)
         def score_front_3d(num_str: str) -> float:
