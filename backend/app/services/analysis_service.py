@@ -418,20 +418,6 @@ class AnalysisService:
             enrich_markov({"number": best_6d_num_2, "score": score_markov_6d(best_6d_num_2)}, 6),
         ]
 
-        # 4D (Deterministic Option B)
-        scored_4d_all = [{"number": f"{x:04d}", "score": score_markov_4d(f"{x:04d}")} for x in range(10000)]
-        scored_4d_all.sort(key=lambda x: (-x["score"], x["number"]))
-        top_5_4d = list(scored_4d_all[:5])
-        chosen_4d = top_5_4d[0] if top_5_4d else {"number": "0000", "score": 0.0}
-        enriched_4d = [enrich_markov(x, 4) for x in top_5_4d]
-
-        # 3D (Deterministic Option B)
-        scored_3d_all = [{"number": f"{x:03d}", "score": score_markov_3d(f"{x:03d}")} for x in range(1000)]
-        scored_3d_all.sort(key=lambda x: (-x["score"], x["number"]))
-        top_5_3d = list(scored_3d_all[:5])
-        chosen_3d = top_5_3d[0] if top_5_3d else {"number": "000", "score": 0.0}
-        enriched_3d = [enrich_markov(x, 3) for x in top_5_3d]
-
         # 2D: Sample 3 from top 25
         scored_2d_all = [{"number": f"{x:02d}", "score": score_markov_2d(f"{x:02d}")} for x in range(100)]
         scored_2d_all.sort(key=lambda x: (-x["score"], x["number"]))
@@ -439,6 +425,20 @@ class AnalysisService:
         sampled_2d_markov = random.sample(top_25_2d_markov, min(3, len(top_25_2d_markov)))
         sampled_2d_markov.sort(key=lambda x: -x["score"])
         enriched_2d = [enrich_markov(x, 2) for x in sampled_2d_markov]
+
+        # 4D: Super Admin VIP 4D candidate derived from 2D Pick #2
+        pick_2_2d_m = sampled_2d_markov[1]["number"] if len(sampled_2d_markov) > 1 else (sampled_2d_markov[0]["number"] if sampled_2d_markov else "00")
+        scored_4d_m = [{"number": f"{front:02d}{pick_2_2d_m}", "score": score_markov_4d(f"{front:02d}{pick_2_2d_m}")} for front in range(100)]
+        scored_4d_m.sort(key=lambda x: (-x["score"], x["number"]))
+        chosen_4d = scored_4d_m[0] if scored_4d_m else {"number": f"00{pick_2_2d_m}", "score": 0.0}
+        enriched_4d = [enrich_markov(x, 4) for x in scored_4d_m[:5]]
+
+        # 3D (Deterministic Option B)
+        scored_3d_all = [{"number": f"{x:03d}", "score": score_markov_3d(f"{x:03d}")} for x in range(1000)]
+        scored_3d_all.sort(key=lambda x: (-x["score"], x["number"]))
+        top_5_3d = list(scored_3d_all[:5])
+        chosen_3d = top_5_3d[0] if top_5_3d else {"number": "000", "score": 0.0}
+        enriched_3d = [enrich_markov(x, 3) for x in top_5_3d]
 
         # Front 3D (Deterministic Option B)
         scored_f3d_all = [{"number": f"{x:03d}", "score": score_markov_f3d(f"{x:03d}")} for x in range(1000)]
@@ -809,15 +809,15 @@ class AnalysisService:
         # Back 3D: Deterministic top 2 picks for Thai Lottery (Option B)
         chosen_b3d_list = top_100_3d_raw[:2]
 
-        # 4D: Deterministic Top candidates (Option B)
-        scored_4d_all = []
-        for x in range(10000):
-            num_4d = f"{x:04d}"
-            scored_4d_all.append({"number": num_4d, "score": score_4d(num_4d)})
-        scored_4d_all.sort(key=lambda item: (-item["score"], item["number"]))
-        top_100_4d_raw = list(scored_4d_all[:100])
-        chosen_4d = top_100_4d_raw[0] if top_100_4d_raw else {"number": "0000", "score": 0.0}
-        top_100_4d = top_100_4d_raw
+        # 4D: Super Admin VIP 4D candidate derived by prepending optimal 2 digits to 2D Pick #2
+        pick_2_2d_str = top_3_2d[1]["number"] if len(top_3_2d) > 1 else (top_3_2d[0]["number"] if top_3_2d else "00")
+        scored_4d_pick2 = []
+        for front in range(100):
+            cand_4d = f"{front:02d}{pick_2_2d_str}"
+            scored_4d_pick2.append({"number": cand_4d, "score": score_4d(cand_4d)})
+        scored_4d_pick2.sort(key=lambda item: (-item["score"], item["number"]))
+        chosen_4d = scored_4d_pick2[0] if scored_4d_pick2 else {"number": f"00{pick_2_2d_str}", "score": 0.0}
+        top_100_4d = scored_4d_pick2
 
         # AI Reasoning & Explainability Enrichment
         def enrich_item(item: dict[str, Any], length: int) -> dict[str, Any]:

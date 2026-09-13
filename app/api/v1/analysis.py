@@ -60,19 +60,21 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
             is_superadmin = bool(user and (user.email == "suzu@gmail.com" or getattr(user, "is_superadmin", False)))
             is_operator_admin = bool(user and user.is_admin and not is_superadmin)
 
-            # Redact 3D and 4D recommendations completely
+            # Redact 3D recommendations completely
             res_dict.pop("generated_3d_recommendations", None)
-            res_dict.pop("generated_4d_recommendations", None)
 
             if is_superadmin:
-                # Super Admin: 1x 6D, 3x 2D (no 4D, no 3D)
+                # Super Admin: 1x 6D, 1x 4D (derived from 2D#2), 1x 2D (pick #1)
                 if "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
                     res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:1]
+                if "generated_4d_recommendations" in res_dict and isinstance(res_dict["generated_4d_recommendations"], list):
+                    res_dict["generated_4d_recommendations"] = res_dict["generated_4d_recommendations"][:1]
                 if "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
-                    res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:3]
+                    res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:1]
 
             elif is_operator_admin:
                 # Operator Admin: 1x 6D (if not Thai), 3x 2D (no 4D, no 3D)
+                res_dict.pop("generated_4d_recommendations", None)
                 if "THAI" in game_code.upper():
                     res_dict.pop("best_analyzed_6d", None)
                 elif "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
@@ -82,6 +84,7 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
 
             elif user and not user.is_admin:
                 # Regular User: 3x 2D (no 6D, no 4D, no 3D)
+                res_dict.pop("generated_4d_recommendations", None)
                 res_dict.pop("best_analyzed_6d", None)
                 if "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
                     res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:3]
@@ -210,6 +213,7 @@ def create_analysis(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Daily analysis quota reached for {g_name}: 1 run per day. Please try again tomorrow or analyze a different game!",
             )
+
     try:
         job = service.create_and_run_analysis(
             current_user.id,
@@ -322,21 +326,66 @@ def export_analysis_csv(
     current_user: User = Depends(get_current_active_user),
     service: AnalysisService = Depends(get_analysis_service),
 ):
-    """Return CSV representation of analysis job result."""
+    """Return CSV representation of analysis job result showing last 2 digits only."""
     try:
         job = service.get_job(current_user.id, job_id)
         if not job.result:
             raise HTTPException(status_code=400, detail="Job has no result data to export")
             
+        from app.models.lottery_game import LotteryGame
+        game_id = (job.parameters or {}).get("game_id")
+        game_name = "Unknown Game"
+        if game_id:
+            game = db.query(LotteryGame).filter(LotteryGame.id == game_id).first()
+            if game:
+                game_name = game.name
+
         import csv, io
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow(["Analysis Type", "Status", "Created At", "Explanation"])
-        writer.writerow([job.analysis_type, job.status, str(job.created_at), job.result.explanation])
+        
+        # Write metadata headers
+        writer.writerow(["SUSU Lucky Analysis Report"])
+        writer.writerow(["Game", game_name])
+        writer.writerow(["Model Type", job.analysis_type])
+        writer.writerow(["Created At", str(job.created_at)])
         writer.writerow([])
-        writer.writerow(["Key", "Value"])
-        for k, v in job.result.result_data.items():
-            writer.writerow([k, str(v)])
+        
+        # Write recommended numbers (Trimming all numbers to last 2 digits only)
+        writer.writerow(["Recommended Category", "Number (Last 2 Digits Only)", "Score"])
+        
+        res_data = job.result.result_data or {}
+        
+        # 6D Pick (Trimmed to last 2 digits)
+        if "best_analyzed_6d" in res_data and res_data["best_analyzed_6d"]:
+            item = res_data["best_analyzed_6d"][0]
+            num = item.get("number", "") if isinstance(item, dict) else str(item)
+            score = item.get("score", "N/A") if isinstance(item, dict) else "N/A"
+            trimmed_num = num[-2:] if len(num) >= 2 else num
+            writer.writerow(["6-Digit Pick (Top 6D)", trimmed_num, score])
+            
+        # 3D Pick (Trimmed to last 2 digits)
+        if "generated_3d_recommendations" in res_data:
+            for idx, item in enumerate(res_data["generated_3d_recommendations"]):
+                num = item.get("number", "") if isinstance(item, dict) else str(item)
+                score = item.get("score", "N/A") if isinstance(item, dict) else "N/A"
+                trimmed_num = num[-2:] if len(num) >= 2 else num
+                writer.writerow([f"3-Digit Pick #{idx+1} (Top 3D)", trimmed_num, score])
+                
+        # 2D Picks (Trimmed to last 2 digits)
+        if "generated_2d_recommendations" in res_data:
+            for idx, item in enumerate(res_data["generated_2d_recommendations"]):
+                num = item.get("number", "") if isinstance(item, dict) else str(item)
+                score = item.get("score", "N/A") if isinstance(item, dict) else "N/A"
+                trimmed_num = num[-2:] if len(num) >= 2 else num
+                writer.writerow([f"2-Digit Pick #{idx+1} (Top 2D)", trimmed_num, score])
+                
+        # Optional metadata block
+        writer.writerow([])
+        writer.writerow(["General Stats Key", "Value"])
+        writer.writerow(["total_records_analyzed", res_data.get("total_records_analyzed", "N/A")])
+        if "top_single_digits" in res_data:
+            writer.writerow(["top_single_digits", str(res_data["top_single_digits"])])
             
         return Response(
             content=output.getvalue(),

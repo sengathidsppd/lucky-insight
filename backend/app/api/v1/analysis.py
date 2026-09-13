@@ -60,19 +60,21 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
             is_superadmin = bool(user and (user.email == "suzu@gmail.com" or getattr(user, "is_superadmin", False)))
             is_operator_admin = bool(user and user.is_admin and not is_superadmin)
 
-            # Redact 3D and 4D recommendations completely
+            # Redact 3D recommendations completely
             res_dict.pop("generated_3d_recommendations", None)
-            res_dict.pop("generated_4d_recommendations", None)
 
             if is_superadmin:
-                # Super Admin: 1x 6D, 3x 2D (no 4D, no 3D)
+                # Super Admin: 1x 6D, 1x 4D (derived from 2D#2), 1x 2D (pick #1)
                 if "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
                     res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:1]
+                if "generated_4d_recommendations" in res_dict and isinstance(res_dict["generated_4d_recommendations"], list):
+                    res_dict["generated_4d_recommendations"] = res_dict["generated_4d_recommendations"][:1]
                 if "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
-                    res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:3]
+                    res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:1]
 
             elif is_operator_admin:
                 # Operator Admin: 1x 6D (if not Thai), 3x 2D (no 4D, no 3D)
+                res_dict.pop("generated_4d_recommendations", None)
                 if "THAI" in game_code.upper():
                     res_dict.pop("best_analyzed_6d", None)
                 elif "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
@@ -82,6 +84,7 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
 
             elif user and not user.is_admin:
                 # Regular User: 3x 2D (no 6D, no 4D, no 3D)
+                res_dict.pop("generated_4d_recommendations", None)
                 res_dict.pop("best_analyzed_6d", None)
                 if "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
                     res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:3]

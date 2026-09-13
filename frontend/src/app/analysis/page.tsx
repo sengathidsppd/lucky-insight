@@ -793,12 +793,31 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                   </div>
                 )}
 
-                {/* 2-Digit Cards (3 Sets: Super Admin, Operator Admin, and Regular User) */}
+                {/* 4-Digit Card (Super Admin VIP Exclusive: 1 Set derived from 2D Pick #2) */}
+                {isSuperAdmin && details.generated_4d_recommendations?.[0] && (
+                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(168, 85, 247, 0.04)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                      <div style={{ fontSize: "0.95rem", color: "#c084fc", fontWeight: "bold", minWidth: "150px" }}>
+                        4-Digit Pick (Top 4D VIP)
+                      </div>
+                      <RecommendationMeta
+                        tags={details.generated_4d_recommendations[0].tags}
+                        confidence={details.generated_4d_recommendations[0].confidence_score}
+                        colorTheme="purple"
+                      />
+                    </div>
+                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#c084fc", letterSpacing: "5px", textShadow: "0 0 15px rgba(192, 132, 252, 0.5)" }}>
+                      {details.generated_4d_recommendations[0].number}
+                    </div>
+                  </div>
+                )}
+
+                {/* 2-Digit Cards (1 Set for Super Admin, 3 Sets for Operator Admin and Regular User) */}
                 {(() => {
                   let top2dList = [...(details.generated_2d_recommendations || [])];
 
                   // Fallback for older jobs: supplement with top 2-digit endings if less than 3
-                  if (top2dList.length < 3 && details.top_2digit_endings) {
+                  if (top2dList.length < 3 && details.top_2digit_endings && !isSuperAdmin) {
                     const existingSet = new Set(
                       top2dList.map((x: any) => (typeof x === "string" ? x : x.number))
                     );
@@ -811,7 +830,7 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                     }
                   }
 
-                  const display2dList = top2dList.slice(0, 3);
+                  const display2dList = isSuperAdmin ? top2dList.slice(0, 1) : top2dList.slice(0, 3);
 
                   return display2dList.map((item: any, idx: number) => {
                     const numStr = typeof item === "string" ? item : item?.number || "00";
