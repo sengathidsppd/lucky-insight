@@ -427,11 +427,18 @@ class AnalysisService:
         enriched_2d = [enrich_markov(x, 2) for x in sampled_2d_markov]
 
         # 4D: Super Admin VIP 4D candidate derived from 2D Pick #2
+        valid_4d_endings = [d[-4:] for d in chrono_draws if len(d) >= 4]
+        valid_3d_endings = [d[-3:] for d in chrono_draws if len(d) >= 3]
+        top_20_4d_m = [comb for comb, _ in Counter(valid_4d_endings).most_common(20)]
+        top_20_3d_m = [comb for comb, _ in Counter(valid_3d_endings).most_common(20)]
+        pool_d0_m = [ending[0] for ending in top_20_4d_m if len(ending) >= 4] or [str(d) for d in range(10)]
+        pool_d1_m = [ending[0] for ending in top_20_3d_m if len(ending) >= 3] or [str(d) for d in range(10)]
+        d0_m = secrets.choice(pool_d0_m)
+        d1_m = secrets.choice(pool_d1_m)
         pick_2_2d_m = sampled_2d_markov[1]["number"] if len(sampled_2d_markov) > 1 else (sampled_2d_markov[0]["number"] if sampled_2d_markov else "00")
-        scored_4d_m = [{"number": f"{front:02d}{pick_2_2d_m}", "score": score_markov_4d(f"{front:02d}{pick_2_2d_m}")} for front in range(100)]
-        scored_4d_m.sort(key=lambda x: (-x["score"], x["number"]))
-        chosen_4d = scored_4d_m[0] if scored_4d_m else {"number": f"00{pick_2_2d_m}", "score": 0.0}
-        enriched_4d = [enrich_markov(x, 4) for x in scored_4d_m[:5]]
+        final_4d_m_str = f"{d0_m}{d1_m}{pick_2_2d_m}"
+        chosen_4d = {"number": final_4d_m_str, "score": score_markov_4d(final_4d_m_str)}
+        enriched_4d = [enrich_markov(chosen_4d, 4)]
 
         # 3D (Deterministic Option B)
         scored_3d_all = [{"number": f"{x:03d}", "score": score_markov_3d(f"{x:03d}")} for x in range(1000)]
@@ -809,15 +816,35 @@ class AnalysisService:
         # Back 3D: Deterministic top 2 picks for Thai Lottery (Option B)
         chosen_b3d_list = top_100_3d_raw[:2]
 
-        # 4D: Super Admin VIP 4D candidate derived by prepending optimal 2 digits to 2D Pick #2
+        # 4D: Super Admin VIP 4D candidate:
+        # - 1st front digit: sampled from the first digit of Top 20 4-digit historical endings
+        # - 2nd front digit: sampled from the first digit of Top 20 3-digit historical endings
+        # - 3rd & 4th digits: exact 2-digit number of 2D Pick #2
+        top_20_4d_endings = [comb for comb, _ in Counter(endings_map[4]).most_common(20)]
+        top_20_3d_endings = [comb for comb, _ in Counter(endings_map[3]).most_common(20)]
+
+        pool_d0 = [ending[0] for ending in top_20_4d_endings if len(ending) >= 4]
+        if not pool_d0:
+            pool_d0 = [str(d) for d in range(10)]
+
+        pool_d1 = [ending[0] for ending in top_20_3d_endings if len(ending) >= 3]
+        if not pool_d1:
+            pool_d1 = [str(d) for d in range(10)]
+
+        d0_front = secrets.choice(pool_d0)
+        d1_front = secrets.choice(pool_d1)
+
         pick_2_2d_str = top_3_2d[1]["number"] if len(top_3_2d) > 1 else (top_3_2d[0]["number"] if top_3_2d else "00")
-        scored_4d_pick2 = []
+        final_4d_str = f"{d0_front}{d1_front}{pick_2_2d_str}"
+
+        chosen_4d = {"number": final_4d_str, "score": score_4d(final_4d_str)}
+        scored_4d_pick2 = [chosen_4d]
         for front in range(100):
             cand_4d = f"{front:02d}{pick_2_2d_str}"
-            scored_4d_pick2.append({"number": cand_4d, "score": score_4d(cand_4d)})
-        scored_4d_pick2.sort(key=lambda item: (-item["score"], item["number"]))
-        chosen_4d = scored_4d_pick2[0] if scored_4d_pick2 else {"number": f"00{pick_2_2d_str}", "score": 0.0}
-        top_100_4d = scored_4d_pick2
+            if cand_4d != final_4d_str:
+                scored_4d_pick2.append({"number": cand_4d, "score": score_4d(cand_4d)})
+        scored_4d_pick2.sort(key=lambda item: (-item["score"] if item["number"] != final_4d_str else -9999, item["number"]))
+        top_100_4d = [chosen_4d] + [x for x in scored_4d_pick2 if x["number"] != final_4d_str][:99]
 
         # AI Reasoning & Explainability Enrichment
         def enrich_item(item: dict[str, Any], length: int) -> dict[str, Any]:
