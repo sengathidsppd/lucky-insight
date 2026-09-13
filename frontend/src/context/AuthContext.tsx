@@ -119,12 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const loggedUser = userResp.data;
     setUser(loggedUser);
     loadAvatarForUser(loggedUser?.id);
-
-    if (loggedUser?.email === "ning80074@gmail.com") {
-      router.push("/finance");
-    } else {
-      router.push("/dashboard");
-    }
+    router.push("/dashboard");
   };
 
   const register = async (payload: Record<string, any>) => {

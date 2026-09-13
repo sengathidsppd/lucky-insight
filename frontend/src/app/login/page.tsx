@@ -16,11 +16,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
-      if (user.email === "ning80074@gmail.com") {
-        router.push("/finance");
-      } else {
-        router.push("/dashboard");
-      }
+      router.push("/dashboard");
     }
   }, [isLoading, isAuthenticated, user, router]);
 
