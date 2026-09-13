@@ -90,7 +90,7 @@ export default function NavigationShell({ children }: { children: React.ReactNod
         <div className="nav-header-inner">
           {/* Logo & Brand */}
           <Link
-            href={isFamilyMember ? "/finance" : "/dashboard"}
+            href="/dashboard"
             style={{
               textDecoration: "none",
               display: "flex",

@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(loggedUser);
     loadAvatarForUser(loggedUser?.id);
 
-    if (loggedUser?.email === "suzu@gmail.com" || loggedUser?.email === "ning80074@gmail.com") {
+    if (loggedUser?.email === "ning80074@gmail.com") {
       router.push("/finance");
     } else {
       router.push("/dashboard");
