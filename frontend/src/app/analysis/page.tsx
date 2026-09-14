@@ -39,6 +39,12 @@ export default function AnalysisPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // Animation States (Hybrid Combo: HUD Scanner + Slot Number Roller)
+  const [isScanningHUD, setIsScanningHUD] = useState(false);
+  const [hudProgress, setHudProgress] = useState(0);
+  const [hudStepText, setHudStepText] = useState("Initializing Statistical Engine...");
+  const [isSlotAnimating, setIsSlotAnimating] = useState(false);
+
   const [quotaInfo, setQuotaInfo] = useState<{ remaining: number; daily_limit: number; used_today: number }>({
     remaining: 1,
     daily_limit: 1,
@@ -117,6 +123,21 @@ export default function AnalysisPage() {
     setIsSubmitting(true);
     setError("");
 
+    // Trigger HUD Holographic Scanner
+    setIsScanningHUD(true);
+    setHudProgress(25);
+    setHudStepText("Scanning Historical Draws (100%)...");
+
+    const t1 = setTimeout(() => {
+      setHudProgress(60);
+      setHudStepText("Computing Markov State Flows & Matrices...");
+    }, 380);
+
+    const t2 = setTimeout(() => {
+      setHudProgress(88);
+      setHudStepText("Evaluating Poisson Overdue Factors...");
+    }, 750);
+
     try {
       const selectedGame = games.find((g) => g.code === gameCode);
       const safeType = ["HYBRID_ENSEMBLE", "COMPOSITE", "MONTE_CARLO", "MARKOV_CHAIN", "MARKOV", "FREQUENCY", "PAIR", "TRIPLE", "DISTRIBUTION", "TREND"].includes(analysisType)
@@ -132,21 +153,40 @@ export default function AnalysisPage() {
         },
       };
 
-      const resp = await apiRequest("/analysis/", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
+      // Guarantee minimum display time for HUD scanner (1150ms)
+      const minDuration = new Promise((resolve) => setTimeout(resolve, 1150));
+
+      const [resp] = await Promise.all([
+        apiRequest("/analysis/", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        }),
+        minDuration,
+      ]);
+
+      // Complete HUD Scanner
+      setHudProgress(100);
+      setHudStepText("Locking Optimal VIP Projections!");
+      await new Promise((r) => setTimeout(r, 250));
+      setIsScanningHUD(false);
 
       // Reload jobs and quota
       await fetchJobs();
       await fetchQuota();
 
-      // Automatically select the newly created job
+      // Automatically select the newly created job and trigger slot roll animation
       const newJob = resp.data;
       if (newJob) {
         setSelectedJob(newJob);
+        setIsSlotAnimating(true);
+        setTimeout(() => {
+          setIsSlotAnimating(false);
+        }, 1800);
       }
     } catch (err: any) {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      setIsScanningHUD(false);
       setError(err.message || "Failed to start analysis job.");
       await fetchQuota();
     } finally {
@@ -158,6 +198,10 @@ export default function AnalysisPage() {
     try {
       const resp = await apiRequest(`/analysis/${job.id}`);
       setSelectedJob(resp.data);
+      setIsSlotAnimating(true);
+      setTimeout(() => {
+        setIsSlotAnimating(false);
+      }, 1500);
     } catch (err: any) {
       alert("Failed to load details: " + err.message);
     }
@@ -449,7 +493,7 @@ export default function AnalysisPage() {
               </div>
 
               {selectedJob.status === "COMPLETED" ? (
-                <AnalysisResultVisualizer job={selectedJob} />
+                <AnalysisResultVisualizer job={selectedJob} isSlotAnimating={isSlotAnimating} />
               ) : selectedJob.status === "FAILED" ? (
                 <div style={errorStyle}>Model execution failed. Please verify dates and draw history.</div>
               ) : (
@@ -467,6 +511,178 @@ export default function AnalysisPage() {
           )}
         </div>
       </div>
+
+      {/* Holographic Radar Scanner HUD Overlay Modal */}
+      {isScanningHUD && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(5, 10, 24, 0.88)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            padding: "1.5rem",
+          }}
+        >
+          <div
+            style={{
+              position: "relative",
+              maxWidth: "460px",
+              width: "100%",
+              background: "linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(10, 15, 30, 0.98))",
+              border: "1px solid rgba(56, 189, 248, 0.35)",
+              borderRadius: "20px",
+              padding: "2.5rem 2rem",
+              boxShadow: "0 0 50px rgba(56, 189, 248, 0.2), inset 0 0 20px rgba(56, 189, 248, 0.05)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+            }}
+          >
+            {/* Holographic Radar Scanner Graphic */}
+            <div
+              style={{
+                position: "relative",
+                width: "110px",
+                height: "110px",
+                marginBottom: "1.8rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {/* Outer Dashed Orbit */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: "50%",
+                  border: "2px dashed rgba(56, 189, 248, 0.5)",
+                  animation: "spin 8s linear infinite",
+                }}
+              />
+              {/* Middle Scanning Ring */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: "10px",
+                  borderRadius: "50%",
+                  border: "2px solid transparent",
+                  borderTopColor: "#ffd700",
+                  borderBottomColor: "#38bdf8",
+                  animation: "spin 2.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite",
+                }}
+              />
+              {/* Crosshair horizontal */}
+              <div
+                style={{
+                  position: "absolute",
+                  width: "100%",
+                  height: "1px",
+                  backgroundColor: "rgba(56, 189, 248, 0.3)",
+                }}
+              />
+              {/* Crosshair vertical */}
+              <div
+                style={{
+                  position: "absolute",
+                  height: "100%",
+                  width: "1px",
+                  backgroundColor: "rgba(56, 189, 248, 0.3)",
+                }}
+              />
+              {/* Center Hologram Icon */}
+              <div
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  borderRadius: "50%",
+                  background: "radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, transparent 70%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "1.5rem",
+                  boxShadow: "0 0 25px rgba(56, 189, 248, 0.6)",
+                }}
+              >
+                🍀
+              </div>
+            </div>
+
+            {/* Status Title */}
+            <div
+              style={{
+                fontSize: "0.85rem",
+                textTransform: "uppercase",
+                letterSpacing: "3px",
+                fontWeight: 800,
+                color: "var(--accent-cyan)",
+                marginBottom: "0.5rem",
+              }}
+            >
+              AI Statistical Scanner Active
+            </div>
+
+            {/* Dynamic Step Text */}
+            <div
+              style={{
+                fontSize: "0.95rem",
+                fontFamily: "monospace",
+                color: "#e2e8f0",
+                minHeight: "44px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0 0.5rem",
+              }}
+            >
+              {hudStepText}
+            </div>
+
+            {/* Progress Bar Container */}
+            <div
+              style={{
+                width: "100%",
+                maxWidth: "300px",
+                height: "6px",
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+                borderRadius: "999px",
+                overflow: "hidden",
+                marginTop: "1.2rem",
+                border: "1px solid rgba(56, 189, 248, 0.2)",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${hudProgress}%`,
+                  background: "linear-gradient(90deg, #38bdf8, #ffd700)",
+                  boxShadow: "0 0 10px rgba(56, 189, 248, 0.8)",
+                  transition: "width 0.35s ease-out",
+                }}
+              />
+            </div>
+
+            {/* Percentage Display */}
+            <div
+              style={{
+                fontSize: "0.75rem",
+                fontFamily: "monospace",
+                color: "var(--text-secondary)",
+                marginTop: "0.6rem",
+              }}
+            >
+              {hudProgress}% COMPLETED
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -504,6 +720,101 @@ function GameComparisonMatrix() {
 }
 
 
+
+function SlotDigitNumber({
+  value,
+  isAnimating,
+  colorTheme = "gold",
+  fontSize = "2.2rem",
+}: {
+  value: string;
+  isAnimating?: boolean;
+  colorTheme?: "gold" | "purple" | "cyan" | "amber";
+  fontSize?: string;
+}) {
+  const digits = value ? value.split("") : [];
+  const [displayDigits, setDisplayDigits] = useState<string[]>(digits);
+  const [lockedIndices, setLockedIndices] = useState<Set<number>>(new Set(digits.map((_, i) => i)));
+
+  const themeStyle = {
+    gold: { color: "#ffd700", shadow: "0 0 15px rgba(255, 215, 0, 0.4)" },
+    purple: { color: "#c084fc", shadow: "0 0 15px rgba(192, 132, 252, 0.5)" },
+    cyan: { color: "#38bdf8", shadow: "0 0 15px rgba(56, 189, 248, 0.5)" },
+    amber: { color: "#f59e0b", shadow: "0 0 15px rgba(245, 158, 11, 0.4)" },
+  }[colorTheme];
+
+  useEffect(() => {
+    const targetDigits = value ? value.split("") : [];
+    if (!isAnimating || targetDigits.length === 0) {
+      setDisplayDigits(targetDigits);
+      setLockedIndices(new Set(targetDigits.map((_, i) => i)));
+      return;
+    }
+
+    const lockedSet = new Set<number>();
+    setLockedIndices(new Set());
+
+    const interval = setInterval(() => {
+      setDisplayDigits(
+        targetDigits.map((t, idx) => {
+          if (lockedSet.has(idx)) return t;
+          return Math.floor(Math.random() * 10).toString();
+        })
+      );
+    }, 45);
+
+    const timeouts = targetDigits.map((t, idx) => {
+      const delay = 350 + idx * 110;
+      return setTimeout(() => {
+        lockedSet.add(idx);
+        setLockedIndices(new Set(lockedSet));
+        setDisplayDigits((prev) => {
+          const next = [...prev];
+          next[idx] = t;
+          return next;
+        });
+      }, delay);
+    });
+
+    return () => {
+      clearInterval(interval);
+      timeouts.forEach(clearTimeout);
+    };
+  }, [isAnimating, value]);
+
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "4px",
+        fontFamily: "monospace",
+        fontWeight: 900,
+        fontSize,
+      }}
+    >
+      {displayDigits.map((digit, idx) => {
+        const isLocked = lockedIndices.has(idx);
+        return (
+          <span
+            key={idx}
+            style={{
+              display: "inline-block",
+              width: "0.75em",
+              textAlign: "center",
+              color: isLocked ? themeStyle.color : "#38bdf8",
+              textShadow: isLocked ? themeStyle.shadow : "0 0 14px rgba(56, 189, 248, 0.8)",
+              transform: isLocked ? "scale(1)" : "scale(1.15)",
+              transition: "transform 0.15s ease-out, color 0.15s ease-out",
+            }}
+          >
+            {digit}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
 
 function RecommendationMeta({ tags, confidence, colorTheme }: { tags?: string[]; confidence?: number; colorTheme: "gold" | "purple" | "cyan" | "amber" }) {
   const themeColors = {
@@ -553,7 +864,7 @@ function RecommendationMeta({ tags, confidence, colorTheme }: { tags?: string[];
   );
 }
 
-function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
+function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; isSlotAnimating?: boolean }) {
   const { user } = useAuth();
   const isSuperAdmin = Boolean(user && (user.email === "suzu@gmail.com" || (user.is_admin && (user as any)?.is_superadmin)));
   const isOperatorAdmin = Boolean(user && user.is_admin && !isSuperAdmin);
@@ -616,9 +927,11 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                         colorTheme="gold"
                       />
                     </div>
-                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#ffd700", letterSpacing: "5px", textShadow: "0 0 15px rgba(255, 215, 0, 0.4)" }}>
-                      {details.best_analyzed_6d[0].number}
-                    </div>
+                    <SlotDigitNumber
+                      value={details.best_analyzed_6d[0].number}
+                      isAnimating={isSlotAnimating}
+                      colorTheme="gold"
+                    />
                   </div>
                 )}
 
@@ -670,9 +983,11 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                             colorTheme="cyan"
                           />
                         </div>
-                        <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#38bdf8", letterSpacing: "5px", textShadow: "0 0 15px rgba(56, 189, 248, 0.5)" }}>
-                          {numStr}
-                        </div>
+                        <SlotDigitNumber
+                          value={numStr}
+                          isAnimating={isSlotAnimating}
+                          colorTheme="cyan"
+                        />
                       </div>
                     );
                   });
@@ -726,9 +1041,11 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                             colorTheme="purple"
                           />
                         </div>
-                        <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#c084fc", letterSpacing: "5px", textShadow: "0 0 15px rgba(192, 132, 252, 0.5)" }}>
-                          {numStr}
-                        </div>
+                        <SlotDigitNumber
+                          value={numStr}
+                          isAnimating={isSlotAnimating}
+                          colorTheme="purple"
+                        />
                       </div>
                     );
                   });
@@ -764,9 +1081,11 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                           colorTheme="amber"
                         />
                       </div>
-                      <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#f59e0b", letterSpacing: "5px", textShadow: "0 0 15px rgba(245, 158, 11, 0.4)" }}>
-                        {numStr}
-                      </div>
+                      <SlotDigitNumber
+                        value={numStr}
+                        isAnimating={isSlotAnimating}
+                        colorTheme="amber"
+                      />
                     </div>
                   );
                 })()}
@@ -787,9 +1106,11 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                         colorTheme="gold"
                       />
                     </div>
-                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#ffd700", letterSpacing: "5px", textShadow: "0 0 15px rgba(255, 215, 0, 0.4)" }}>
-                      {details.best_analyzed_6d[0].number}
-                    </div>
+                    <SlotDigitNumber
+                      value={details.best_analyzed_6d[0].number}
+                      isAnimating={isSlotAnimating}
+                      colorTheme="gold"
+                    />
                   </div>
                 )}
 
@@ -806,9 +1127,11 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                         colorTheme="purple"
                       />
                     </div>
-                    <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#c084fc", letterSpacing: "5px", textShadow: "0 0 15px rgba(192, 132, 252, 0.5)" }}>
-                      {details.generated_4d_recommendations[0].number}
-                    </div>
+                    <SlotDigitNumber
+                      value={details.generated_4d_recommendations[0].number}
+                      isAnimating={isSlotAnimating}
+                      colorTheme="purple"
+                    />
                   </div>
                 )}
 
@@ -864,9 +1187,11 @@ function AnalysisResultVisualizer({ job }: { job: AnalysisJob }) {
                             colorTheme="amber"
                           />
                         </div>
-                        <div style={{ fontSize: "2.2rem", fontWeight: 900, fontFamily: "monospace", color: "#f59e0b", letterSpacing: "5px", textShadow: "0 0 15px rgba(245, 158, 11, 0.4)" }}>
-                          {numStr}
-                        </div>
+                        <SlotDigitNumber
+                          value={numStr}
+                          isAnimating={isSlotAnimating}
+                          colorTheme="amber"
+                        />
                       </div>
                     );
                   });
