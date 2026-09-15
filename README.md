@@ -115,6 +115,7 @@ graph TD
   - **สลากกินแบ่งรัฐบาลไทย (Thai National Lottery - `THAI_GOV`)**
   - **ຫວຍສາມັກຄີ (Lao Samakkhi - `LAO_SAMAKKHI`)**
 - ระบบดึงข้อมูลอัตโนมัติ (Automated Scrapers) และปุ่มคำสั่ง Manual Crawling สำหรับ Admin
+- **Mobile First Compact 2-Column Grid (Desktop-Parity)**: การ์ดผลรางวัลย้อนหลังแสดงผลแบบ **2 คอลัมน์คู่ขนาน (2 ใบต่อแถว)** บนมือถือ ย่อขนาดรางวัลที่ 1 และรางวัลย่อยอย่างประณีต มองเห็นผลหวย 4–6 งวดพร้อมกันโดยไม่ต้องเลื่อนจอลงลึก
 
 ### 3. แดชบอร์ดหลัก (Lottery Dashboard: `/dashboard`)
 - หน้าแรกเริ่มต้น (Default Landing Page) ของผู้ใช้งานทุกคนหลังเข้าสู่ระบบ (ทั้ง Super Admin, Operator Admin, Ning, และสมาชิกทั่วไป)
@@ -128,8 +129,12 @@ graph TD
 - รองรับหลายสกุลเงิน (LAK กีบ, THB บาท, USD ดอลลาร์)
 - ดัชนีวัดสถานะความมั่นคงทางการเงิน (Solvency Indicator)
 - กราฟสัดส่วนค่าใช้จ่ายรายหมวดหมู่ (Interactive Category Spending Breakdown)
+- **Mobile First Desktop-Parity Layout**:
+  - **3 KPI Cards แถวเดียว**: การ์ดสรุปยอด Inflow, Outflow, และ Net Balance จัดเรียงเคียงข้างกันในแถวเดียว 3 ช่อง (`repeat(3, 1fr)`) พร้อมตัวเลขย่อขนาดชัดเจน
+  - **2-Column Split Charts**: กราฟสัดส่วนค่าใช้จ่ายและกราฟแนวโน้มกระแสเงินสดจัดวางคู่กันแบบ 2 คอลัมน์ (`1fr 1fr`) ให้เห็นภาพรวมและกราฟทั้ง 2 ได้ทันที
 
 ### 5. ระบบจัดการผู้ใช้และระดับสิทธิ์ (User & Role Matrix: `/users`)
+- **Compact Desktop-Style Table on Mobile**: ตารางข้อมูลผู้ใช้ Email, วันที่สมัคร, สถานะ Active, สวิตช์สิทธิ์ Admin Privileges และปุ่ม Actions จัดสัดส่วนฟอนต์และระยะห่างให้อยู่ในหน้าจอมือถือพอดี (Zero Horizontal Scroll) สลับสิทธิ์และรีเซ็ตรหัสผ่านได้ทันที
 | ระดับบทบาท (Role) | 6D Projection | 4D VIP Projection | 2D Projections | จัดการหวย & Scraper | จัดการผู้ใช้ | โควตารายวัน |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Super Admin** (`suzu@gmail.com`) | ✅ (2 ชุด: Best #1 & #2) | ❌ (ปิดใช้งาน) | ❌ (ปิดใช้งาน) | ✅ | ✅ | Unlimited |

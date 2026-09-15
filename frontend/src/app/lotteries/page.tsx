@@ -220,14 +220,14 @@ export default function LotteriesPage() {
         </div>
       ) : (
         <>
-          <div style={resultsGridStyle}>
+          <div className="lotteries-results-grid" style={resultsGridStyle}>
             {results.map((res) => {
               const game = games.find((g) => g.id === res.game_id);
               return (
-                <div key={res.id} className="glass-panel" style={cardStyle}>
+                <div key={res.id} className="glass-panel lottery-result-card" style={cardStyle}>
                   <div style={cardHeaderStyle}>
-                    <span style={cardDateStyle}>
-                      📅 Draw Date: {new Date(res.draw_date).toLocaleDateString()}
+                    <span className="lottery-card-date" style={cardDateStyle}>
+                      📅 {new Date(res.draw_date).toLocaleDateString()}
                     </span>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                       <span style={cardBadgeStyle}>{game?.code || selectedGameCode}</span>
@@ -256,46 +256,46 @@ export default function LotteriesPage() {
                   </div>
 
                   {res.draw_number && (
-                    <div style={winningNumberContainerStyle}>
-                      <div style={winningNumberLabelStyle}>Draw Number</div>
-                      <div style={winningNumberValueStyle}>{res.draw_number}</div>
+                    <div className="lottery-winning-box" style={winningNumberContainerStyle}>
+                      <div className="lottery-winning-label" style={winningNumberLabelStyle}>Draw Number</div>
+                      <div className="lottery-winning-value" style={winningNumberValueStyle}>{res.draw_number}</div>
                     </div>
                   )}
 
-                  <div style={prizesGridStyle}>
-                    <div style={prizeRowStyle}>
-                      <span style={prizeLabelStyle}>1st Prize</span>
-                      <span style={prizeValueStyle}>{res.first_prize || "—"}</span>
+                  <div className="lottery-prizes-grid" style={prizesGridStyle}>
+                    <div className="lottery-prize-row" style={prizeRowStyle}>
+                      <span className="lottery-prize-label" style={prizeLabelStyle}>1st Prize</span>
+                      <span className="lottery-prize-value" style={prizeValueStyle}>{res.first_prize || "—"}</span>
                     </div>
 
                     {game?.code === "THAI_NATIONAL" ? (
                       <>
-                        <div style={prizeRowStyle}>
-                          <span style={prizeLabelStyle}>Front 3-Digit</span>
-                          <span style={prizeValueStyle}>{res.front3 || "—"}</span>
+                        <div className="lottery-prize-row" style={prizeRowStyle}>
+                          <span className="lottery-prize-label" style={prizeLabelStyle}>Front 3-Digit</span>
+                          <span className="lottery-prize-value" style={prizeValueStyle}>{res.front3 || "—"}</span>
                         </div>
-                        <div style={prizeRowStyle}>
-                          <span style={prizeLabelStyle}>Back 3-Digit</span>
-                          <span style={prizeValueStyle}>{res.back3 || "—"}</span>
+                        <div className="lottery-prize-row" style={prizeRowStyle}>
+                          <span className="lottery-prize-label" style={prizeLabelStyle}>Back 3-Digit</span>
+                          <span className="lottery-prize-value" style={prizeValueStyle}>{res.back3 || "—"}</span>
                         </div>
-                        <div style={prizeRowStyle}>
-                          <span style={prizeLabelStyle}>Last 2-Digit</span>
-                          <span style={prizeValueStyle}>{res.last2 || "—"}</span>
+                        <div className="lottery-prize-row" style={prizeRowStyle}>
+                          <span className="lottery-prize-label" style={prizeLabelStyle}>Last 2-Digit</span>
+                          <span className="lottery-prize-value" style={prizeValueStyle}>{res.last2 || "—"}</span>
                         </div>
                       </>
                     ) : (
                       <>
-                        <div style={prizeRowStyle}>
-                          <span style={prizeLabelStyle}>4-Digit Prize</span>
-                          <span style={prizeValueStyle}>{res.last4 || (res.first_prize && res.first_prize.length >= 4 ? res.first_prize.slice(-4) : "—")}</span>
+                        <div className="lottery-prize-row" style={prizeRowStyle}>
+                          <span className="lottery-prize-label" style={prizeLabelStyle}>4-Digit Prize</span>
+                          <span className="lottery-prize-value" style={prizeValueStyle}>{res.last4 || (res.first_prize && res.first_prize.length >= 4 ? res.first_prize.slice(-4) : "—")}</span>
                         </div>
-                        <div style={prizeRowStyle}>
-                          <span style={prizeLabelStyle}>3-Digit Prize</span>
-                          <span style={prizeValueStyle}>{res.back3 || (res.first_prize && res.first_prize.length >= 3 ? res.first_prize.slice(-3) : "—")}</span>
+                        <div className="lottery-prize-row" style={prizeRowStyle}>
+                          <span className="lottery-prize-label" style={prizeLabelStyle}>3-Digit Prize</span>
+                          <span className="lottery-prize-value" style={prizeValueStyle}>{res.back3 || (res.first_prize && res.first_prize.length >= 3 ? res.first_prize.slice(-3) : "—")}</span>
                         </div>
-                        <div style={prizeRowStyle}>
-                          <span style={prizeLabelStyle}>2-Digit Prize</span>
-                          <span style={prizeValueStyle}>{res.last2 || (res.first_prize && res.first_prize.length >= 2 ? res.first_prize.slice(-2) : "—")}</span>
+                        <div className="lottery-prize-row" style={prizeRowStyle}>
+                          <span className="lottery-prize-label" style={prizeLabelStyle}>2-Digit Prize</span>
+                          <span className="lottery-prize-value" style={prizeValueStyle}>{res.last2 || (res.first_prize && res.first_prize.length >= 2 ? res.first_prize.slice(-2) : "—")}</span>
                         </div>
                       </>
                     )}

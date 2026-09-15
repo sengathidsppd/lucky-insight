@@ -217,36 +217,36 @@ export default function UsersPage() {
       ) : error ? (
         <div style={errorStyle}>{error}</div>
       ) : (
-        <div className="glass-panel" style={panelStyle}>
-          <div style={tableContainerStyle}>
-            <table style={tableStyle}>
+        <div className="glass-panel users-panel-card" style={panelStyle}>
+          <div className="users-table-container" style={tableContainerStyle}>
+            <table className="users-table" style={tableStyle}>
               <thead>
                 <tr>
-                  <th style={thStyle}>Email</th>
-                  <th style={thStyle}>Joined</th>
-                  <th style={thStyle}>Status</th>
-                  <th style={thStyle}>Admin Privileges</th>
-                  <th style={thStyle}>Actions</th>
+                  <th className="users-th" style={thStyle}>Email</th>
+                  <th className="users-th" style={thStyle}>Joined</th>
+                  <th className="users-th" style={thStyle}>Status</th>
+                  <th className="users-th" style={thStyle}>Admin Privileges</th>
+                  <th className="users-th" style={thStyle}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((u) => (
                   <tr key={u.id} style={trStyle}>
-                    <td style={tdStyle}>
-                      <div style={emailWrapperStyle}>
-                        <div style={avatarStyle}>{u.email[0].toUpperCase()}</div>
-                        <span style={emailTextStyle}>{u.email}</span>
+                    <td className="users-td" style={tdStyle}>
+                      <div className="users-email-wrapper" style={emailWrapperStyle}>
+                        <div className="users-avatar" style={avatarStyle}>{u.email[0].toUpperCase()}</div>
+                        <span className="users-email-text" style={emailTextStyle}>{u.email}</span>
                       </div>
                     </td>
-                    <td style={tdStyle}>{new Date(u.created_at).toLocaleDateString()}</td>
-                    <td style={tdStyle}>
+                    <td className="users-td" style={tdStyle}>{new Date(u.created_at).toLocaleDateString()}</td>
+                    <td className="users-td" style={tdStyle}>
                       {u.is_active ? (
                         <span style={badgeActiveStyle}>Active</span>
                       ) : (
                         <span style={badgeInactiveStyle}>Inactive</span>
                       )}
                     </td>
-                    <td style={tdStyle}>
+                    <td className="users-td" style={tdStyle}>
                       {isSuperAdmin ? (
                         <div style={toggleWrapperStyle}>
                           <label style={switchStyle}>
@@ -271,7 +271,7 @@ export default function UsersPage() {
                         </span>
                       )}
                     </td>
-                    <td style={tdStyle}>
+                    <td className="users-td" style={tdStyle}>
                       {isSuperAdmin ? (
                         <div style={{ display: "flex", gap: "0.5rem" }}>
                           <button

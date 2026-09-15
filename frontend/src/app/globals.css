@@ -640,13 +640,13 @@ select option {
 
 @media (max-width: 960px) {
   .finance-kpi-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.6rem !important;
   }
 
   .finance-analytics-grid {
-    grid-template-columns: 1fr;
-    gap: 1.2rem;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.8rem !important;
   }
 }
 
@@ -715,19 +715,54 @@ select option {
     border-radius: 14px !important;
   }
 
+  .finance-kpi-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.4rem !important;
+    margin-bottom: 1.2rem !important;
+  }
+
   .finance-kpi-card {
-    padding: 1.2rem 1.1rem !important;
-    border-radius: 16px !important;
+    padding: 0.75rem 0.5rem !important;
+    border-radius: 12px !important;
+  }
+
+  .finance-kpi-card span:first-child {
+    font-size: 0.62rem !important;
+    letter-spacing: 0px !important;
+  }
+
+  .finance-kpi-card > div:nth-child(2) {
+    font-size: 1.05rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .finance-kpi-card > div:last-child {
+    font-size: 0.65rem !important;
+    line-height: 1.2 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+  }
+
+  .finance-analytics-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem !important;
+    margin-bottom: 1.2rem !important;
   }
 
   .finance-analytics-card {
-    padding: 1.2rem 1rem !important;
-    border-radius: 16px !important;
+    padding: 0.85rem 0.65rem !important;
+    border-radius: 14px !important;
+  }
+
+  .finance-analytics-card h3 {
+    font-size: 0.78rem !important;
   }
 
   .finance-table-card {
-    padding: 1.1rem 0.75rem !important;
-    border-radius: 16px !important;
+    padding: 0.9rem 0.6rem !important;
+    border-radius: 14px !important;
   }
 
   .finance-modal-content {
@@ -873,6 +908,148 @@ select option {
   .analysis-digit-slot {
     font-size: 1.12rem !important;
     letter-spacing: 0.5px !important;
+  }
+}
+
+/* Lotteries Page Responsive 2-Column Grid (Desktop-Parity) */
+@media (max-width: 1024px) {
+  .lotteries-results-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.55rem !important;
+  }
+
+  .lottery-result-card {
+    padding: 0.75rem 0.55rem !important;
+    border-radius: 12px !important;
+    gap: 0.65rem !important;
+  }
+
+  .lottery-card-date {
+    font-size: 0.75rem !important;
+  }
+
+  .lottery-winning-box {
+    padding: 0.45rem !important;
+  }
+
+  .lottery-winning-label {
+    font-size: 0.62rem !important;
+  }
+
+  .lottery-winning-value {
+    font-size: 1.25rem !important;
+    letter-spacing: 1px !important;
+  }
+
+  .lottery-prizes-grid {
+    gap: 0.45rem !important;
+  }
+
+  .lottery-prize-row {
+    padding-bottom: 0.35rem !important;
+  }
+
+  .lottery-prize-label {
+    font-size: 0.72rem !important;
+  }
+
+  .lottery-prize-value {
+    font-size: 0.8rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .lotteries-results-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.4rem !important;
+  }
+
+  .lottery-result-card {
+    padding: 0.65rem 0.45rem !important;
+    border-radius: 10px !important;
+    gap: 0.5rem !important;
+  }
+
+  .lottery-card-date {
+    font-size: 0.68rem !important;
+  }
+
+  .lottery-winning-value {
+    font-size: 1.15rem !important;
+  }
+
+  .lottery-prize-label {
+    font-size: 0.65rem !important;
+  }
+
+  .lottery-prize-value {
+    font-size: 0.75rem !important;
+  }
+}
+
+/* Users Page Compact Desktop-Style Table */
+@media (max-width: 1024px) {
+  .users-panel-card {
+    padding: 0.85rem 0.6rem !important;
+    border-radius: 12px !important;
+  }
+
+  .users-table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .users-table .users-th {
+    padding: 0.5rem 0.35rem !important;
+    font-size: 0.68rem !important;
+  }
+
+  .users-table .users-td {
+    padding: 0.55rem 0.35rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .users-avatar {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .users-email-wrapper {
+    gap: 0.4rem !important;
+  }
+
+  .users-email-text {
+    font-size: 0.72rem !important;
+    word-break: break-all !important;
+    max-width: 130px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .users-panel-card {
+    padding: 0.65rem 0.4rem !important;
+  }
+
+  .users-table .users-th {
+    padding: 0.4rem 0.25rem !important;
+    font-size: 0.62rem !important;
+  }
+
+  .users-table .users-td {
+    padding: 0.45rem 0.25rem !important;
+    font-size: 0.68rem !important;
+  }
+
+  .users-avatar {
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .users-email-text {
+    font-size: 0.65rem !important;
+    max-width: 100px !important;
   }
 }
 
