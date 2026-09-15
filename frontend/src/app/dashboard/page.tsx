@@ -120,18 +120,18 @@ export default function DashboardPage() {
           </h3>
           <div className="db-lottery-row">
             {latestDraws.filter(({ draw }) => draw !== null).map(({ game, draw }) => (
-              <div key={game.id} className="glass-panel" style={{ ...lotteryCardStyle, background: getGameGradient(game.code), border: "1px solid rgba(255, 215, 0, 0.15)" }}>
+              <div key={game.id} className="glass-panel db-lottery-card" style={{ ...lotteryCardStyle, background: getGameGradient(game.code), border: "1px solid rgba(255, 215, 0, 0.15)" }}>
                 {/* Card Header */}
-                <div style={lotteryCardHeaderStyle}>
+                <div className="db-lottery-header" style={lotteryCardHeaderStyle}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                    <span style={{ fontSize: "1.6rem" }}>{getGameFlag(game.code)}</span>
+                    <span className="db-lottery-flag" style={{ fontSize: "1.6rem" }}>{getGameFlag(game.code)}</span>
                     <div>
-                      <div style={{ fontWeight: 800, color: "#fff", fontSize: "1.05rem" }}>{game.name}</div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--accent-cyan)", fontWeight: 700 }}>{game.code.toUpperCase()}</div>
+                      <div className="db-lottery-title" style={{ fontWeight: 800, color: "#fff", fontSize: "1.05rem" }}>{game.name}</div>
+                      <div className="db-lottery-code" style={{ fontSize: "0.75rem", color: "var(--accent-cyan)", fontWeight: 700 }}>{game.code.toUpperCase()}</div>
                     </div>
                   </div>
                   {draw && (
-                    <div style={{ ...drawDateBadgeStyle, background: "rgba(255, 215, 0, 0.08)", border: "1px solid rgba(255, 215, 0, 0.2)", color: "#ffd700" }}>
+                    <div className="db-lottery-date" style={{ ...drawDateBadgeStyle, background: "rgba(255, 215, 0, 0.08)", border: "1px solid rgba(255, 215, 0, 0.2)", color: "#ffd700" }}>
                       {new Date(draw.draw_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                     </div>
                   )}
@@ -140,31 +140,31 @@ export default function DashboardPage() {
                 {draw ? (
                   <div style={{ marginTop: "1rem" }}>
                     {/* First Prize - Big */}
-                    <div style={{ ...firstPrizeContainerStyle, background: "rgba(0, 0, 0, 0.3)", border: "1px solid rgba(255, 215, 0, 0.15)" }}>
+                    <div className="db-first-prize-box" style={{ ...firstPrizeContainerStyle, background: "rgba(0, 0, 0, 0.3)", border: "1px solid rgba(255, 215, 0, 0.15)" }}>
                       <div style={{ fontSize: "0.75rem", color: "var(--accent-cyan)", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "0.3rem", fontWeight: 800 }}>
                         First Prize
                       </div>
-                      <div style={{ ...firstPrizeValueStyle, background: "linear-gradient(135deg, #ffffff 10%, #ffd700 60%, #f59e0b 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", filter: "drop-shadow(0 2px 12px rgba(255, 215, 0, 0.45))" }}>
+                      <div className="db-first-prize-val" style={{ ...firstPrizeValueStyle, background: "linear-gradient(135deg, #ffffff 10%, #ffd700 60%, #f59e0b 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", filter: "drop-shadow(0 2px 12px rgba(255, 215, 0, 0.45))" }}>
                         {draw.first_prize}
                       </div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
+                      <div className="db-first-prize-draw" style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
                         Draw #{draw.draw_number}
                       </div>
                     </div>
 
                     {/* Sub prizes */}
-                    <div style={subPrizesGridStyle}>
-                      <div style={{ ...subPrizeBoxStyle, background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.08)" }}>
-                        <div style={subPrizeLabelStyle}>Last 2</div>
-                        <div style={{ ...subPrizeValueStyle, color: "#ffd700" }}>{draw.last2 || "—"}</div>
+                    <div className="db-sub-prizes-grid" style={subPrizesGridStyle}>
+                      <div className="db-sub-prize-box" style={{ ...subPrizeBoxStyle, background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.08)" }}>
+                        <div className="db-sub-prize-label" style={subPrizeLabelStyle}>Last 2</div>
+                        <div className="db-sub-prize-val" style={{ ...subPrizeValueStyle, color: "#ffd700" }}>{draw.last2 || "—"}</div>
                       </div>
-                      <div style={{ ...subPrizeBoxStyle, background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.08)" }}>
-                        <div style={subPrizeLabelStyle}>Front 3</div>
-                        <div style={{ ...subPrizeValueStyle, color: "#ffd700" }}>{draw.front3 || "—"}</div>
+                      <div className="db-sub-prize-box" style={{ ...subPrizeBoxStyle, background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.08)" }}>
+                        <div className="db-sub-prize-label" style={subPrizeLabelStyle}>Front 3</div>
+                        <div className="db-sub-prize-val" style={{ ...subPrizeValueStyle, color: "#ffd700" }}>{draw.front3 || "—"}</div>
                       </div>
-                      <div style={{ ...subPrizeBoxStyle, background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.08)" }}>
-                        <div style={subPrizeLabelStyle}>Back 3</div>
-                        <div style={{ ...subPrizeValueStyle, color: "#ffd700" }}>{draw.back3 || "—"}</div>
+                      <div className="db-sub-prize-box" style={{ ...subPrizeBoxStyle, background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.08)" }}>
+                        <div className="db-sub-prize-label" style={subPrizeLabelStyle}>Back 3</div>
+                        <div className="db-sub-prize-val" style={{ ...subPrizeValueStyle, color: "#ffd700" }}>{draw.back3 || "—"}</div>
                       </div>
                     </div>
                   </div>

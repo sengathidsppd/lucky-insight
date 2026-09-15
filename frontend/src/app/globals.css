@@ -327,8 +327,75 @@ select option {
   }
   
   .db-lottery-row {
-    grid-template-columns: 1fr;
-    gap: 0.8rem;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem !important;
+  }
+
+  .db-lottery-card {
+    padding: 0.85rem 0.55rem !important;
+    border-radius: 14px !important;
+  }
+
+  .db-lottery-header {
+    gap: 0.3rem !important;
+  }
+
+  .db-lottery-flag {
+    font-size: 1.25rem !important;
+  }
+
+  .db-lottery-title {
+    font-size: 0.82rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 95px !important;
+  }
+
+  .db-lottery-code {
+    font-size: 0.62rem !important;
+  }
+
+  .db-lottery-date {
+    font-size: 0.6rem !important;
+    padding: 0.2rem 0.4rem !important;
+    border-radius: 6px !important;
+  }
+
+  .db-first-prize-box {
+    padding: 0.55rem 0.2rem !important;
+    margin-top: 0.45rem !important;
+    border-radius: 10px !important;
+  }
+
+  .db-first-prize-val {
+    font-size: 1.35rem !important;
+    letter-spacing: 1.2px !important;
+  }
+
+  .db-first-prize-draw {
+    font-size: 0.65rem !important;
+    margin-top: 0.15rem !important;
+  }
+
+  .db-sub-prizes-grid {
+    gap: 0.25rem !important;
+    margin-top: 0.45rem !important;
+  }
+
+  .db-sub-prize-box {
+    padding: 0.4rem 0.15rem !important;
+    border-radius: 6px !important;
+  }
+
+  .db-sub-prize-label {
+    font-size: 0.55rem !important;
+    margin-bottom: 0.1rem !important;
+  }
+
+  .db-sub-prize-val {
+    font-size: 0.85rem !important;
+    letter-spacing: 0.5px !important;
   }
 
   .db-charts-row {
