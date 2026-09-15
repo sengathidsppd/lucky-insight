@@ -179,29 +179,29 @@ export default function LotteriesPage() {
   return (
     <div style={containerStyle}>
       {/* Header */}
-      <div style={headerStyle}>
+      <div className="lottery-page-header" style={headerStyle}>
         <div>
-          <h1 style={titleStyle}>Lottery Results History</h1>
-          <p style={subtitleStyle}>Official government lottery draws and winning prizes.</p>
+          <h1 className="lottery-page-title" style={titleStyle}>Lottery Results History</h1>
+          <p className="lottery-page-subtitle" style={subtitleStyle}>Official government lottery draws and winning prizes.</p>
         </div>
         
         {user?.is_admin && (
-          <button onClick={() => handleOpenAdminModal()} className="btn btn-primary">
+          <button onClick={() => handleOpenAdminModal()} className="btn btn-primary lottery-admin-btn">
             Add Draw Result (Admin)
           </button>
         )}
       </div>
 
       {/* Game Selector Tabs */}
-      <div style={tabsRowStyle}>
+      <div className="lottery-tabs-row" style={tabsRowStyle}>
         {games.map((g) => (
           <button
             key={g.id}
+            className="lottery-tab-btn"
             onClick={() => { setSelectedGameCode(g.code); setCurrentPage(0); }}
             style={selectedGameCode === g.code ? activeTabStyle : tabStyle}
           >
             {g.name}{g.country ? ` (${g.country})` : ""}
-
           </button>
         ))}
       </div>
@@ -223,14 +223,16 @@ export default function LotteriesPage() {
           <div className="lotteries-results-grid" style={resultsGridStyle}>
             {results.map((res) => {
               const game = games.find((g) => g.id === res.game_id);
+              const rawBadge = game?.code || selectedGameCode;
+              const displayBadge = rawBadge.replace("THAI_NATIONAL", "THAI").replace("LAO_DEV", "LAO").replace("LAO_SAMAKKHI", "SAMAKKHI");
               return (
                 <div key={res.id} className="glass-panel lottery-result-card" style={cardStyle}>
                   <div style={cardHeaderStyle}>
                     <span className="lottery-card-date" style={cardDateStyle}>
                       📅 {new Date(res.draw_date).toLocaleDateString()}
                     </span>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <span style={cardBadgeStyle}>{game?.code || selectedGameCode}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                      <span className="lottery-card-badge" style={cardBadgeStyle}>{displayBadge}</span>
                       {user?.is_admin && (
                         <button
                           type="button"
@@ -243,8 +245,8 @@ export default function LotteriesPage() {
                             border: "none",
                             color: "rgba(255, 255, 255, 0.4)",
                             cursor: "pointer",
-                            fontSize: "1rem",
-                            padding: "0.2rem",
+                            fontSize: "0.9rem",
+                            padding: "0.15rem",
                             transition: "color 0.2s",
                           }}
                           title="Delete this draw result"
@@ -271,30 +273,30 @@ export default function LotteriesPage() {
                     {game?.code === "THAI_NATIONAL" ? (
                       <>
                         <div className="lottery-prize-row" style={prizeRowStyle}>
-                          <span className="lottery-prize-label" style={prizeLabelStyle}>Front 3-Digit</span>
+                          <span className="lottery-prize-label" style={prizeLabelStyle}>Front 3D</span>
                           <span className="lottery-prize-value" style={prizeValueStyle}>{res.front3 || "—"}</span>
                         </div>
                         <div className="lottery-prize-row" style={prizeRowStyle}>
-                          <span className="lottery-prize-label" style={prizeLabelStyle}>Back 3-Digit</span>
+                          <span className="lottery-prize-label" style={prizeLabelStyle}>Back 3D</span>
                           <span className="lottery-prize-value" style={prizeValueStyle}>{res.back3 || "—"}</span>
                         </div>
                         <div className="lottery-prize-row" style={prizeRowStyle}>
-                          <span className="lottery-prize-label" style={prizeLabelStyle}>Last 2-Digit</span>
+                          <span className="lottery-prize-label" style={prizeLabelStyle}>Last 2D</span>
                           <span className="lottery-prize-value" style={prizeValueStyle}>{res.last2 || "—"}</span>
                         </div>
                       </>
                     ) : (
                       <>
                         <div className="lottery-prize-row" style={prizeRowStyle}>
-                          <span className="lottery-prize-label" style={prizeLabelStyle}>4-Digit Prize</span>
+                          <span className="lottery-prize-label" style={prizeLabelStyle}>4D Prize</span>
                           <span className="lottery-prize-value" style={prizeValueStyle}>{res.last4 || (res.first_prize && res.first_prize.length >= 4 ? res.first_prize.slice(-4) : "—")}</span>
                         </div>
                         <div className="lottery-prize-row" style={prizeRowStyle}>
-                          <span className="lottery-prize-label" style={prizeLabelStyle}>3-Digit Prize</span>
+                          <span className="lottery-prize-label" style={prizeLabelStyle}>3D Prize</span>
                           <span className="lottery-prize-value" style={prizeValueStyle}>{res.back3 || (res.first_prize && res.first_prize.length >= 3 ? res.first_prize.slice(-3) : "—")}</span>
                         </div>
                         <div className="lottery-prize-row" style={prizeRowStyle}>
-                          <span className="lottery-prize-label" style={prizeLabelStyle}>2-Digit Prize</span>
+                          <span className="lottery-prize-label" style={prizeLabelStyle}>2D Prize</span>
                           <span className="lottery-prize-value" style={prizeValueStyle}>{res.last2 || (res.first_prize && res.first_prize.length >= 2 ? res.first_prize.slice(-2) : "—")}</span>
                         </div>
                       </>

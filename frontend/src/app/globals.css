@@ -56,8 +56,14 @@ body {
   color: var(--text-primary);
   font-family: var(--font-sans);
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
   -webkit-font-smoothing: antialiased;
+}
+
+html, .app-wrapper, .app-main-area {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -990,79 +996,127 @@ select option {
   }
 }
 
-/* Lotteries Page Responsive 2-Column Grid (Desktop-Parity) */
+/* Lotteries Page Responsive 2-Column Grid (Desktop-Parity & Zero Overflow) */
 @media (max-width: 1024px) {
-  .lotteries-results-grid {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 0.55rem !important;
+  .lottery-page-title {
+    font-size: 1.35rem !important;
   }
 
-  .lottery-result-card {
-    padding: 0.75rem 0.55rem !important;
-    border-radius: 12px !important;
-    gap: 0.65rem !important;
+  .lottery-page-subtitle {
+    font-size: 0.78rem !important;
   }
 
-  .lottery-card-date {
-    font-size: 0.75rem !important;
+  .lottery-admin-btn {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.78rem !important;
   }
 
-  .lottery-winning-box {
-    padding: 0.45rem !important;
-  }
-
-  .lottery-winning-label {
-    font-size: 0.62rem !important;
-  }
-
-  .lottery-winning-value {
-    font-size: 1.25rem !important;
-    letter-spacing: 1px !important;
-  }
-
-  .lottery-prizes-grid {
-    gap: 0.45rem !important;
-  }
-
-  .lottery-prize-row {
-    padding-bottom: 0.35rem !important;
-  }
-
-  .lottery-prize-label {
-    font-size: 0.72rem !important;
-  }
-
-  .lottery-prize-value {
-    font-size: 0.8rem !important;
-  }
-}
-
-@media (max-width: 640px) {
-  .lotteries-results-grid {
-    grid-template-columns: 1fr 1fr !important;
+  .lottery-tabs-row {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none !important;
     gap: 0.4rem !important;
+    padding-bottom: 0.4rem !important;
+    width: 100% !important;
+  }
+
+  .lottery-tabs-row::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .lottery-tab-btn {
+    font-size: 0.75rem !important;
+    padding: 0.35rem 0.65rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .lotteries-results-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.45rem !important;
+    width: 100% !important;
   }
 
   .lottery-result-card {
-    padding: 0.65rem 0.45rem !important;
+    padding: 0.55rem 0.45rem !important;
     border-radius: 10px !important;
     gap: 0.5rem !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
   }
 
   .lottery-card-date {
     font-size: 0.68rem !important;
   }
 
+  .lottery-card-badge {
+    font-size: 0.6rem !important;
+    padding: 1px 4px !important;
+    white-space: nowrap !important;
+  }
+
+  .lottery-winning-box {
+    padding: 0.35rem 0.25rem !important;
+    border-radius: 6px !important;
+  }
+
+  .lottery-winning-label {
+    font-size: 0.55rem !important;
+  }
+
   .lottery-winning-value {
-    font-size: 1.15rem !important;
+    font-size: 0.98rem !important;
+    letter-spacing: 0.5px !important;
+    word-break: break-all !important;
+  }
+
+  .lottery-prizes-grid {
+    gap: 0.25rem !important;
+  }
+
+  .lottery-prize-row {
+    padding-bottom: 0.25rem !important;
+    font-size: 0.65rem !important;
   }
 
   .lottery-prize-label {
     font-size: 0.65rem !important;
+    white-space: nowrap !important;
   }
 
   .lottery-prize-value {
-    font-size: 0.75rem !important;
+    font-size: 0.72rem !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .lotteries-results-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.35rem !important;
+  }
+
+  .lottery-result-card {
+    padding: 0.45rem 0.35rem !important;
+    border-radius: 8px !important;
+    gap: 0.4rem !important;
+  }
+
+  .lottery-card-date {
+    font-size: 0.62rem !important;
+  }
+
+  .lottery-winning-value {
+    font-size: 0.9rem !important;
+  }
+
+  .lottery-prize-label {
+    font-size: 0.6rem !important;
+  }
+
+  .lottery-prize-value {
+    font-size: 0.68rem !important;
   }
 }
 
