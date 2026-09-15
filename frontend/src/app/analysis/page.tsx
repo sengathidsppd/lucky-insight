@@ -914,25 +914,49 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
             {isThaiLottery ? (
               /* THAI NATIONAL LOTTERY SPECIALIZED PICKS: 6D (1 set for Admins), Front 3D (2 sets), Back 3D (2 sets), 2D (1 set) */
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
-                {/* 6-Digit Card (Top Prize / รางวัลที่ 1 - Super Admin Only: 1 Set) */}
-                {isSuperAdmin && details.best_analyzed_6d?.[0] && (
-                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.12)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                      <div style={{ fontSize: "0.95rem", color: "#ffd700", fontWeight: "bold", minWidth: "150px" }}>
-                        6-Digit Pick (Super Admin VIP)
-                      </div>
-                      <RecommendationMeta
-                        tags={details.best_analyzed_6d[0].tags}
-                        confidence={details.best_analyzed_6d[0].confidence_score}
-                        colorTheme="gold"
-                      />
-                    </div>
-                    <SlotDigitNumber
-                      value={details.best_analyzed_6d[0].number}
-                      isAnimating={isSlotAnimating}
-                      colorTheme="gold"
-                    />
-                  </div>
+                {/* 6-Digit Cards (Top Prize / รางวัลที่ 1 - Super Admin Only: 2 Sets) */}
+                {isSuperAdmin && details.best_analyzed_6d && (
+                  (() => {
+                    const list6d = details.best_analyzed_6d.slice(0, 2);
+                    return list6d.map((item: any, idx: number) => {
+                      const title = list6d.length > 1
+                        ? `6-Digit Pick #${idx + 1} (Super Admin VIP)`
+                        : "6-Digit Pick (Super Admin VIP)";
+                      return (
+                        <div
+                          key={"thai6d" + (item.number || idx)}
+                          style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            flexWrap: "wrap",
+                            gap: "1rem",
+                            background: "rgba(255, 215, 0, 0.03)",
+                            border: "1px solid rgba(255, 215, 0, 0.12)",
+                            borderRadius: "10px",
+                            padding: "1.1rem 1.8rem",
+                          }}
+                        >
+                          <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                            <div style={{ fontSize: "0.95rem", color: "#ffd700", fontWeight: "bold", minWidth: "150px" }}>
+                              {title}
+                            </div>
+                            <RecommendationMeta
+                              tags={item?.tags}
+                              confidence={item?.confidence_score}
+                              colorTheme="gold"
+                            />
+                          </div>
+                          <SlotDigitNumber
+                            value={item?.number}
+                            isAnimating={isSlotAnimating}
+                            colorTheme="gold"
+                          />
+                        </div>
+                      );
+                    });
+                  })()
                 )}
 
                 {/* Front 3-Digit Picks (เลขหน้า 3 ตัว) - 2 Sets */}
@@ -1051,9 +1075,10 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
                   });
                 })()}
 
-                {/* 2-Digit Ending Pick (เลขท้าย 2 ตัว) - 1 Set */}
-                {(() => {
+                {/* 2-Digit Ending Pick (เลขท้าย 2 ตัว) - 1 Set (Not shown for Super Admin) */}
+                {!isSuperAdmin && (() => {
                   let b2d = details.back_2digit_picks?.[0] || details.generated_2d_recommendations?.[0] || details.top_2digit_endings?.[0];
+                  if (!b2d) return null;
                   const numStr = typeof b2d === "string" ? b2d : b2d?.number || b2d?.combination || "53";
                   return (
                     <div
@@ -1093,54 +1118,59 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
             ) : (
               /* LAO DEVELOPMENT LOTTERY PICKS: 6D (1 Set for Admins), 2D (3 Sets for All) */
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
-                {/* 6-Digit Card (Super Admin & Operator Admin: 1 Set) */}
-                {(isSuperAdmin || isOperatorAdmin) && details.best_analyzed_6d?.[0] && (
-                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(255, 215, 0, 0.03)", border: "1px solid rgba(255, 215, 0, 0.12)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                      <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                        6-Digit Pick (Top 6D)
-                      </div>
-                      <RecommendationMeta
-                        tags={details.best_analyzed_6d[0].tags}
-                        confidence={details.best_analyzed_6d[0].confidence_score}
-                        colorTheme="gold"
-                      />
-                    </div>
-                    <SlotDigitNumber
-                      value={details.best_analyzed_6d[0].number}
-                      isAnimating={isSlotAnimating}
-                      colorTheme="gold"
-                    />
-                  </div>
+                {/* 6-Digit Cards (Super Admin: 2 Sets #1 & #2, Operator Admin: 1 Set #3) */}
+                {(isSuperAdmin || isOperatorAdmin) && details.best_analyzed_6d && (
+                  (() => {
+                    const list6d = isSuperAdmin
+                      ? details.best_analyzed_6d.slice(0, 2)
+                      : details.best_analyzed_6d.slice(0, 1);
+                    return list6d.map((item: any, idx: number) => {
+                      const title = isSuperAdmin
+                        ? `6-Digit Pick #${idx + 1} (Top 6D VIP)`
+                        : "6-Digit Pick (Top 6D)";
+                      return (
+                        <div
+                          key={"lao6d" + (item.number || idx)}
+                          style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            flexWrap: "wrap",
+                            gap: "1rem",
+                            background: "rgba(255, 215, 0, 0.03)",
+                            border: "1px solid rgba(255, 215, 0, 0.12)",
+                            borderRadius: "10px",
+                            padding: "1.1rem 1.8rem",
+                          }}
+                        >
+                          <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                            <div style={{ fontSize: "0.95rem", color: "#ffd700", fontWeight: "bold", minWidth: "150px" }}>
+                              {title}
+                            </div>
+                            <RecommendationMeta
+                              tags={item?.tags}
+                              confidence={item?.confidence_score}
+                              colorTheme="gold"
+                            />
+                          </div>
+                          <SlotDigitNumber
+                            value={item?.number}
+                            isAnimating={isSlotAnimating}
+                            colorTheme="gold"
+                          />
+                        </div>
+                      );
+                    });
+                  })()
                 )}
 
-                {/* 4-Digit Card (Super Admin VIP Exclusive: 1 Set derived from 2D Pick #2) */}
-                {isSuperAdmin && details.generated_4d_recommendations?.[0] && (
-                  <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", background: "rgba(168, 85, 247, 0.04)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: "10px", padding: "1.1rem 1.8rem" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                      <div style={{ fontSize: "0.95rem", color: "#c084fc", fontWeight: "bold", minWidth: "150px" }}>
-                        4-Digit Pick (Top 4D VIP)
-                      </div>
-                      <RecommendationMeta
-                        tags={details.generated_4d_recommendations[0].tags}
-                        confidence={details.generated_4d_recommendations[0].confidence_score}
-                        colorTheme="purple"
-                      />
-                    </div>
-                    <SlotDigitNumber
-                      value={details.generated_4d_recommendations[0].number}
-                      isAnimating={isSlotAnimating}
-                      colorTheme="purple"
-                    />
-                  </div>
-                )}
-
-                {/* 2-Digit Cards (1 Set for Super Admin, 3 Sets for Operator Admin and Regular User) */}
-                {(() => {
+                {/* 2-Digit Cards (3 Sets for Operator Admin and Regular User - Not shown for Super Admin) */}
+                {!isSuperAdmin && (() => {
                   let top2dList = [...(details.generated_2d_recommendations || [])];
 
                   // Fallback for older jobs: supplement with top 2-digit endings if less than 3
-                  if (top2dList.length < 3 && details.top_2digit_endings && !isSuperAdmin) {
+                  if (top2dList.length < 3 && details.top_2digit_endings) {
                     const existingSet = new Set(
                       top2dList.map((x: any) => (typeof x === "string" ? x : x.number))
                     );
@@ -1153,13 +1183,11 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
                     }
                   }
 
-                  const display2dList = isSuperAdmin ? top2dList.slice(0, 1) : top2dList.slice(0, 3);
+                  const display2dList = top2dList.slice(0, 3);
 
                   return display2dList.map((item: any, idx: number) => {
                     const numStr = typeof item === "string" ? item : item?.number || "00";
-                    const cardTitle = display2dList.length === 1 
-                      ? "2-Digit Pick (Top 2D)" 
-                      : `2-Digit Pick #${idx + 1} (Top 2D)`;
+                    const cardTitle = `2-Digit Pick #${idx + 1} (Top 2D)`;
 
                     return (
                       <div

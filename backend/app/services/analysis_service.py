@@ -384,13 +384,22 @@ class AnalysisService:
         # 4. Generate candidate pools (Top 2 sets of 6D)
         best_6d_num_1 = "".join(max(t_pos_probs[p][latest_draw[p]].items(), key=lambda x: x[1])[0] for p in range(6))
         best_6d_num_2_digits = []
+        best_6d_num_3_digits = []
         for p in range(6):
             sorted_p = sorted(t_pos_probs[p][latest_draw[p]].items(), key=lambda x: x[1], reverse=True)
             if len(sorted_p) > 1 and sorted_p[1][0] != best_6d_num_1[p]:
                 best_6d_num_2_digits.append(sorted_p[1][0])
             else:
                 best_6d_num_2_digits.append(str((int(best_6d_num_1[p]) + 7) % 10))
+
+            if len(sorted_p) > 2:
+                best_6d_num_3_digits.append(sorted_p[2][0])
+            elif len(sorted_p) > 1:
+                best_6d_num_3_digits.append(str((int(sorted_p[1][0]) + 3) % 10))
+            else:
+                best_6d_num_3_digits.append(str((int(best_6d_num_1[p]) + 3) % 10))
         best_6d_num_2 = "".join(best_6d_num_2_digits)
+        best_6d_num_3 = "".join(best_6d_num_3_digits)
         
         def enrich_markov(item: dict[str, Any], length: int) -> dict[str, Any]:
             num_str = str(item.get("number", "00"))
@@ -416,15 +425,14 @@ class AnalysisService:
         enriched_6d = [
             enrich_markov({"number": best_6d_num_1, "score": score_markov_6d(best_6d_num_1)}, 6),
             enrich_markov({"number": best_6d_num_2, "score": score_markov_6d(best_6d_num_2)}, 6),
+            enrich_markov({"number": best_6d_num_3, "score": score_markov_6d(best_6d_num_3)}, 6),
         ]
 
-        # 2D: Sample 3 from top 25
+        # 2D: Deterministic top 3 candidates (no random sampling)
         scored_2d_all = [{"number": f"{x:02d}", "score": score_markov_2d(f"{x:02d}")} for x in range(100)]
         scored_2d_all.sort(key=lambda x: (-x["score"], x["number"]))
-        top_25_2d_markov = list(scored_2d_all[:25])
-        sampled_2d_markov = random.sample(top_25_2d_markov, min(3, len(top_25_2d_markov)))
-        sampled_2d_markov.sort(key=lambda x: -x["score"])
-        enriched_2d = [enrich_markov(x, 2) for x in sampled_2d_markov]
+        top_3_2d_markov = list(scored_2d_all[:3])
+        enriched_2d = [enrich_markov(x, 2) for x in top_3_2d_markov]
 
         # 4D: Super Admin VIP 4D candidate derived from 2D Pick #2
         valid_4d_endings = [d[-4:] for d in chrono_draws if len(d) >= 4]
@@ -435,7 +443,7 @@ class AnalysisService:
         pool_d1_m = [ending[0] for ending in top_20_3d_m if len(ending) >= 3] or [str(d) for d in range(10)]
         d0_m = secrets.choice(pool_d0_m)
         d1_m = secrets.choice(pool_d1_m)
-        pick_2_2d_m = sampled_2d_markov[1]["number"] if len(sampled_2d_markov) > 1 else (sampled_2d_markov[0]["number"] if sampled_2d_markov else "00")
+        pick_2_2d_m = top_3_2d_markov[1]["number"] if len(top_3_2d_markov) > 1 else (top_3_2d_markov[0]["number"] if top_3_2d_markov else "00")
         final_4d_m_str = f"{d0_m}{d1_m}{pick_2_2d_m}"
         chosen_4d = {"number": final_4d_m_str, "score": score_markov_4d(final_4d_m_str)}
         enriched_4d = [enrich_markov(chosen_4d, 4)]
@@ -696,12 +704,9 @@ class AnalysisService:
 
         scored_6d.sort(key=lambda x: (-x["score"], x["number"]))
 
-        # 6D: Random selection from top 100 candidates
-        top_100_6d = list(scored_6d[:100])
-        chosen_6d = secrets.choice(top_100_6d) if top_100_6d else (scored_6d[0] if scored_6d else {"number": "000000", "score": 0.0, "audit": {}})
-        pick_1_str = chosen_6d["number"]
-        remaining_6d = [x for x in scored_6d if x["number"] != chosen_6d["number"]]
-        best_100_6d = [chosen_6d] + remaining_6d[:99]
+        # 6D: Deterministic top candidates (Rank #1, #2, #3 - no random sampling)
+        best_100_6d = list(scored_6d[:100])
+        pick_1_str = best_100_6d[0]["number"] if best_100_6d else "000000"
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
@@ -765,16 +770,13 @@ class AnalysisService:
             final_score = weighted_total
             return round(final_score, 2)
 
-        # 2D: Randomly sample 3 sets from top 25 candidates
+        # 2D: Deterministic top 3 candidates (Rank #1, #2, #3 - no random sampling)
         scored_2d_all = []
         for x in range(100):
             num_2d = f"{x:02d}"
             scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
         scored_2d_all.sort(key=lambda item: (-item["score"], item["number"]))
-        top_25_2d = list(scored_2d_all[:25])
-
-        top_3_2d = random.sample(top_25_2d, min(3, len(top_25_2d)))
-        top_3_2d.sort(key=lambda item: -item["score"])
+        top_3_2d = list(scored_2d_all[:3])
 
         # Score Front 3-digit combinations (positions 0, 1, 2 of a 6-digit draw)
         def score_front_3d(num_str: str) -> float:

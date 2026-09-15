@@ -83,14 +83,18 @@ graph TD
   - **Poisson Overdue Factor**: วิเคราะห์ตัวเลขที่ "ค้างนานเกินสถิติเฉลี่ย" เพื่อระบุตัวเลขที่มีโอกาสดีดตัวกลับ
   - **Pair / Triple Affinity Matrix**: ความสัมพันธ์ของตัวเลขคู่และเลข 3 ตัวที่มักปรากฏพร้อมกัน
   - **Frequency Analysis**: สถิติความถี่รายตำแหน่ง
-- **Role-Based Number Projections**:
-  - **Super Admin VIP**:
-    - สุ่มเลือก **6-Digit Pick** จาก Top 100 Composite Score
-    - **4-Digit Pick (Exclusive VIP)**: หลักพันสุ่มจาก Top 20 4D, หลักร้อยสุ่มจาก Top 20 3D, และสองตัวท้ายล็อกตาม 2D Pick ชุดที่ 2
-    - **2-Digit Pick**: แสดง 1 ชุดคุณภาพสูง
-  - **Operator Admin & Regular User**:
-    - แสดง **2-Digit Picks** จำนวน 3 ชุดที่ไม่ซ้ำกัน
-    - *4-Digit Pick ถูกปิดกั้นความปลอดภัยและไม่ส่งข้อมูลมาทั้งระดับ Backend และ Frontend*
+- **Role-Based Number Projections (100% Deterministic Mathematical Selection)**:
+  - **Super Admin (`suzu@gmail.com`)**:
+    - มุ่งเน้นรางวัลใหญ่ระดับ 6 หลัก (Grand Prize Focus)
+    - **6-Digit Picks**: แสดง 2 ชุดที่ดีที่สุดอันดับ 1 และอันดับ 2 (Best #1 และ Best #2 คัดเลือก 100% ตาม Composite Mathematical Score แบบ Deterministic ปราศจากการสุ่ม)
+    - ปิดการแสดงผล 4D VIP และ 2D ทั้งหมดตามสถาปัตยกรรม High-Roller
+  - **Operator Admin**:
+    - **6-Digit Pick**: แสดง 1 ชุดที่ดีที่สุดอันดับ 3 (Best #3 ตาม Composite Score แบบ Deterministic)
+    - **2-Digit Picks**: แสดง 3 ชุดที่ดีที่สุดอันดับ 1, 2, 3 (Best #1, Best #2, Best #3 จากคะแนนสถิติ 00–99 แบบ Deterministic)
+    - ปิดการแสดงผล 4D VIP
+  - **Special VIP (`ning80074@gmail.com`) & Regular Member**:
+    - **2-Digit Picks**: แสดง 3 ชุดที่ดีที่สุดอันดับ 1, 2, 3 (Best #1, Best #2, Best #3 แบบ Deterministic)
+    - ปิดการแสดงผล 6D และ 4D VIP ทั้งระดับ Backend Security Redaction และ Frontend Interface
 - **Winning Flow Wave Trend**: กราฟเส้นโค้งสีทอง Golden Bezier Wave แสดงวิถีแนวโน้มตัวเลข 16 งวดย้อนหลัง
 - **Quota & Limit Controls**: จัดการโควตาการวิเคราะห์ต่อวันแยกตามแต่ละประเภทหวย พร้อมระบบ Reset ประจำวันอัตโนมัติ
 - **CSV Analytical Export**: ดาวน์โหลดรายงานผลวิเคราะห์ทางคณิตศาสตร์เป็นไฟล์ CSV
@@ -119,12 +123,12 @@ graph TD
 - กราฟสัดส่วนค่าใช้จ่ายรายหมวดหมู่ (Interactive Category Spending Breakdown)
 
 ### 5. ระบบจัดการผู้ใช้และระดับสิทธิ์ (User & Role Matrix: `/users`)
-| ระดับบทบาท (Role) | 4D VIP Projection | 6D Projection | 2D Projections | จัดการหวย & Scraper | จัดการผู้ใช้ | โควตารายวัน |
+| ระดับบทบาท (Role) | 6D Projection | 4D VIP Projection | 2D Projections | จัดการหวย & Scraper | จัดการผู้ใช้ | โควตารายวัน |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Super Admin** (`suzu@gmail.com`) | ✅ (Exclusive) | ✅ (1 ชุด) | ✅ (1 ชุด) | ✅ | ✅ | Unlimited |
-| **Operator Admin** | ❌ (Redacted) | ✅ (1 ชุด) | ✅ (3 ชุด) | ✅ | ❌ | ตามกำหนด |
-| **Special VIP** (`ning80074@gmail.com`) | ❌ | ❌ | ✅ (3 ชุด) | ❌ | ❌ | โควตาระดับสูง |
-| **Regular Member** | ❌ | ❌ | ✅ (3 ชุด) | ❌ | ❌ | มาตรฐาน |
+| **Super Admin** (`suzu@gmail.com`) | ✅ (2 ชุด: Best #1 & #2) | ❌ (ปิดใช้งาน) | ❌ (ปิดใช้งาน) | ✅ | ✅ | Unlimited |
+| **Operator Admin** | ✅ (1 ชุด: Best #3) | ❌ (Redacted) | ✅ (3 ชุด: Best #1, #2, #3) | ✅ | ❌ | ตามกำหนด |
+| **Special VIP** (`ning80074@gmail.com`) | ❌ | ❌ | ✅ (3 ชุด: Best #1, #2, #3) | ❌ | ❌ | โควตาระดับสูง |
+| **Regular Member** | ❌ | ❌ | ✅ (3 ชุด: Best #1, #2, #3) | ❌ | ❌ | มาตรฐาน |
 
 ---
 

@@ -64,21 +64,23 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
             res_dict.pop("generated_3d_recommendations", None)
 
             if is_superadmin:
-                # Super Admin: 1x 6D, 1x 4D (derived from 2D#2), 1x 2D (pick #1)
+                # Super Admin: 2x 6D (Rank #1 & #2), NO 4D VIP, NO 2D (Pure Grand Prize Focus)
                 if "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
-                    res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:1]
-                if "generated_4d_recommendations" in res_dict and isinstance(res_dict["generated_4d_recommendations"], list):
-                    res_dict["generated_4d_recommendations"] = res_dict["generated_4d_recommendations"][:1]
-                if "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
-                    res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:1]
+                    res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:2]
+                res_dict.pop("generated_4d_recommendations", None)
+                res_dict.pop("generated_2d_recommendations", None)
+                res_dict.pop("back_2digit_picks", None)
 
             elif is_operator_admin:
-                # Operator Admin: 1x 6D (if not Thai), 3x 2D (no 4D, no 3D)
+                # Operator Admin: 1x 6D (Rank #3 if not Thai), 3x 2D (Rank #1, #2, #3, no 4D, no 3D)
                 res_dict.pop("generated_4d_recommendations", None)
                 if "THAI" in game_code.upper():
                     res_dict.pop("best_analyzed_6d", None)
                 elif "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
-                    res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:1]
+                    if len(res_dict["best_analyzed_6d"]) >= 3:
+                        res_dict["best_analyzed_6d"] = [res_dict["best_analyzed_6d"][2]]
+                    else:
+                        res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:1]
                 if "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
                     res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:3]
 
@@ -356,13 +358,14 @@ def export_analysis_csv(
         
         res_data = job.result.result_data or {}
         
-        # 6D Pick (Trimmed to last 2 digits)
+        # 6D Picks (Trimmed to last 2 digits)
         if "best_analyzed_6d" in res_data and res_data["best_analyzed_6d"]:
-            item = res_data["best_analyzed_6d"][0]
-            num = item.get("number", "") if isinstance(item, dict) else str(item)
-            score = item.get("score", "N/A") if isinstance(item, dict) else "N/A"
-            trimmed_num = num[-2:] if len(num) >= 2 else num
-            writer.writerow(["6-Digit Pick (Top 6D)", trimmed_num, score])
+            for idx, item in enumerate(res_data["best_analyzed_6d"]):
+                num = item.get("number", "") if isinstance(item, dict) else str(item)
+                score = item.get("score", "N/A") if isinstance(item, dict) else "N/A"
+                trimmed_num = num[-2:] if len(num) >= 2 else num
+                label = f"6-Digit Pick #{idx+1} (Top 6D)" if len(res_data["best_analyzed_6d"]) > 1 else "6-Digit Pick (Top 6D)"
+                writer.writerow([label, trimmed_num, score])
             
         # 3D Pick (Trimmed to last 2 digits)
         if "generated_3d_recommendations" in res_data:
