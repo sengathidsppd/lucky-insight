@@ -386,7 +386,7 @@ export default function AnalysisPage() {
               </div>
 
               {selectedJob.status === "COMPLETED" ? (
-                <AnalysisResultVisualizer job={selectedJob} isSlotAnimating={isSlotAnimating} />
+                <AnalysisResultVisualizer job={selectedJob} isSlotAnimating={isSlotAnimating} section="picks" />
               ) : selectedJob.status === "FAILED" ? (
                 <div style={errorStyle}>Model execution failed. Please verify dates and draw history.</div>
               ) : (
@@ -403,6 +403,13 @@ export default function AnalysisPage() {
             </div>
           )}
         </div>
+
+        {/* Extended Analytics (Winning Wave Trend, Backtest, Markov & Breakdown) */}
+        {selectedJob && selectedJob.status === "COMPLETED" && (
+          <div className="analysis-extended-panel">
+            <AnalysisResultVisualizer job={selectedJob} isSlotAnimating={isSlotAnimating} section="extended" />
+          </div>
+        )}
 
         {/* Model Runs History Panel */}
         <div className="analysis-history-panel">
@@ -879,7 +886,15 @@ function RecommendationMeta({ tags, confidence, colorTheme }: { tags?: string[];
   );
 }
 
-function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; isSlotAnimating?: boolean }) {
+function AnalysisResultVisualizer({
+  job,
+  isSlotAnimating,
+  section = "all",
+}: {
+  job: AnalysisJob;
+  isSlotAnimating?: boolean;
+  section?: "all" | "picks" | "extended";
+}) {
   const { user } = useAuth();
   const isSuperAdmin = Boolean(user && (user.email === "suzu@gmail.com" || (user.is_admin && (user as any)?.is_superadmin)));
   const isOperatorAdmin = Boolean(user && user.is_admin && !isSuperAdmin);
@@ -906,20 +921,24 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
 
   const isThaiLottery = jobGameCode.includes("THAI");
 
+  const showPicks = section === "all" || section === "picks";
+  const showExtended = section === "all" || section === "extended";
+
   return (
     <div style={resultsBodyStyle}>
       {(job.analysis_type === "COMPOSITE" || job.analysis_type === "FREQUENCY" || job.analysis_type === "MONTE_CARLO" || true) && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
           {/* Recommended Picks (Role-Based & Lottery-Specific Tiered Visibility) */}
-          <div
-            className="glass-panel"
-            style={{
-              background: "rgba(102, 126, 234, 0.06)",
-              border: "1px solid rgba(102, 126, 234, 0.15)",
-              padding: "1.5rem",
-              borderRadius: "12px",
-            }}
-          >
+          {showPicks && (
+            <div
+              className="glass-panel"
+              style={{
+                background: "rgba(102, 126, 234, 0.06)",
+                border: "1px solid rgba(102, 126, 234, 0.15)",
+                padding: "1.5rem",
+                borderRadius: "12px",
+              }}
+            >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
               <h4 style={{ ...subPanelTitleStyle, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0, fontSize: "1.1rem" }}>
                 Winning Number Projections ({isThaiLottery ? "Thai National Lottery" : "Lao Development Lottery"} Picks)
@@ -1248,8 +1267,12 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
               </div>
             )}
           </div>
+          )}
 
-          {/* Winning Flow Wave Trend Section (Golden Bezier Wave) */}
+          {/* Extended Analytics: Wave Trend, Backtest, Markov & Breakdown */}
+          {showExtended && (
+            <>
+              {/* Winning Flow Wave Trend Section (Golden Bezier Wave) */}
           {(() => {
             const recentDrawsList = details.recent_draws || (details.best_analyzed_6d || []).map((d: any) => d.number) || [];
             const trendData = (recentDrawsList || [])
@@ -1878,6 +1901,8 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
               </div>
             </div>
           </div>
+            </>
+          )}
         </div>
       )}
     </div>
