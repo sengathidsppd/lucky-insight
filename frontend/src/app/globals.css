@@ -1154,8 +1154,11 @@ select option {
 
   .users-email-text {
     font-size: 0.72rem !important;
-    word-break: break-all !important;
-    max-width: 130px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 150px !important;
+    display: inline-block !important;
   }
 }
 
@@ -1182,7 +1185,7 @@ select option {
 
   .users-email-text {
     font-size: 0.65rem !important;
-    max-width: 100px !important;
+    max-width: 120px !important;
   }
 }
 
