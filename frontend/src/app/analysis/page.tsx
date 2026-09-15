@@ -407,7 +407,7 @@ export default function AnalysisPage() {
         {/* Model Runs History Panel */}
         <div className="analysis-history-panel">
           <div className="glass-panel analysis-panel-card" style={panelCardStyle}>
-            <h3 style={panelTitleStyle}>Model Runs History</h3>
+            <h3 className="analysis-panel-title" style={panelTitleStyle}>Model Runs History</h3>
             {isLoading ? (
               <div style={{ textAlign: "center", padding: "1.5rem" }}>Loading history...</div>
             ) : jobs.length === 0 ? (
@@ -416,9 +416,10 @@ export default function AnalysisPage() {
               <div>
                 {/* Bulk actions row */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", padding: "0 0.2rem" }}>
-                  <label style={{ display: "flex", alignItems: "center", fontSize: "0.85rem", cursor: "pointer", color: "var(--text-secondary)" }}>
+                  <label className="analysis-select-all" style={{ display: "flex", alignItems: "center", fontSize: "0.85rem", cursor: "pointer", color: "var(--text-secondary)" }}>
                     <input
                       type="checkbox"
+                      className="analysis-history-checkbox"
                       checked={selectedJobIds.length === jobs.length && jobs.length > 0}
                       onChange={(e) => {
                         if (e.target.checked) {
@@ -459,6 +460,7 @@ export default function AnalysisPage() {
                       <div
                         key={job.id}
                         onClick={() => handleSelectJob(job)}
+                        className={`analysis-history-item ${isSelected ? "active" : ""}`}
                         style={{
                           ...(isSelected ? selectedHistoryItemStyle : historyItemStyle),
                           display: "flex",
@@ -468,6 +470,7 @@ export default function AnalysisPage() {
                       >
                         <input
                           type="checkbox"
+                          className="analysis-history-checkbox"
                           checked={isChecked}
                           onClick={(e) => e.stopPropagation()}
                           onChange={(e) => {
@@ -481,7 +484,7 @@ export default function AnalysisPage() {
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={historyItemHeaderStyle}>
-                            <span style={historyItemTitleStyle}>
+                            <span className="analysis-history-title" style={historyItemTitleStyle}>
                               {job.analysis_type} ({job.game_code})
                             </span>
                             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -507,8 +510,8 @@ export default function AnalysisPage() {
                               </button>
                             </div>
                           </div>
-                          <div style={historyItemDateStyle}>
-                            Run on: {formatSafeDate(job.created_at)}
+                          <div className="analysis-history-date" style={historyItemDateStyle}>
+                            {formatSafeDate(job.created_at)}
                           </div>
                         </div>
                       </div>
@@ -838,8 +841,9 @@ function RecommendationMeta({ tags, confidence, colorTheme }: { tags?: string[];
   const safeConf = confidence || 88.5;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.4rem" }}>
+    <div className="analysis-meta-row" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.4rem" }}>
       <span
+        className="analysis-conf-badge"
         style={{
           fontSize: "0.72rem",
           fontWeight: 800,
@@ -858,6 +862,7 @@ function RecommendationMeta({ tags, confidence, colorTheme }: { tags?: string[];
       {safeTags.map((tag, i) => (
         <span
           key={i}
+          className="analysis-tag-badge"
           style={{
             fontSize: "0.7rem",
             color: "var(--text-secondary)",
@@ -1303,7 +1308,7 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
 
             return (
               <div
-                className="glass-panel"
+                className="glass-panel analysis-wave-card"
                 style={{
                   background: "rgba(255, 215, 0, 0.02)",
                   border: "1px solid rgba(255, 215, 0, 0.12)",
@@ -1315,15 +1320,15 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "1rem" }}>
                   <div>
-                    <h4 style={{ ...subPanelTitleStyle, color: "#ffd700", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1.05rem" }}>
+                    <h4 className="analysis-wave-title" style={{ ...subPanelTitleStyle, color: "#ffd700", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1.05rem" }}>
                       Winning Flow Wave Trend (2-Digit Ending Trajectory)
                     </h4>
-                    <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", margin: "0.2rem 0 0 0" }}>
+                    <p className="analysis-wave-desc" style={{ fontSize: "0.78rem", color: "var(--text-secondary)", margin: "0.2rem 0 0 0" }}>
                       Mathematical oscillation wave across recent 16 draws (Low Zone 00–49 vs High Zone 50–99)
                     </p>
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "1.2rem", fontSize: "0.78rem" }}>
+                  <div className="analysis-wave-legend" style={{ display: "flex", alignItems: "center", gap: "1.2rem", fontSize: "0.78rem" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                       <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#ffd700", boxShadow: "0 0 8px #ffd700" }} />
                       <span style={{ color: "#ffd700", fontWeight: 700 }}>Winning 2D Wave</span>

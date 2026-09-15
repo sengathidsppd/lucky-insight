@@ -803,9 +803,9 @@ select option {
 
 @media (max-width: 1024px) {
   .analysis-layout-grid {
-    grid-template-columns: 42% 58% !important;
+    grid-template-columns: 44% 56% !important;
     grid-template-rows: auto 1fr !important;
-    gap: 0.5rem !important;
+    gap: 0.45rem !important;
     align-items: start !important;
   }
 
@@ -832,39 +832,71 @@ select option {
 
   /* Compact styling for left panels (Form & History) */
   .analysis-panel-card {
-    padding: 0.75rem 0.55rem !important;
-    border-radius: 12px !important;
+    padding: 0.6rem 0.45rem !important;
+    border-radius: 10px !important;
+  }
+
+  .analysis-panel-title {
+    font-size: 0.78rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  .analysis-select-all {
+    font-size: 0.65rem !important;
+  }
+
+  .analysis-history-checkbox {
+    width: 12px !important;
+    height: 12px !important;
+    margin-right: 0.35rem !important;
+  }
+
+  .analysis-history-item {
+    padding: 0.38rem 0.35rem !important;
+    border-radius: 6px !important;
+    gap: 0.35rem !important;
+  }
+
+  .analysis-history-title {
+    font-size: 0.68rem !important;
+    line-height: 1.2 !important;
+    word-break: break-word !important;
+  }
+
+  .analysis-history-date {
+    font-size: 0.58rem !important;
+    margin-top: 0.15rem !important;
   }
 
   .analysis-form-panel label {
-    font-size: 0.72rem !important;
-    margin-bottom: 0.2rem !important;
+    font-size: 0.7rem !important;
+    margin-bottom: 0.15rem !important;
   }
 
   .analysis-form-panel select,
   .analysis-form-panel input {
-    font-size: 0.75rem !important;
-    padding: 0.35rem 0.4rem !important;
+    font-size: 0.72rem !important;
+    padding: 0.3rem 0.35rem !important;
     border-radius: 6px !important;
   }
 
   .analysis-form-panel button[type="submit"] {
-    font-size: 0.8rem !important;
-    padding: 0.5rem 0.4rem !important;
+    font-size: 0.75rem !important;
+    padding: 0.45rem 0.35rem !important;
   }
 
   /* Compact styling for right panel (Results & 6D/3D Cards) */
   .analysis-results-card {
-    padding: 0.75rem 0.55rem !important;
-    border-radius: 12px !important;
+    padding: 0.65rem 0.45rem !important;
+    border-radius: 10px !important;
   }
 
   .analysis-pick-card {
-    padding: 0.65rem 0.45rem !important;
+    padding: 0.5rem 0.4rem !important;
     border-radius: 8px !important;
     flex-direction: column !important;
     align-items: flex-start !important;
-    gap: 0.4rem !important;
+    gap: 0.3rem !important;
   }
 
   .analysis-pick-card > div:first-child {
@@ -874,39 +906,86 @@ select option {
 
   .analysis-pick-card > div:first-child > div:first-child {
     min-width: 0 !important;
-    font-size: 0.78rem !important;
+    font-size: 0.72rem !important;
+    line-height: 1.2 !important;
     word-break: break-word !important;
   }
 
+  .analysis-meta-row {
+    gap: 0.2rem !important;
+    margin-top: 0.25rem !important;
+  }
+
+  .analysis-conf-badge {
+    font-size: 0.58rem !important;
+    padding: 1px 4px !important;
+    border-radius: 4px !important;
+  }
+
+  .analysis-tag-badge {
+    font-size: 0.54rem !important;
+    padding: 1px 4px !important;
+    border-radius: 4px !important;
+  }
+
   .analysis-digit-slot {
-    font-size: 1.22rem !important;
+    font-size: 1.15rem !important;
     gap: 1px !important;
     width: 100% !important;
     justify-content: center !important;
+  }
+
+  /* Wave Trend compact scaling */
+  .analysis-wave-card {
+    padding: 0.55rem 0.45rem !important;
+    border-radius: 10px !important;
+    margin-top: 0.8rem !important;
+  }
+
+  .analysis-wave-title {
+    font-size: 0.72rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .analysis-wave-desc {
+    font-size: 0.58rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .analysis-wave-legend {
+    font-size: 0.6rem !important;
+    gap: 0.6rem !important;
   }
 }
 
 @media (max-width: 640px) {
   .analysis-layout-grid {
-    grid-template-columns: 42% 58% !important;
-    gap: 0.4rem !important;
+    grid-template-columns: 44% 56% !important;
+    gap: 0.35rem !important;
   }
 
   .analysis-panel-card {
-    padding: 0.6rem 0.4rem !important;
+    padding: 0.5rem 0.35rem !important;
   }
 
   .analysis-results-card {
-    padding: 0.6rem 0.45rem !important;
+    padding: 0.5rem 0.35rem !important;
   }
 
-  .analysis-pick-card {
-    padding: 0.5rem 0.35rem !important;
-    gap: 0.3rem !important;
+  .analysis-history-title {
+    font-size: 0.65rem !important;
+  }
+
+  .analysis-history-date {
+    font-size: 0.55rem !important;
+  }
+
+  .analysis-pick-card > div:first-child > div:first-child {
+    font-size: 0.68rem !important;
   }
 
   .analysis-digit-slot {
-    font-size: 1.12rem !important;
+    font-size: 1.08rem !important;
     letter-spacing: 0.5px !important;
   }
 }
