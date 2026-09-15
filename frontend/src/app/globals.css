@@ -810,7 +810,7 @@ select option {
 @media (max-width: 1024px) {
   .analysis-layout-grid {
     grid-template-columns: 44% 56% !important;
-    grid-template-rows: auto 1fr !important;
+    grid-template-rows: auto auto !important;
     gap: 0.45rem !important;
     align-items: start !important;
   }
@@ -822,16 +822,16 @@ select option {
     min-width: 0 !important;
   }
 
-  .analysis-history-panel {
-    grid-column: 1 !important;
-    grid-row: 2 !important;
+  .analysis-results-panel {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
     width: 100% !important;
     min-width: 0 !important;
   }
 
-  .analysis-results-panel {
-    grid-column: 2 !important;
-    grid-row: 1 / span 2 !important;
+  .analysis-history-panel {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
     width: 100% !important;
     min-width: 0 !important;
   }
@@ -857,6 +857,20 @@ select option {
     margin-right: 0.35rem !important;
   }
 
+  /* Full-width history panel grid layout */
+  .analysis-history-panel .analysis-panel-card {
+    padding: 0.6rem 0.5rem !important;
+  }
+
+  .analysis-history-list {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.4rem !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    flex-direction: unset !important;
+  }
+
   .analysis-history-item {
     padding: 0.38rem 0.35rem !important;
     border-radius: 6px !important;
@@ -864,13 +878,17 @@ select option {
   }
 
   .analysis-history-title {
-    font-size: 0.68rem !important;
+    font-size: 0.62rem !important;
     line-height: 1.2 !important;
-    word-break: break-word !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+    display: block !important;
   }
 
   .analysis-history-date {
-    font-size: 0.58rem !important;
+    font-size: 0.55rem !important;
     margin-top: 0.15rem !important;
   }
 
@@ -978,12 +996,18 @@ select option {
     padding: 0.5rem 0.35rem !important;
   }
 
+  .analysis-history-list {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.3rem !important;
+    max-height: 250px !important;
+  }
+
   .analysis-history-title {
-    font-size: 0.65rem !important;
+    font-size: 0.58rem !important;
   }
 
   .analysis-history-date {
-    font-size: 0.55rem !important;
+    font-size: 0.5rem !important;
   }
 
   .analysis-pick-card > div:first-child > div:first-child {

@@ -452,7 +452,7 @@ export default function AnalysisPage() {
                   )}
                 </div>
 
-                <div style={historyListStyle}>
+                <div className="analysis-history-list" style={historyListStyle}>
                   {jobs.map((job) => {
                     const isSelected = selectedJob?.id === job.id;
                     const isChecked = selectedJobIds.includes(job.id);
