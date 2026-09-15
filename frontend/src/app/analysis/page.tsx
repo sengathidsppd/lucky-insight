@@ -269,7 +269,7 @@ export default function AnalysisPage() {
         {/* Run Form Panel */}
         <div className="analysis-form-panel">
           {/* Form */}
-          <div className="glass-panel" style={panelCardStyle}>
+          <div className="glass-panel analysis-panel-card" style={panelCardStyle}>
             <h3 style={panelTitleStyle}>Run Statistical Model</h3>
             {error && <div style={errorStyle}>{error}</div>}
             <form onSubmit={handleStartAnalysis} style={formStyle}>
@@ -406,7 +406,7 @@ export default function AnalysisPage() {
 
         {/* Model Runs History Panel */}
         <div className="analysis-history-panel">
-          <div className="glass-panel" style={panelCardStyle}>
+          <div className="glass-panel analysis-panel-card" style={panelCardStyle}>
             <h3 style={panelTitleStyle}>Model Runs History</h3>
             {isLoading ? (
               <div style={{ textAlign: "center", padding: "1.5rem" }}>Loading history...</div>

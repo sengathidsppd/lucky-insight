@@ -768,47 +768,111 @@ select option {
 
 @media (max-width: 1024px) {
   .analysis-layout-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
-    gap: 1.25rem;
+    grid-template-columns: 42% 58% !important;
+    grid-template-rows: auto 1fr !important;
+    gap: 0.5rem !important;
+    align-items: start !important;
   }
 
   .analysis-form-panel {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .analysis-results-panel {
-    grid-column: 1;
-    grid-row: 2;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
   }
 
   .analysis-history-panel {
-    grid-column: 1;
-    grid-row: 3;
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
   }
 
+  .analysis-results-panel {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Compact styling for left panels (Form & History) */
+  .analysis-panel-card {
+    padding: 0.75rem 0.55rem !important;
+    border-radius: 12px !important;
+  }
+
+  .analysis-form-panel label {
+    font-size: 0.72rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .analysis-form-panel select,
+  .analysis-form-panel input {
+    font-size: 0.75rem !important;
+    padding: 0.35rem 0.4rem !important;
+    border-radius: 6px !important;
+  }
+
+  .analysis-form-panel button[type="submit"] {
+    font-size: 0.8rem !important;
+    padding: 0.5rem 0.4rem !important;
+  }
+
+  /* Compact styling for right panel (Results & 6D/3D Cards) */
   .analysis-results-card {
-    padding: 1.25rem 1rem !important;
+    padding: 0.75rem 0.55rem !important;
+    border-radius: 12px !important;
   }
 
   .analysis-pick-card {
-    padding: 1rem 0.85rem !important;
+    padding: 0.65rem 0.45rem !important;
+    border-radius: 8px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.4rem !important;
+  }
+
+  .analysis-pick-card > div:first-child {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .analysis-pick-card > div:first-child > div:first-child {
+    min-width: 0 !important;
+    font-size: 0.78rem !important;
+    word-break: break-word !important;
+  }
+
+  .analysis-digit-slot {
+    font-size: 1.22rem !important;
+    gap: 1px !important;
+    width: 100% !important;
+    justify-content: center !important;
   }
 }
 
 @media (max-width: 640px) {
+  .analysis-layout-grid {
+    grid-template-columns: 42% 58% !important;
+    gap: 0.4rem !important;
+  }
+
+  .analysis-panel-card {
+    padding: 0.6rem 0.4rem !important;
+  }
+
+  .analysis-results-card {
+    padding: 0.6rem 0.45rem !important;
+  }
+
   .analysis-pick-card {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 0.75rem !important;
+    padding: 0.5rem 0.35rem !important;
+    gap: 0.3rem !important;
   }
 
   .analysis-digit-slot {
-    font-size: 1.65rem !important;
-    gap: 2px !important;
-    width: 100% !important;
-    justify-content: center !important;
+    font-size: 1.12rem !important;
+    letter-spacing: 0.5px !important;
   }
 }
 
