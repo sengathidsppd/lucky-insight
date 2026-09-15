@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { apiRequest } from "@/lib/api";
 import DrawCountdown from "./DrawCountdown";
 import { AvatarCustomizerModal } from "./AvatarCustomizerModal";
 import { BirthdayCelebrationModal } from "./BirthdayCelebrationModal";
@@ -169,10 +168,8 @@ export default function NavigationShell({ children }: { children: React.ReactNod
             })}
           </nav>
 
-          {/* Right Actions: Notification + User + Logout */}
+          {/* Right Actions: User + Logout */}
           <div style={{ display: "flex", alignItems: "center", gap: "1.2rem" }}>
-            <NotificationBell />
-
             {user && (
               <div
                 onClick={() => setIsAvatarModalOpen(true)}
@@ -303,95 +300,3 @@ export default function NavigationShell({ children }: { children: React.ReactNod
   );
 }
 
-function NotificationBell() {
-  const [unread, setUnread] = useState(0);
-  const [open, setOpen] = useState(false);
-  const [notifs, setNotifs] = useState<any[]>([]);
-
-  useEffect(() => {
-    apiRequest("/notifications")
-      .then((resp) => {
-        setUnread(resp.unread_count || 0);
-        setNotifs(resp.data || []);
-      })
-      .catch(() => {});
-  }, []);
-
-  return (
-    <div style={{ position: "relative" }}>
-      <button
-        onClick={() => setOpen(!open)}
-        style={{
-          background: "rgba(255,255,255,0.05)",
-          border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: "50%",
-          width: "40px",
-          height: "40px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          color: "#fff",
-          position: "relative",
-        }}
-      >
-        🔔
-        {unread > 0 && (
-          <span
-            style={{
-              position: "absolute",
-              top: "-2px",
-              right: "-2px",
-              background: "var(--accent-cyan)",
-              color: "#000",
-              fontSize: "0.65rem",
-              fontWeight: 800,
-              padding: "2px 6px",
-              borderRadius: "10px",
-            }}
-          >
-            {unread}
-          </span>
-        )}
-      </button>
-
-      {open && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50px",
-            right: 0,
-            width: "320px",
-            background: "rgba(10, 2, 15, 0.95)",
-            border: "1px solid rgba(255,255,255,0.15)",
-            borderRadius: "12px",
-            backdropFilter: "blur(12px)",
-            padding: "1rem",
-            zIndex: 1000,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
-          }}
-        >
-          <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "#fff", marginBottom: "0.75rem" }}>
-            Notifications ({unread} unread)
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxHeight: "250px", overflowY: "auto" }}>
-            {notifs.map((n) => (
-              <div
-                key={n.id}
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  borderRadius: "8px",
-                  padding: "0.6rem",
-                }}
-              >
-                <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--accent-cyan)" }}>{n.title}</div>
-                <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>{n.message}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
