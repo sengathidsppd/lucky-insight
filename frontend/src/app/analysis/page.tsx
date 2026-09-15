@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { apiRequest } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
@@ -24,6 +24,7 @@ interface AnalysisJob {
 export default function AnalysisPage() {
   const { user } = useAuth();
   const isSuperAdmin = Boolean(user && (user.email === "suzu@gmail.com" || (user.is_admin && (user as any)?.is_superadmin)));
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [jobs, setJobs] = useState<AnalysisJob[]>([]);
   const [selectedJob, setSelectedJob] = useState<AnalysisJob | null>(null);
   const [games, setGames] = useState<any[]>([]);
@@ -180,6 +181,9 @@ export default function AnalysisPage() {
         setSelectedJob(newJob);
         setIsSlotAnimating(true);
         setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 120);
+        setTimeout(() => {
           setIsSlotAnimating(false);
         }, 1800);
       }
@@ -199,6 +203,9 @@ export default function AnalysisPage() {
       const resp = await apiRequest(`/analysis/${job.id}`);
       setSelectedJob(resp.data);
       setIsSlotAnimating(true);
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 120);
       setTimeout(() => {
         setIsSlotAnimating(false);
       }, 1500);
@@ -258,9 +265,9 @@ export default function AnalysisPage() {
         <p style={subtitleStyle}>Run analytical models on lottery history to discover repeating trends.</p>
       </div>
 
-      <div style={layoutGridStyle}>
-        {/* Run Form & History Panel */}
-        <div style={leftPanelStyle}>
+      <div className="analysis-layout-grid">
+        {/* Run Form Panel */}
+        <div className="analysis-form-panel">
           {/* Form */}
           <div className="glass-panel" style={panelCardStyle}>
             <h3 style={panelTitleStyle}>Run Statistical Model</h3>
@@ -338,8 +345,67 @@ export default function AnalysisPage() {
               </button>
             </form>
           </div>
+        </div>
 
-          {/* History */}
+        {/* Results Panel */}
+        <div ref={resultsRef} className="analysis-results-panel">
+          {selectedJob ? (
+            <div className="glass-panel analysis-results-card" style={resultsPanelCardStyle}>
+              <div style={{ ...resultsHeaderStyle, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
+                <div>
+                  <span style={resultsGameBadgeStyle}>{selectedJob.game_code}</span>
+                  <h2 style={resultsTitleStyle}>{selectedJob.analysis_type} Analysis</h2>
+                  <p style={resultsSubTitleStyle}>
+                    Status: <strong style={{ color: "var(--accent-cyan)" }}>{selectedJob.status}</strong>
+                  </p>
+                </div>
+                {selectedJob.status === "COMPLETED" && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const csvContent = await apiRequest(`/analysis/${selectedJob.id}/export/csv`);
+                        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement("a");
+                        link.href = url;
+                        link.setAttribute("download", `analysis_report_${selectedJob.id.slice(0, 8)}.csv`);
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      } catch (err: any) {
+                        alert("Export failed: " + err.message);
+                      }
+                    }}
+                    className="btn btn-secondary"
+                    style={{ padding: "0.4rem 0.8rem", fontSize: "0.8rem" }}
+                  >
+                    📄 Export CSV Report
+                  </button>
+                )}
+              </div>
+
+              {selectedJob.status === "COMPLETED" ? (
+                <AnalysisResultVisualizer job={selectedJob} isSlotAnimating={isSlotAnimating} />
+              ) : selectedJob.status === "FAILED" ? (
+                <div style={errorStyle}>Model execution failed. Please verify dates and draw history.</div>
+              ) : (
+                <div style={{ textAlign: "center", padding: "4rem" }}>
+                  Calculating mathematical statistics. Please wait...
+                </div>
+              )}
+            </div>
+
+          ) : (
+            <div className="glass-panel analysis-results-card" style={resultsPlaceholderStyle}>
+              <div>Select a model run from the history or start a new analysis to visualize statistics.</div>
+              <GameComparisonMatrix />
+            </div>
+          )}
+        </div>
+
+        {/* Model Runs History Panel */}
+        <div className="analysis-history-panel">
           <div className="glass-panel" style={panelCardStyle}>
             <h3 style={panelTitleStyle}>Model Runs History</h3>
             {isLoading ? (
@@ -452,63 +518,6 @@ export default function AnalysisPage() {
               </div>
             )}
           </div>
-        </div>
-
-        {/* Results Panel */}
-        <div style={rightPanelStyle}>
-          {selectedJob ? (
-            <div className="glass-panel" style={resultsPanelCardStyle}>
-              <div style={{ ...resultsHeaderStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <span style={resultsGameBadgeStyle}>{selectedJob.game_code}</span>
-                  <h2 style={resultsTitleStyle}>{selectedJob.analysis_type} Analysis</h2>
-                  <p style={resultsSubTitleStyle}>
-                    Status: <strong style={{ color: "var(--accent-cyan)" }}>{selectedJob.status}</strong>
-                  </p>
-                </div>
-                {selectedJob.status === "COMPLETED" && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        const csvContent = await apiRequest(`/analysis/${selectedJob.id}/export/csv`);
-                        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-                        const url = URL.createObjectURL(blob);
-                        const link = document.createElement("a");
-                        link.href = url;
-                        link.setAttribute("download", `analysis_report_${selectedJob.id.slice(0, 8)}.csv`);
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      } catch (err: any) {
-                        alert("Export failed: " + err.message);
-                      }
-                    }}
-                    className="btn btn-secondary"
-                    style={{ padding: "0.4rem 0.8rem", fontSize: "0.8rem" }}
-                  >
-                    📄 Export CSV Report
-                  </button>
-                )}
-              </div>
-
-              {selectedJob.status === "COMPLETED" ? (
-                <AnalysisResultVisualizer job={selectedJob} isSlotAnimating={isSlotAnimating} />
-              ) : selectedJob.status === "FAILED" ? (
-                <div style={errorStyle}>Model execution failed. Please verify dates and draw history.</div>
-              ) : (
-                <div style={{ textAlign: "center", padding: "4rem" }}>
-                  Calculating mathematical statistics. Please wait...
-                </div>
-              )}
-            </div>
-
-          ) : (
-            <div className="glass-panel" style={resultsPlaceholderStyle}>
-              <div>Select a model run from the history or start a new analysis to visualize statistics.</div>
-              <GameComparisonMatrix />
-            </div>
-          )}
         </div>
       </div>
 
@@ -784,6 +793,7 @@ function SlotDigitNumber({
 
   return (
     <div
+      className="analysis-digit-slot"
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -925,6 +935,7 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
                       return (
                         <div
                           key={"thai6d" + (item.number || idx)}
+                          className="analysis-pick-card"
                           style={{
                             display: "flex",
                             flexDirection: "row",
@@ -984,6 +995,7 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
                     return (
                       <div
                         key={"f3d" + numStr + idx}
+                        className="analysis-pick-card"
                         style={{
                           display: "flex",
                           flexDirection: "row",
@@ -1042,6 +1054,7 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
                     return (
                       <div
                         key={"b3d" + numStr + idx}
+                        className="analysis-pick-card"
                         style={{
                           display: "flex",
                           flexDirection: "row",
@@ -1083,6 +1096,7 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
                   return (
                     <div
                       key={"b2d" + numStr}
+                      className="analysis-pick-card"
                       style={{
                         display: "flex",
                         flexDirection: "row",
@@ -1131,6 +1145,7 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
                       return (
                         <div
                           key={"lao6d" + (item.number || idx)}
+                          className="analysis-pick-card"
                           style={{
                             display: "flex",
                             flexDirection: "row",
@@ -1192,6 +1207,7 @@ function AnalysisResultVisualizer({ job, isSlotAnimating }: { job: AnalysisJob; 
                     return (
                       <div
                         key={numStr + idx}
+                        className="analysis-pick-card"
                         style={{
                           display: "flex",
                           flexDirection: "row",
@@ -2097,6 +2113,8 @@ const subPanelTitleStyle: React.CSSProperties = {
 
 const tableWrapperStyle: React.CSSProperties = {
   width: "100%",
+  overflowX: "auto",
+  WebkitOverflowScrolling: "touch",
 };
 
 const tableStyle: React.CSSProperties = {
