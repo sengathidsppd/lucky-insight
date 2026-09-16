@@ -64,13 +64,16 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
             res_dict.pop("generated_3d_recommendations", None)
 
             if is_superadmin:
-                # Super Admin: 1x 6D, 1x 4D (derived from 2D#2), 1x 2D (pick #1)
+                # Super Admin: 2x 6D (Rank #8 as Pick #1, Rank #5 as Pick #2 per lucky numbers 8 & 5), NO 4D VIP, NO 2D (Pure Grand Prize Focus)
                 if "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
-                    res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:1]
-                if "generated_4d_recommendations" in res_dict and isinstance(res_dict["generated_4d_recommendations"], list):
-                    res_dict["generated_4d_recommendations"] = res_dict["generated_4d_recommendations"][:1]
-                if "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
-                    res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:1]
+                    pool_6d = res_dict["best_analyzed_6d"]
+                    # Rank #8 (0-indexed 7) for Pick #1, Rank #5 (0-indexed 4) for Pick #2
+                    pick_1 = pool_6d[7] if len(pool_6d) > 7 else (pool_6d[0] if len(pool_6d) > 0 else None)
+                    pick_2 = pool_6d[4] if len(pool_6d) > 4 else (pool_6d[1] if len(pool_6d) > 1 else None)
+                    res_dict["best_analyzed_6d"] = [p for p in [pick_1, pick_2] if p is not None]
+                res_dict.pop("generated_4d_recommendations", None)
+                res_dict.pop("generated_2d_recommendations", None)
+                res_dict.pop("back_2digit_picks", None)
 
             elif is_operator_admin:
                 # Operator Admin: 1x 6D (if not Thai), 3x 2D (no 4D, no 3D)
