@@ -817,30 +817,36 @@ select option {
 @media (max-width: 1024px) {
   .analysis-layout-grid {
     grid-template-columns: 44% 56% !important;
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto !important;
     gap: 0.45rem !important;
     align-items: start !important;
   }
 
   .analysis-form-panel {
     grid-column: 1 !important;
+    grid-row: 1 !important;
     width: 100% !important;
     min-width: 0 !important;
   }
 
   .analysis-results-panel {
     grid-column: 2 !important;
+    grid-row: 1 !important;
     width: 100% !important;
     min-width: 0 !important;
   }
 
   .analysis-extended-panel {
     grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
     width: 100% !important;
     min-width: 0 !important;
   }
 
   .analysis-history-panel {
     grid-column: 1 / -1 !important;
+    grid-row: auto !important;
     width: 100% !important;
     min-width: 0 !important;
   }
