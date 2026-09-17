@@ -529,6 +529,7 @@ class AnalysisService:
             "top_single_digits": freq_data.get("top_single_digits", []),
             "position_frequencies": freq_data.get("position_frequencies", []),
             "best_analyzed_6d": freq_data.get("best_analyzed_6d", []),
+            "superadmin_picks_6d": freq_data.get("superadmin_picks_6d", []),
             "generated_recommendations": freq_data.get("generated_recommendations", []),
             "generated_4d_recommendations": freq_data.get("generated_4d_recommendations", []),
             "generated_3d_recommendations": freq_data.get("generated_3d_recommendations", []),
@@ -692,7 +693,7 @@ class AnalysisService:
                 d_sc = (0.4 * pos_freq_data[p].get(d_str, 0) * 350.0) + (0.3 * recovery_indices.get(d_str, 1.0) * 40.0)
                 digit_scores.append((d_str, d_sc))
             digit_scores.sort(key=lambda x: (-x[1], x[0]))
-            top_digits_per_pos.append([x[0] for x in digit_scores[:4]])
+            top_digits_per_pos.append([x[0] for x in digit_scores[:5]])
 
         for combo in itertools.product(*top_digits_per_pos):
             unique_6d.add("".join(combo))
@@ -707,6 +708,12 @@ class AnalysisService:
         # 6D: Deterministic top candidates (Rank #1, #2, #3 - no random sampling)
         best_100_6d = list(scored_6d[:100])
         pick_1_str = best_100_6d[0]["number"] if best_100_6d else "000000"
+
+        # Super Admin Special Lucky 6D Picks:
+        # Pick #1: Rank #5888 (0-indexed: 5887)
+        # Pick #2: Rank #8885 (0-indexed: 8884)
+        cand_5888 = scored_6d[5887] if len(scored_6d) > 5887 else scored_6d[-1]
+        cand_8885 = scored_6d[8884] if len(scored_6d) > 8884 else scored_6d[-1]
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
@@ -892,6 +899,7 @@ class AnalysisService:
             return item_copy
 
         enriched_6d = [enrich_item(x, 6) for x in best_100_6d]
+        enriched_superadmin_6d = [enrich_item(cand_5888, 6), enrich_item(cand_8885, 6)]
         enriched_4d = [enrich_item(x, 4) for x in top_100_4d]
         enriched_3d = [enrich_item(x, 3) for x in top_100_3d]
         enriched_2d = [enrich_item(x, 2) for x in top_3_2d]
@@ -903,6 +911,7 @@ class AnalysisService:
             "top_single_digits": top_digits,
             "position_frequencies": pos_freq_data,
             "best_analyzed_6d": enriched_6d,
+            "superadmin_picks_6d": enriched_superadmin_6d,
             "generated_recommendations": [pick_1_str],
             "generated_4d_recommendations": enriched_4d,
             "generated_3d_recommendations": enriched_3d,

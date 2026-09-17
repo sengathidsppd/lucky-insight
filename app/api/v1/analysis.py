@@ -64,24 +64,69 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
             res_dict.pop("generated_3d_recommendations", None)
 
             if is_superadmin:
-                # Super Admin: 2x 6D (Rank #88 as Pick #1, Rank #58 as Pick #2 per lucky numbers 88 & 58), NO 4D VIP, NO 2D (Pure Grand Prize Focus)
-                if "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
+                # Super Admin: 2x 6D (Rank #5888 as Pick #1, Rank #8885 as Pick #2 per lucky numbers 5888 & 8885), NO 4D VIP, NO 2D (Pure Grand Prize Focus)
+                if "superadmin_picks_6d" in res_dict and isinstance(res_dict["superadmin_picks_6d"], list) and len(res_dict["superadmin_picks_6d"]) >= 2:
+                    res_dict["best_analyzed_6d"] = res_dict["superadmin_picks_6d"][:2]
+                elif "position_frequencies" in res_dict and isinstance(res_dict["position_frequencies"], list) and len(res_dict["position_frequencies"]) == 6:
+                    import itertools
+                    pos_freq = res_dict["position_frequencies"]
+                    gaps_d = res_dict.get("gaps", {})
+                    rec_indices = {str(d): float(gaps_d.get(str(d), {}).get("recovery_index", 1.0)) for d in range(10)}
+
+                    def score_dyn(num_str: str) -> float:
+                        ps = sum(pos_freq[p].get(c, 0) for p, c in enumerate(num_str)) / 6
+                        gs = sum(rec_indices.get(c, 1.0) for c in num_str) / 6
+                        odds = sum(1 for c in num_str if int(c) % 2 != 0)
+                        highs = sum(1 for c in num_str if int(c) >= 5)
+                        ds = 100.0 - (abs(odds - 3) * 15.0) - (abs(highs - 3) * 15.0)
+                        return round((0.4 * min(100.0, ps * 300.0)) + (0.3 * min(100.0, gs * 50.0)) + (0.3 * ds), 2)
+
+                    top_d_pos = []
+                    for p in range(6):
+                        dsc = []
+                        for d in range(10):
+                            d_str = str(d)
+                            d_sc = (0.4 * pos_freq[p].get(d_str, 0) * 350.0) + (0.3 * rec_indices.get(d_str, 1.0) * 40.0)
+                            dsc.append((d_str, d_sc))
+                        dsc.sort(key=lambda x: (-x[1], x[0]))
+                        top_d_pos.append([x[0] for x in dsc[:5]])
+
+                    combos = ["".join(c) for c in itertools.product(*top_d_pos)]
+                    sc_list = [{"number": c, "score": score_dyn(c)} for c in combos]
+                    sc_list.sort(key=lambda x: (-x["score"], x["number"]))
+
+                    c_5888 = sc_list[5887] if len(sc_list) > 5887 else sc_list[-1]
+                    c_8885 = sc_list[8884] if len(sc_list) > 8884 else sc_list[-1]
+
+                    def enrich_dyn(it: dict[str, Any]) -> dict[str, Any]:
+                        n = str(it.get("number", "000000"))
+                        sc = float(it.get("score", 70.0))
+                        odds = sum(1 for c in n if int(c) % 2 != 0)
+                        highs = sum(1 for c in n if int(c) >= 5)
+                        tags = ["Poisson Overdue (1.2x)", "Balanced Position", "Harmonic 50:50" if abs(odds - 3) <= 0.5 and abs(highs - 3) <= 0.5 else "High Dominant"]
+                        conf = min(98.8, max(75.0, round(60.0 + (sc * 0.42), 1)))
+                        return {**it, "tags": tags[:3], "confidence_score": conf, "confidence_level": "OPTIMAL" if conf >= 92.0 else "VERY HIGH"}
+
+                    res_dict["best_analyzed_6d"] = [enrich_dyn(c_5888), enrich_dyn(c_8885)]
+                elif "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
                     pool_6d = res_dict["best_analyzed_6d"]
-                    # Rank #88 (0-indexed 87) for Pick #1, Rank #58 (0-indexed 57) for Pick #2
-                    pick_1 = pool_6d[87] if len(pool_6d) > 87 else (pool_6d[0] if len(pool_6d) > 0 else None)
-                    pick_2 = pool_6d[57] if len(pool_6d) > 57 else (pool_6d[1] if len(pool_6d) > 1 else None)
+                    pick_1 = pool_6d[5887] if len(pool_6d) > 5887 else (pool_6d[87] if len(pool_6d) > 87 else pool_6d[0])
+                    pick_2 = pool_6d[8884] if len(pool_6d) > 8884 else (pool_6d[57] if len(pool_6d) > 57 else pool_6d[1])
                     res_dict["best_analyzed_6d"] = [p for p in [pick_1, pick_2] if p is not None]
                 res_dict.pop("generated_4d_recommendations", None)
                 res_dict.pop("generated_2d_recommendations", None)
                 res_dict.pop("back_2digit_picks", None)
 
             elif is_operator_admin:
-                # Operator Admin: 1x 6D (if not Thai), 3x 2D (no 4D, no 3D)
+                # Operator Admin: 1x 6D (Rank #3 if not Thai), 3x 2D (Rank #1, #2, #3, no 4D, no 3D)
                 res_dict.pop("generated_4d_recommendations", None)
                 if "THAI" in game_code.upper():
                     res_dict.pop("best_analyzed_6d", None)
                 elif "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
-                    res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:1]
+                    if len(res_dict["best_analyzed_6d"]) >= 3:
+                        res_dict["best_analyzed_6d"] = [res_dict["best_analyzed_6d"][2]]
+                    else:
+                        res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:1]
                 if "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
                     res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:3]
 
@@ -359,13 +404,14 @@ def export_analysis_csv(
         
         res_data = job.result.result_data or {}
         
-        # 6D Pick (Trimmed to last 2 digits)
+        # 6D Picks (Trimmed to last 2 digits)
         if "best_analyzed_6d" in res_data and res_data["best_analyzed_6d"]:
-            item = res_data["best_analyzed_6d"][0]
-            num = item.get("number", "") if isinstance(item, dict) else str(item)
-            score = item.get("score", "N/A") if isinstance(item, dict) else "N/A"
-            trimmed_num = num[-2:] if len(num) >= 2 else num
-            writer.writerow(["6-Digit Pick (Top 6D)", trimmed_num, score])
+            for idx, item in enumerate(res_data["best_analyzed_6d"]):
+                num = item.get("number", "") if isinstance(item, dict) else str(item)
+                score = item.get("score", "N/A") if isinstance(item, dict) else "N/A"
+                trimmed_num = num[-2:] if len(num) >= 2 else num
+                label = f"6-Digit Pick #{idx+1} (Top 6D)" if len(res_data["best_analyzed_6d"]) > 1 else "6-Digit Pick (Top 6D)"
+                writer.writerow([label, trimmed_num, score])
             
         # 3D Pick (Trimmed to last 2 digits)
         if "generated_3d_recommendations" in res_data:
