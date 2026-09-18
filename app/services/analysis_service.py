@@ -471,6 +471,9 @@ class AnalysisService:
             "top_single_digits": freq_data.get("top_single_digits", []),
             "position_frequencies": freq_data.get("position_frequencies", []),
             "best_analyzed_6d": enriched_6d,
+            "superadmin_picks_6d": freq_data.get("superadmin_picks_6d", []),
+            "superadmin_picks_4d": freq_data.get("superadmin_picks_4d", []),
+            "superadmin_picks_2d": freq_data.get("superadmin_picks_2d", []),
             "generated_recommendations": [best_6d_num_1],
             "generated_4d_recommendations": enriched_4d,
             "generated_3d_recommendations": enriched_3d,
@@ -530,6 +533,8 @@ class AnalysisService:
             "position_frequencies": freq_data.get("position_frequencies", []),
             "best_analyzed_6d": freq_data.get("best_analyzed_6d", []),
             "superadmin_picks_6d": freq_data.get("superadmin_picks_6d", []),
+            "superadmin_picks_4d": freq_data.get("superadmin_picks_4d", []),
+            "superadmin_picks_2d": freq_data.get("superadmin_picks_2d", []),
             "generated_recommendations": freq_data.get("generated_recommendations", []),
             "generated_4d_recommendations": freq_data.get("generated_4d_recommendations", []),
             "generated_3d_recommendations": freq_data.get("generated_3d_recommendations", []),
@@ -709,11 +714,10 @@ class AnalysisService:
         best_100_6d = list(scored_6d[:100])
         pick_1_str = best_100_6d[0]["number"] if best_100_6d else "000000"
 
-        # Super Admin Special Lucky 6D Picks:
-        # Pick #1: Rank #5888 (0-indexed: 5887)
-        # Pick #2: Rank #8885 (0-indexed: 8884)
-        cand_5888 = scored_6d[5887] if len(scored_6d) > 5887 else scored_6d[-1]
-        cand_8885 = scored_6d[8884] if len(scored_6d) > 8884 else scored_6d[-1]
+        # Super Admin Special Lucky 6D Pick:
+        # Sampled 1 set from Top 588 scored candidates (Pick #2 is completely removed)
+        top_588_6d = scored_6d[:min(len(scored_6d), 588)]
+        cand_6d_sample = secrets.choice(top_588_6d) if top_588_6d else (scored_6d[0] if scored_6d else {"number": "000000", "score": 75.0})
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
@@ -825,35 +829,19 @@ class AnalysisService:
         # Back 3D: Deterministic top 2 picks for Thai Lottery (Option B)
         chosen_b3d_list = top_100_3d_raw[:2]
 
-        # 4D: Super Admin VIP 4D candidate:
-        # - 1st front digit: sampled from the first digit of Top 20 4-digit historical endings
-        # - 2nd front digit: sampled from the first digit of Top 20 3-digit historical endings
-        # - 3rd & 4th digits: exact 2-digit number of 2D Pick #2
-        top_20_4d_endings = [comb for comb, _ in Counter(endings_map[4]).most_common(20)]
-        top_20_3d_endings = [comb for comb, _ in Counter(endings_map[3]).most_common(20)]
+        # 4D: Score all 10,000 combinations (0000 - 9999) and rank them
+        scored_4d_all = [{"number": f"{x:04d}", "score": score_4d(f"{x:04d}")} for x in range(10000)]
+        scored_4d_all.sort(key=lambda item: (-item["score"], item["number"]))
+        top_100_4d = scored_4d_all[:100]
+        top_588_4d = scored_4d_all[:588]
 
-        pool_d0 = [ending[0] for ending in top_20_4d_endings if len(ending) >= 4]
-        if not pool_d0:
-            pool_d0 = [str(d) for d in range(10)]
+        # Super Admin 4D Pick: Sampled 1 set from Top 588 candidates
+        cand_4d_sample = secrets.choice(top_588_4d) if top_588_4d else scored_4d_all[0]
 
-        pool_d1 = [ending[0] for ending in top_20_3d_endings if len(ending) >= 3]
-        if not pool_d1:
-            pool_d1 = [str(d) for d in range(10)]
-
-        d0_front = secrets.choice(pool_d0)
-        d1_front = secrets.choice(pool_d1)
-
-        pick_2_2d_str = top_3_2d[1]["number"] if len(top_3_2d) > 1 else (top_3_2d[0]["number"] if top_3_2d else "00")
-        final_4d_str = f"{d0_front}{d1_front}{pick_2_2d_str}"
-
-        chosen_4d = {"number": final_4d_str, "score": score_4d(final_4d_str)}
-        scored_4d_pick2 = [chosen_4d]
-        for front in range(100):
-            cand_4d = f"{front:02d}{pick_2_2d_str}"
-            if cand_4d != final_4d_str:
-                scored_4d_pick2.append({"number": cand_4d, "score": score_4d(cand_4d)})
-        scored_4d_pick2.sort(key=lambda item: (-item["score"] if item["number"] != final_4d_str else -9999, item["number"]))
-        top_100_4d = [chosen_4d] + [x for x in scored_4d_pick2 if x["number"] != final_4d_str][:99]
+        # Super Admin 2D Picks: Sampled 2 distinct sets from Top 2D pool (top 50 of 100 scored)
+        top_2d_pool = scored_2d_all[:min(len(scored_2d_all), 50)]
+        cand_2d_samples = secrets.SystemRandom().sample(top_2d_pool, 2) if len(top_2d_pool) >= 2 else scored_2d_all[:2]
+        cand_2d_samples.sort(key=lambda item: (-item["score"], item["number"]))
 
         # AI Reasoning & Explainability Enrichment
         def enrich_item(item: dict[str, Any], length: int) -> dict[str, Any]:
@@ -899,7 +887,9 @@ class AnalysisService:
             return item_copy
 
         enriched_6d = [enrich_item(x, 6) for x in best_100_6d]
-        enriched_superadmin_6d = [enrich_item(cand_5888, 6), enrich_item(cand_8885, 6)]
+        enriched_superadmin_6d = [enrich_item(cand_6d_sample, 6)]
+        enriched_superadmin_4d = [enrich_item(cand_4d_sample, 4)]
+        enriched_superadmin_2d = [enrich_item(x, 2) for x in cand_2d_samples]
         enriched_4d = [enrich_item(x, 4) for x in top_100_4d]
         enriched_3d = [enrich_item(x, 3) for x in top_100_3d]
         enriched_2d = [enrich_item(x, 2) for x in top_3_2d]
@@ -912,6 +902,8 @@ class AnalysisService:
             "position_frequencies": pos_freq_data,
             "best_analyzed_6d": enriched_6d,
             "superadmin_picks_6d": enriched_superadmin_6d,
+            "superadmin_picks_4d": enriched_superadmin_4d,
+            "superadmin_picks_2d": enriched_superadmin_2d,
             "generated_recommendations": [pick_1_str],
             "generated_4d_recommendations": enriched_4d,
             "generated_3d_recommendations": enriched_3d,

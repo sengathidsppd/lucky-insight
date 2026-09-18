@@ -51,39 +51,33 @@ def db_session() -> Generator[Session]:
         session.close()
 
 
-def _register_and_login(client: TestClient, email: str) -> str:
-    payload = {
-        "email": email,
-        "password": "SecurePass123",
-        "confirm_password": "SecurePass123",
-        "first_name": "Ada",
-        "last_name": "Lovelace",
-    }
-    client.post("/api/v1/auth/register", json=payload)
-    login_response = client.post(
-        "/api/v1/auth/login",
-        json={"email": email, "password": "SecurePass123"},
-    )
-    return login_response.json()["data"]["access_token"]
+from app.security.jwt import create_access_token
+
+
+def _get_user_token(user: User) -> str:
+    return create_access_token(str(user.id)).token
 
 
 def test_analysis_api_endpoints(
     client: TestClient,
     db_session: Session,
 ) -> None:
-    # 1. Register & Login
+    # 1. Create a regular user
     email = f"user.{uuid.uuid4()}@example.com"
-    token = _register_and_login(client, email)
-    headers = {"Authorization": f"Bearer {token}"}
-
-    # 2. Get User object to create dummy records
-    user = db_session.query(User).filter_by(email=email).one()
-    rec_repo = NumberRecordRepository(db_session)
-    rec_repo.create(NumberRecord(user_id=user.id, number="987", is_favorite=False))
-    rec_repo.create(NumberRecord(user_id=user.id, number="654", is_favorite=False))
+    user = User(email=email, password_hash="hash", is_active=True, is_admin=False)
+    db_session.add(user)
     db_session.commit()
 
-    # 3. Create analysis job
+    token = _get_user_token(user)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Add sample records
+    rec_repo = NumberRecordRepository(db_session)
+    rec_repo.create(NumberRecord(user_id=user.id, number="987123", is_favorite=False))
+    rec_repo.create(NumberRecord(user_id=user.id, number="654321", is_favorite=False))
+    db_session.commit()
+
+    # 3. Create analysis job as regular user
     payload = {
         "analysis_type": "FREQUENCY",
         "parameters": {},
@@ -95,6 +89,12 @@ def test_analysis_api_endpoints(
     assert job_data["result"] is not None
     job_id = job_data["id"]
 
+    # Regular user should NOT have 6D or 4D recommendations, but should have 2D recommendations
+    res_dict = job_data["result"]["result_data"]
+    assert res_dict.get("best_analyzed_6d") is None
+    assert res_dict.get("generated_4d_recommendations") is None
+    assert len(res_dict.get("generated_2d_recommendations", [])) == 3
+
     # 4. List historical analysis jobs
     resp = client.get("/api/v1/analysis/", headers=headers)
     assert resp.status_code == 200
@@ -104,3 +104,58 @@ def test_analysis_api_endpoints(
     resp = client.get(f"/api/v1/analysis/{job_id}", headers=headers)
     assert resp.status_code == 200
     assert resp.json()["data"]["analysis_type"] == "FREQUENCY"
+
+
+def test_superadmin_analysis_picks_structure(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    # Create Super Admin user
+    sa_email = "suzu@gmail.com"
+    sa_user = db_session.query(User).filter_by(email=sa_email).first()
+    if not sa_user:
+        sa_user = User(email=sa_email, password_hash="hash", is_active=True, is_admin=True, is_superadmin=True)
+        db_session.add(sa_user)
+        db_session.commit()
+
+    token = _get_user_token(sa_user)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Add records for Super Admin
+    rec_repo = NumberRecordRepository(db_session)
+    for num in ["925153", "340909", "182669", "548231", "789123"]:
+        rec_repo.create(NumberRecord(user_id=sa_user.id, number=num, is_favorite=False))
+    db_session.commit()
+
+    # Create and run analysis
+    payload = {
+        "analysis_type": "COMPOSITE",
+        "parameters": {},
+    }
+    resp = client.post("/api/v1/analysis/", json=payload, headers=headers)
+    assert resp.status_code == 201
+    job_data = resp.json()["data"]
+    assert job_data["status"] == "COMPLETED"
+    res_dict = job_data["result"]["result_data"]
+
+    # Verify Super Admin picks structure:
+    # 1. 6D Pick: Exactly 1 set
+    assert "best_analyzed_6d" in res_dict
+    assert len(res_dict["best_analyzed_6d"]) == 1
+
+    # 2. 4D Pick: Exactly 1 set
+    assert "generated_4d_recommendations" in res_dict
+    assert len(res_dict["generated_4d_recommendations"]) == 1
+
+    # 3. 2D Picks: Exactly 2 sets
+    assert "generated_2d_recommendations" in res_dict
+    assert len(res_dict["generated_2d_recommendations"]) == 2
+
+    # 4. CSV Export
+    job_id = job_data["id"]
+    csv_resp = client.get(f"/api/v1/analysis/{job_id}/export/csv", headers=headers)
+    assert csv_resp.status_code == 200
+    csv_text = csv_resp.text
+    assert "6-Digit Pick" in csv_text
+    assert "4-Digit Pick" in csv_text
+    assert "2-Digit Pick" in csv_text
