@@ -472,6 +472,7 @@ class AnalysisService:
             "position_frequencies": freq_data.get("position_frequencies", []),
             "best_analyzed_6d": enriched_6d,
             "superadmin_picks_6d": freq_data.get("superadmin_picks_6d", []),
+            "superadmin_picks_2d": freq_data.get("superadmin_picks_2d", []),
             "generated_recommendations": [best_6d_num_1],
             "generated_4d_recommendations": enriched_4d,
             "generated_3d_recommendations": enriched_3d,
@@ -531,6 +532,7 @@ class AnalysisService:
             "position_frequencies": freq_data.get("position_frequencies", []),
             "best_analyzed_6d": freq_data.get("best_analyzed_6d", []),
             "superadmin_picks_6d": freq_data.get("superadmin_picks_6d", []),
+            "superadmin_picks_2d": freq_data.get("superadmin_picks_2d", []),
             "generated_recommendations": freq_data.get("generated_recommendations", []),
             "generated_4d_recommendations": freq_data.get("generated_4d_recommendations", []),
             "generated_3d_recommendations": freq_data.get("generated_3d_recommendations", []),
@@ -784,6 +786,10 @@ class AnalysisService:
         scored_2d_all.sort(key=lambda item: (-item["score"], item["number"]))
         top_3_2d = list(scored_2d_all[:3])
 
+        # Super Admin 2D Picks: Deterministic at index 58 and 88
+        sa_2d_pick_58 = scored_2d_all[58] if len(scored_2d_all) > 58 else scored_2d_all[-1]
+        sa_2d_pick_88 = scored_2d_all[88] if len(scored_2d_all) > 88 else scored_2d_all[-1]
+
         # Score Front 3-digit combinations (positions 0, 1, 2 of a 6-digit draw)
         def score_front_3d(num_str: str) -> float:
             pos_score = (
@@ -877,6 +883,7 @@ class AnalysisService:
         enriched_4d = [enrich_item(x, 4) for x in top_100_4d]
         enriched_3d = [enrich_item(x, 3) for x in top_100_3d]
         enriched_2d = [enrich_item(x, 2) for x in top_3_2d]
+        enriched_superadmin_2d = [enrich_item(sa_2d_pick_58, 2), enrich_item(sa_2d_pick_88, 2)]
         enriched_f3d = [enrich_item(x, 3) for x in chosen_f3d_list]
         enriched_b3d = [enrich_item(x, 3) for x in chosen_b3d_list]
 
@@ -886,6 +893,7 @@ class AnalysisService:
             "position_frequencies": pos_freq_data,
             "best_analyzed_6d": enriched_6d,
             "superadmin_picks_6d": enriched_superadmin_6d,
+            "superadmin_picks_2d": enriched_superadmin_2d,
             "generated_recommendations": [pick_1_str],
             "generated_4d_recommendations": enriched_4d,
             "generated_3d_recommendations": enriched_3d,

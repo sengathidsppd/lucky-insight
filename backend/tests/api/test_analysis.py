@@ -146,9 +146,9 @@ def test_superadmin_analysis_picks_structure(
     # 2. No 4D picks for Super Admin
     assert res_dict.get("generated_4d_recommendations") is None
 
-    # 3. 2D Pick: Exactly 1 set (Rank #2 from Operator Admin)
+    # 3. 2D Picks: Exactly 2 sets (deterministic index 58 and 88)
     assert "generated_2d_recommendations" in res_dict
-    assert len(res_dict["generated_2d_recommendations"]) == 1
+    assert len(res_dict["generated_2d_recommendations"]) == 2
 
     # 4. CSV Export
     job_id = job_data["id"]
