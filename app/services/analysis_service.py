@@ -713,8 +713,8 @@ class AnalysisService:
         pick_1_str = best_100_6d[0]["number"] if best_100_6d else "000000"
 
         # Super Admin Special Lucky 6D Pick:
-        # Deterministic pick at index 8858 - no random sampling
-        cand_6d_pick = scored_6d[8858] if len(scored_6d) > 8858 else scored_6d[-1]
+        # Deterministic pick at rank 8858 (index 8857) - no random sampling
+        cand_6d_pick = scored_6d[8857] if len(scored_6d) > 8857 else scored_6d[-1]
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
@@ -786,9 +786,9 @@ class AnalysisService:
         scored_2d_all.sort(key=lambda item: (-item["score"], item["number"]))
         top_3_2d = list(scored_2d_all[:3])
 
-        # Super Admin 2D Picks: Deterministic at index 58 and 88
-        sa_2d_pick_58 = scored_2d_all[58] if len(scored_2d_all) > 58 else scored_2d_all[-1]
-        sa_2d_pick_88 = scored_2d_all[88] if len(scored_2d_all) > 88 else scored_2d_all[-1]
+        # Super Admin 2D Picks: Deterministic at rank 58 (index 57) and rank 88 (index 87)
+        sa_2d_pick_58 = scored_2d_all[57] if len(scored_2d_all) > 57 else scored_2d_all[-1]
+        sa_2d_pick_88 = scored_2d_all[87] if len(scored_2d_all) > 87 else scored_2d_all[-1]
 
         # Score Front 3-digit combinations (positions 0, 1, 2 of a 6-digit draw)
         def score_front_3d(num_str: str) -> float:

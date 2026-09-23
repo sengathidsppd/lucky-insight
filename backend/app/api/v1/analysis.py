@@ -64,7 +64,7 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
             res_dict.pop("generated_3d_recommendations", None)
 
             if is_superadmin:
-                # Super Admin: 1x 6D Pick (deterministic index 8858), 2x 2D (index 58 and 88)
+                # Super Admin: 1x 6D Pick (rank 8858), 2x 2D (rank 58 and 88) — all deterministic
                 if "superadmin_picks_6d" in res_dict and isinstance(res_dict["superadmin_picks_6d"], list) and len(res_dict["superadmin_picks_6d"]) >= 1:
                     res_dict["best_analyzed_6d"] = res_dict["superadmin_picks_6d"][:1]
                 elif "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list) and len(res_dict["best_analyzed_6d"]) > 0:
