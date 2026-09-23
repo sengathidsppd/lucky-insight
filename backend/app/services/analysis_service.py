@@ -45,21 +45,21 @@ class AnalysisService:
 
         This runs synchronously for simplicity and fast execution.
         """
-        clean_type = (analysis_type or "FREQUENCY").upper().strip()
+        clean_type = (analysis_type or "MONTE_CARLO_RL").upper().strip()
         allowed_types = {
+            "MONTE_CARLO_RL",
+            "RL",
+            "MONTE_CARLO",
+            "COMPOSITE",
+            "HYBRID_ENSEMBLE",
             "FREQUENCY",
             "PAIR",
             "TRIPLE",
             "DISTRIBUTION",
             "TREND",
-            "MONTE_CARLO",
-            "COMPOSITE",
-            "MONTE_CARLO_RL",
-            "RL",
-            "HYBRID_ENSEMBLE",
         }
         if clean_type not in allowed_types:
-            clean_type = "FREQUENCY"
+            clean_type = "MONTE_CARLO_RL"
 
         # Create RUNNING job
         job = AnalysisJob(

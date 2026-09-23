@@ -11,8 +11,8 @@ class CreateAnalysisRequest(BaseModel):
     """Request body for initiating a new statistical analysis job."""
 
     analysis_type: str = Field(
-        default="HYBRID_ENSEMBLE",
-        description="Supported engines: HYBRID_ENSEMBLE (Composite), MONTE_CARLO_RL (Monte Carlo + RL), MARKOV_CHAIN, FREQUENCY.",
+        default="MONTE_CARLO_RL",
+        description="Primary engine: MONTE_CARLO_RL (Monte Carlo + Reinforcement Learning AI Simulation).",
     )
     parameters: dict[str, Any] | None = Field(
         default=None,

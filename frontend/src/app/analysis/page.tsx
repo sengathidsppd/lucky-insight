@@ -32,7 +32,7 @@ export default function AnalysisPage() {
 
   // Form states
   const [gameCode, setGameCode] = useState("LAO");
-  const [analysisType, setAnalysisType] = useState("HYBRID_ENSEMBLE");
+  const [analysisType, setAnalysisType] = useState("MONTE_CARLO_RL");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -297,7 +297,6 @@ export default function AnalysisPage() {
                 <div style={formColStyle}>
                   <label style={labelStyle}>Statistical Engine</label>
                   <select value={analysisType} onChange={(e) => setAnalysisType(e.target.value)}>
-                    <option value="HYBRID_ENSEMBLE">SUSU Hybrid Ensemble Engine</option>
                     <option value="MONTE_CARLO_RL">Monte Carlo + Reinforcement Learning Engine (AI Simulation)</option>
                   </select>
                 </div>
