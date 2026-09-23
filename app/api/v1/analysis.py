@@ -64,38 +64,16 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
             res_dict.pop("generated_3d_recommendations", None)
 
             if is_superadmin:
-                # Super Admin:
-                # 1. 6D Pick: Exactly 1 set sampled from Top 588 candidates (Pick #2 removed completely)
-                # 2. 4D Pick: Exactly 1 set sampled from Top 588 candidates
-                # 3. 2D Picks: Exactly 2 sets sampled from top 2D pool
-                import random
-                job_rng = random.Random(job.id.int if hasattr(job, "id") and hasattr(job.id, "int") else 42)
-
-                # 6D: 1 set
+                # Super Admin: Only 1x 6D Pick (deterministic Top 58) — no 4D, no 2D
                 if "superadmin_picks_6d" in res_dict and isinstance(res_dict["superadmin_picks_6d"], list) and len(res_dict["superadmin_picks_6d"]) >= 1:
                     res_dict["best_analyzed_6d"] = res_dict["superadmin_picks_6d"][:1]
                 elif "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list) and len(res_dict["best_analyzed_6d"]) > 0:
-                    pool_6d = res_dict["best_analyzed_6d"]
-                    top_6d_pool = pool_6d[:min(len(pool_6d), 588)]
-                    res_dict["best_analyzed_6d"] = [job_rng.choice(top_6d_pool)]
+                    res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:1]
 
-                # 4D: 1 set
-                if "superadmin_picks_4d" in res_dict and isinstance(res_dict["superadmin_picks_4d"], list) and len(res_dict["superadmin_picks_4d"]) >= 1:
-                    res_dict["generated_4d_recommendations"] = res_dict["superadmin_picks_4d"][:1]
-                elif "generated_4d_recommendations" in res_dict and isinstance(res_dict["generated_4d_recommendations"], list) and len(res_dict["generated_4d_recommendations"]) > 0:
-                    pool_4d = res_dict["generated_4d_recommendations"]
-                    res_dict["generated_4d_recommendations"] = [job_rng.choice(pool_4d[:min(len(pool_4d), 588)])]
-
-                # 2D: 2 sets
-                if "superadmin_picks_2d" in res_dict and isinstance(res_dict["superadmin_picks_2d"], list) and len(res_dict["superadmin_picks_2d"]) >= 2:
-                    res_dict["generated_2d_recommendations"] = res_dict["superadmin_picks_2d"][:2]
-                    res_dict["back_2digit_picks"] = res_dict["superadmin_picks_2d"][:2]
-                elif "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list) and len(res_dict["generated_2d_recommendations"]) >= 2:
-                    pool_2d = res_dict["generated_2d_recommendations"]
-                    pool_sample = pool_2d[:min(len(pool_2d), 50)]
-                    sampled_2d = job_rng.sample(pool_sample, 2) if len(pool_sample) >= 2 else pool_2d[:2]
-                    res_dict["generated_2d_recommendations"] = sampled_2d
-                    res_dict["back_2digit_picks"] = sampled_2d
+                # Remove 4D and 2D entirely for Super Admin
+                res_dict.pop("generated_4d_recommendations", None)
+                res_dict.pop("generated_2d_recommendations", None)
+                res_dict.pop("back_2digit_picks", None)
 
             elif is_operator_admin:
                 # Operator Admin: 1x 6D (Rank #3 if not Thai), 3x 2D (Rank #1, #2, #3, no 4D, no 3D)

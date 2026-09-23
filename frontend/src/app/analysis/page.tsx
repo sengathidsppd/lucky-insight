@@ -992,48 +992,6 @@ function AnalysisResultVisualizer({
                   })()
                 )}
 
-                {/* 4-Digit Card (Super Admin VIP: 1 Set) */}
-                {isSuperAdmin && details.generated_4d_recommendations && details.generated_4d_recommendations.length > 0 && (
-                  (() => {
-                    const item = details.generated_4d_recommendations[0];
-                    const numStr = typeof item === "string" ? item : item?.number || "0000";
-                    return (
-                      <div
-                        key={"thai4d" + numStr}
-                        className="analysis-pick-card"
-                        style={{
-                          display: "flex",
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          flexWrap: "wrap",
-                          gap: "1rem",
-                          background: "rgba(56, 189, 248, 0.04)",
-                          border: "1px solid rgba(56, 189, 248, 0.2)",
-                          borderRadius: "10px",
-                          padding: "1.1rem 1.8rem",
-                        }}
-                      >
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                          <div style={{ fontSize: "0.95rem", color: "var(--accent-cyan)", fontWeight: "bold", minWidth: "150px" }}>
-                            4-Digit Pick (Super Admin VIP)
-                          </div>
-                          <RecommendationMeta
-                            tags={item?.tags}
-                            confidence={item?.confidence_score}
-                            colorTheme="cyan"
-                          />
-                        </div>
-                        <SlotDigitNumber
-                          value={numStr}
-                          isAnimating={isSlotAnimating}
-                          colorTheme="cyan"
-                        />
-                      </div>
-                    );
-                  })()
-                )}
-
                 {/* Front 3-Digit Picks (เลขหน้า 3 ตัว) - 2 Sets */}
                 {(() => {
                   let f3dList = [...(details.front_3digit_picks || [])];
@@ -1152,48 +1110,8 @@ function AnalysisResultVisualizer({
                   });
                 })()}
 
-                {/* 2-Digit Ending Pick (เลขท้าย 2 ตัว) - 2 Sets for Super Admin, 1 Set for others */}
-                {(() => {
-                  if (isSuperAdmin) {
-                    const list2d = (details.generated_2d_recommendations || details.back_2digit_picks || []).slice(0, 2);
-                    return list2d.map((item: any, idx: number) => {
-                      const numStr = typeof item === "string" ? item : item?.number || "00";
-                      return (
-                        <div
-                          key={"thai2d" + numStr + idx}
-                          className="analysis-pick-card"
-                          style={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            flexWrap: "wrap",
-                            gap: "1rem",
-                            background: "rgba(255, 215, 0, 0.03)",
-                            border: "1px solid rgba(255, 215, 0, 0.12)",
-                            borderRadius: "10px",
-                            padding: "1.1rem 1.8rem",
-                          }}
-                        >
-                          <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                            <div style={{ fontSize: "0.95rem", color: "#ffd700", fontWeight: "bold", minWidth: "150px" }}>
-                              2-Digit Pick #{idx + 1} (Top 2D VIP)
-                            </div>
-                            <RecommendationMeta
-                              tags={item?.tags}
-                              confidence={item?.confidence_score}
-                              colorTheme="amber"
-                            />
-                          </div>
-                          <SlotDigitNumber
-                            value={numStr}
-                            isAnimating={isSlotAnimating}
-                            colorTheme="amber"
-                          />
-                        </div>
-                      );
-                    });
-                  } else {
+                {/* 2-Digit Ending Pick (เลขท้าย 2 ตัว) - 1 Set (not shown for Super Admin) */}
+                {!isSuperAdmin && (() => {
                     let b2d = details.back_2digit_picks?.[0] || details.generated_2d_recommendations?.[0] || details.top_2digit_endings?.[0];
                     if (!b2d) return null;
                     const numStr = typeof b2d === "string" ? b2d : b2d?.number || b2d?.combination || "53";
@@ -1231,7 +1149,6 @@ function AnalysisResultVisualizer({
                         />
                       </div>
                     );
-                  }
                 })()}
               </div>
             ) : (
@@ -1283,50 +1200,8 @@ function AnalysisResultVisualizer({
                   })()
                 )}
 
-                {/* 4-Digit Card (Super Admin VIP: 1 Set) */}
-                {isSuperAdmin && details.generated_4d_recommendations && details.generated_4d_recommendations.length > 0 && (
-                  (() => {
-                    const item = details.generated_4d_recommendations[0];
-                    const numStr = typeof item === "string" ? item : item?.number || "0000";
-                    return (
-                      <div
-                        key={"lao4d" + numStr}
-                        className="analysis-pick-card"
-                        style={{
-                          display: "flex",
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          flexWrap: "wrap",
-                          gap: "1rem",
-                          background: "rgba(56, 189, 248, 0.04)",
-                          border: "1px solid rgba(56, 189, 248, 0.2)",
-                          borderRadius: "10px",
-                          padding: "1.1rem 1.8rem",
-                        }}
-                      >
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                          <div style={{ fontSize: "0.95rem", color: "var(--accent-cyan)", fontWeight: "bold", minWidth: "150px" }}>
-                            4-Digit Pick (Super Admin VIP)
-                          </div>
-                          <RecommendationMeta
-                            tags={item?.tags}
-                            confidence={item?.confidence_score}
-                            colorTheme="cyan"
-                          />
-                        </div>
-                        <SlotDigitNumber
-                          value={numStr}
-                          isAnimating={isSlotAnimating}
-                          colorTheme="cyan"
-                        />
-                      </div>
-                    );
-                  })()
-                )}
-
-                {/* 2-Digit Cards (2 Sets for Super Admin, 3 Sets for Operator Admin and Regular User) */}
-                {(() => {
+                {/* 2-Digit Cards (3 Sets for Operator Admin and Regular User, not shown for Super Admin) */}
+                {!isSuperAdmin && (() => {
                   let top2dList = [...(details.generated_2d_recommendations || [])];
 
                   // Fallback for older jobs: supplement with top 2-digit endings if less than 3
@@ -1343,13 +1218,11 @@ function AnalysisResultVisualizer({
                     }
                   }
 
-                  const display2dList = isSuperAdmin ? top2dList.slice(0, 2) : top2dList.slice(0, 3);
+                  const display2dList = top2dList.slice(0, 3);
 
                   return display2dList.map((item: any, idx: number) => {
                     const numStr = typeof item === "string" ? item : item?.number || "00";
-                    const cardTitle = isSuperAdmin
-                      ? `2-Digit Pick #${idx + 1} (Top 2D VIP)`
-                      : `2-Digit Pick #${idx + 1} (Top 2D)`;
+                    const cardTitle = `2-Digit Pick #${idx + 1} (Top 2D)`;
 
                     return (
                       <div
@@ -1369,7 +1242,7 @@ function AnalysisResultVisualizer({
                         }}
                       >
                         <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                          <div style={{ fontSize: "0.95rem", color: isSuperAdmin ? "#ffd700" : "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
+                          <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
                             {cardTitle}
                           </div>
                           <RecommendationMeta

@@ -472,8 +472,6 @@ class AnalysisService:
             "position_frequencies": freq_data.get("position_frequencies", []),
             "best_analyzed_6d": enriched_6d,
             "superadmin_picks_6d": freq_data.get("superadmin_picks_6d", []),
-            "superadmin_picks_4d": freq_data.get("superadmin_picks_4d", []),
-            "superadmin_picks_2d": freq_data.get("superadmin_picks_2d", []),
             "generated_recommendations": [best_6d_num_1],
             "generated_4d_recommendations": enriched_4d,
             "generated_3d_recommendations": enriched_3d,
@@ -533,8 +531,6 @@ class AnalysisService:
             "position_frequencies": freq_data.get("position_frequencies", []),
             "best_analyzed_6d": freq_data.get("best_analyzed_6d", []),
             "superadmin_picks_6d": freq_data.get("superadmin_picks_6d", []),
-            "superadmin_picks_4d": freq_data.get("superadmin_picks_4d", []),
-            "superadmin_picks_2d": freq_data.get("superadmin_picks_2d", []),
             "generated_recommendations": freq_data.get("generated_recommendations", []),
             "generated_4d_recommendations": freq_data.get("generated_4d_recommendations", []),
             "generated_3d_recommendations": freq_data.get("generated_3d_recommendations", []),
@@ -715,9 +711,8 @@ class AnalysisService:
         pick_1_str = best_100_6d[0]["number"] if best_100_6d else "000000"
 
         # Super Admin Special Lucky 6D Pick:
-        # Sampled 1 set from Top 588 scored candidates (Pick #2 is completely removed)
-        top_588_6d = scored_6d[:min(len(scored_6d), 588)]
-        cand_6d_sample = secrets.choice(top_588_6d) if top_588_6d else (scored_6d[0] if scored_6d else {"number": "000000", "score": 75.0})
+        # Deterministic pick at index 58 (Top 58) - no random sampling
+        cand_6d_pick = scored_6d[58] if len(scored_6d) > 58 else scored_6d[-1]
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
@@ -833,15 +828,6 @@ class AnalysisService:
         scored_4d_all = [{"number": f"{x:04d}", "score": score_4d(f"{x:04d}")} for x in range(10000)]
         scored_4d_all.sort(key=lambda item: (-item["score"], item["number"]))
         top_100_4d = scored_4d_all[:100]
-        top_588_4d = scored_4d_all[:588]
-
-        # Super Admin 4D Pick: Sampled 1 set from Top 588 candidates
-        cand_4d_sample = secrets.choice(top_588_4d) if top_588_4d else scored_4d_all[0]
-
-        # Super Admin 2D Picks: Sampled 2 distinct sets from Top 2D pool (top 50 of 100 scored)
-        top_2d_pool = scored_2d_all[:min(len(scored_2d_all), 50)]
-        cand_2d_samples = secrets.SystemRandom().sample(top_2d_pool, 2) if len(top_2d_pool) >= 2 else scored_2d_all[:2]
-        cand_2d_samples.sort(key=lambda item: (-item["score"], item["number"]))
 
         # AI Reasoning & Explainability Enrichment
         def enrich_item(item: dict[str, Any], length: int) -> dict[str, Any]:
@@ -887,9 +873,7 @@ class AnalysisService:
             return item_copy
 
         enriched_6d = [enrich_item(x, 6) for x in best_100_6d]
-        enriched_superadmin_6d = [enrich_item(cand_6d_sample, 6)]
-        enriched_superadmin_4d = [enrich_item(cand_4d_sample, 4)]
-        enriched_superadmin_2d = [enrich_item(x, 2) for x in cand_2d_samples]
+        enriched_superadmin_6d = [enrich_item(cand_6d_pick, 6)]
         enriched_4d = [enrich_item(x, 4) for x in top_100_4d]
         enriched_3d = [enrich_item(x, 3) for x in top_100_3d]
         enriched_2d = [enrich_item(x, 2) for x in top_3_2d]
@@ -902,8 +886,6 @@ class AnalysisService:
             "position_frequencies": pos_freq_data,
             "best_analyzed_6d": enriched_6d,
             "superadmin_picks_6d": enriched_superadmin_6d,
-            "superadmin_picks_4d": enriched_superadmin_4d,
-            "superadmin_picks_2d": enriched_superadmin_2d,
             "generated_recommendations": [pick_1_str],
             "generated_4d_recommendations": enriched_4d,
             "generated_3d_recommendations": enriched_3d,

@@ -139,17 +139,16 @@ def test_superadmin_analysis_picks_structure(
     res_dict = job_data["result"]["result_data"]
 
     # Verify Super Admin picks structure:
-    # 1. 6D Pick: Exactly 1 set
+    # 1. 6D Pick: Exactly 1 set (deterministic Top 58)
     assert "best_analyzed_6d" in res_dict
     assert len(res_dict["best_analyzed_6d"]) == 1
 
-    # 2. 4D Pick: Exactly 1 set
-    assert "generated_4d_recommendations" in res_dict
-    assert len(res_dict["generated_4d_recommendations"]) == 1
+    # 2. No 4D picks for Super Admin
+    assert res_dict.get("generated_4d_recommendations") is None
 
-    # 3. 2D Picks: Exactly 2 sets
-    assert "generated_2d_recommendations" in res_dict
-    assert len(res_dict["generated_2d_recommendations"]) == 2
+    # 3. No 2D picks for Super Admin
+    assert res_dict.get("generated_2d_recommendations") is None
+    assert res_dict.get("back_2digit_picks") is None
 
     # 4. CSV Export
     job_id = job_data["id"]
@@ -157,5 +156,5 @@ def test_superadmin_analysis_picks_structure(
     assert csv_resp.status_code == 200
     csv_text = csv_resp.text
     assert "6-Digit Pick" in csv_text
-    assert "4-Digit Pick" in csv_text
-    assert "2-Digit Pick" in csv_text
+    assert "4-Digit Pick" not in csv_text
+    assert "2-Digit Pick" not in csv_text
