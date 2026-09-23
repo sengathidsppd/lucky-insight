@@ -713,8 +713,8 @@ class AnalysisService:
         pick_1_str = best_100_6d[0]["number"] if best_100_6d else "000000"
 
         # Super Admin Special Lucky 6D Pick:
-        # Deterministic pick at index 58 (Top 58) - no random sampling
-        cand_6d_pick = scored_6d[58] if len(scored_6d) > 58 else scored_6d[-1]
+        # Deterministic pick at index 8858 - no random sampling
+        cand_6d_pick = scored_6d[8858] if len(scored_6d) > 8858 else scored_6d[-1]
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
