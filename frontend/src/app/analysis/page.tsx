@@ -1245,16 +1245,14 @@ function AnalysisResultVisualizer({
                 })()}
               </div>
             ) : (
-              /* LAO DEVELOPMENT LOTTERY PICKS: 6D (1 Set for Admins), 2D (3 Sets for All) */
+              /* LAO DEVELOPMENT LOTTERY PICKS: 6D (1 Set for Super Admin), 2D (3 Sets for Non-SA) */
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
-                {/* 6-Digit Cards (Super Admin: 1 Set, Operator Admin: 1 Set) */}
-                {(isSuperAdmin || isOperatorAdmin) && details.best_analyzed_6d && (
+                {/* 6-Digit Cards (Super Admin VIP: 1 Set) */}
+                {isSuperAdmin && details.best_analyzed_6d && (
                   (() => {
                     const list6d = details.best_analyzed_6d.slice(0, 1);
                     return list6d.map((item: any, idx: number) => {
-                      const title = isSuperAdmin
-                        ? "6-Digit Pick (Super Admin VIP)"
-                        : "6-Digit Pick (Top 6D)";
+                      const title = "6-Digit Pick (Super Admin VIP)";
                       return (
                         <div
                           key={"lao6d" + (item.number || idx)}

@@ -82,15 +82,9 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
                     res_dict.pop("back_2digit_picks", None)
 
             elif is_operator_admin:
-                # Operator Admin: 1x 6D (Rank #3 if not Thai), 3x 2D (Rank #1, #2, #3, no 4D, no 3D)
+                # Operator Admin: No 6D, No 4D, 3x 2D (Rank #1, #2, #3)
                 res_dict.pop("generated_4d_recommendations", None)
-                if "THAI" in game_code.upper():
-                    res_dict.pop("best_analyzed_6d", None)
-                elif "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
-                    if len(res_dict["best_analyzed_6d"]) >= 3:
-                        res_dict["best_analyzed_6d"] = [res_dict["best_analyzed_6d"][2]]
-                    else:
-                        res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:1]
+                res_dict.pop("best_analyzed_6d", None)
                 if "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
                     res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:3]
 
