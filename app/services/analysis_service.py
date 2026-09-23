@@ -710,9 +710,9 @@ class AnalysisService:
 
         rl_best_6d_num = rl_enriched_6d[0]["number"] if rl_enriched_6d else "000000"
 
-        # Super Admin VIP picks: maintain user's exact deterministic ranks and enrich with RL metrics
-        superadmin_6d = [enrich_mc_rl(x, 6) for x in freq_data.get("superadmin_picks_6d", [])]
-        superadmin_2d = [enrich_mc_rl(x, 2) for x in freq_data.get("superadmin_picks_2d", [])]
+        # Admin picks: Top Q-Optimal 6D candidate (Rank #1) and Top 3 2D candidates (Rank #1, #2, #3)
+        superadmin_6d = rl_enriched_6d[:1]
+        superadmin_2d = rl_enriched_2d[:3]
 
         mc_metrics = {
             "simulations_run": n_simulations,
@@ -914,9 +914,8 @@ class AnalysisService:
         best_100_6d = list(scored_6d[:100])
         pick_1_str = best_100_6d[0]["number"] if best_100_6d else "000000"
 
-        # Super Admin Special Lucky 6D Pick:
-        # Deterministic pick at rank 8858 (index 8857) - no random sampling
-        cand_6d_pick = scored_6d[8857] if len(scored_6d) > 8857 else scored_6d[-1]
+        # Admin Special Lucky 6D Pick: Top Candidate (Rank #1)
+        cand_6d_pick = best_100_6d[0] if best_100_6d else {"number": "000000", "score": 0.0}
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
@@ -987,11 +986,6 @@ class AnalysisService:
             scored_2d_all.append({"number": num_2d, "score": score_2d(num_2d)})
         scored_2d_all.sort(key=lambda item: (-item["score"], item["number"]))
         top_3_2d = list(scored_2d_all[:3])
-
-        # Super Admin 2D Picks: Deterministic at Rank #2 (index 1), rank 58 (index 57), and rank 88 (index 87)
-        sa_2d_pick_rank2 = scored_2d_all[1] if len(scored_2d_all) > 1 else scored_2d_all[0]
-        sa_2d_pick_58 = scored_2d_all[57] if len(scored_2d_all) > 57 else scored_2d_all[-1]
-        sa_2d_pick_88 = scored_2d_all[87] if len(scored_2d_all) > 87 else scored_2d_all[-1]
 
         # Score Front 3-digit combinations (positions 0, 1, 2 of a 6-digit draw)
         def score_front_3d(num_str: str) -> float:
@@ -1086,11 +1080,7 @@ class AnalysisService:
         enriched_4d = [enrich_item(x, 4) for x in top_100_4d]
         enriched_3d = [enrich_item(x, 3) for x in top_100_3d]
         enriched_2d = [enrich_item(x, 2) for x in top_3_2d]
-        enriched_superadmin_2d = [
-            enrich_item(sa_2d_pick_rank2, 2),
-            enrich_item(sa_2d_pick_58, 2),
-            enrich_item(sa_2d_pick_88, 2),
-        ]
+        enriched_superadmin_2d = list(enriched_2d[:3])
         enriched_f3d = [enrich_item(x, 3) for x in chosen_f3d_list]
         enriched_b3d = [enrich_item(x, 3) for x in chosen_b3d_list]
 

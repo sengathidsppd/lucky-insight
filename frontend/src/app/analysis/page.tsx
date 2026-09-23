@@ -1000,12 +1000,12 @@ function AnalysisResultVisualizer({
             {isThaiLottery ? (
               /* THAI NATIONAL LOTTERY SPECIALIZED PICKS: 6D (1 set for Admins), Front 3D (2 sets), Back 3D (2 sets), 2D (1 set) */
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
-                {/* 6-Digit Cards (Top Prize / รางวัลที่ 1 - Super Admin Only: 1 Set) */}
-                {isSuperAdmin && details.best_analyzed_6d && (
+                {/* 6-Digit Cards (Top Prize / รางวัลที่ 1 - Admins Only: 1 Set) */}
+                {(isSuperAdmin || isOperatorAdmin) && details.best_analyzed_6d && (
                   (() => {
                     const list6d = details.best_analyzed_6d.slice(0, 1);
                     return list6d.map((item: any, idx: number) => {
-                      const title = "6-Digit Pick (Super Admin VIP)";
+                      const title = isSuperAdmin ? "6-Digit Pick (Super Admin VIP)" : "6-Digit Pick (Admin Top 6D)";
                       return (
                         <div
                           key={"thai6d" + (item.number || idx)}
@@ -1162,18 +1162,16 @@ function AnalysisResultVisualizer({
                   });
                 })()}
 
-                {/* 2-Digit Ending Pick (เลขท้าย 2 ตัว) - 3 Sets for Super Admin (VIP), 1 Set for others */}
+                {/* 2-Digit Ending Pick (เลขท้าย 2 ตัว) - 3 Sets for Admins, 1 Set for others */}
                 {(() => {
-                  if (isSuperAdmin) {
+                  if (isSuperAdmin || isOperatorAdmin) {
                     const list2d = (details.generated_2d_recommendations || details.back_2digit_picks || []).slice(0, 3);
                     return list2d.map((item: any, idx: number) => {
                       const numStr = typeof item === "string" ? item : item?.number || "00";
-                      const label =
-                        idx === 0
-                          ? "2-Digit Pick #1 (Rank #2 VIP)"
-                          : idx === 1
-                          ? "2-Digit Pick #2 (Rank 58 VIP)"
-                          : "2-Digit Pick #3 (Rank 88 VIP)";
+                      const label = isSuperAdmin
+                        ? `2-Digit Pick #${idx + 1} (VIP)`
+                        : `2-Digit Pick #${idx + 1} (Top 2D)`;
+                      const labelColor = isSuperAdmin ? "#ffd700" : "var(--text-secondary)";
                       return (
                         <div
                           key={"thai2d" + numStr + idx}
@@ -1192,7 +1190,7 @@ function AnalysisResultVisualizer({
                           }}
                         >
                           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                            <div style={{ fontSize: "0.95rem", color: "#ffd700", fontWeight: "bold", minWidth: "150px" }}>
+                            <div style={{ fontSize: "0.95rem", color: labelColor, fontWeight: "bold", minWidth: "150px" }}>
                               {label}
                             </div>
                             <RecommendationMeta
@@ -1253,12 +1251,12 @@ function AnalysisResultVisualizer({
             ) : (
               /* LAO DEVELOPMENT LOTTERY PICKS: 6D (1 Set for Super Admin), 2D (3 Sets for Non-SA) */
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.2rem" }}>
-                {/* 6-Digit Cards (Super Admin VIP: 1 Set) */}
-                {isSuperAdmin && details.best_analyzed_6d && (
+                {/* 6-Digit Cards (Admins: 1 Set) */}
+                {(isSuperAdmin || isOperatorAdmin) && details.best_analyzed_6d && (
                   (() => {
                     const list6d = details.best_analyzed_6d.slice(0, 1);
                     return list6d.map((item: any, idx: number) => {
-                      const title = "6-Digit Pick (Super Admin VIP)";
+                      const title = isSuperAdmin ? "6-Digit Pick (Super Admin VIP)" : "6-Digit Pick (Admin Top 6D)";
                       return (
                         <div
                           key={"lao6d" + (item.number || idx)}
@@ -1320,11 +1318,7 @@ function AnalysisResultVisualizer({
                   return display2dList.map((item: any, idx: number) => {
                     const numStr = typeof item === "string" ? item : item?.number || "00";
                     const cardTitle = isSuperAdmin
-                      ? (idx === 0
-                          ? "2-Digit Pick #1 (Rank #2 VIP)"
-                          : idx === 1
-                          ? "2-Digit Pick #2 (Rank 58 VIP)"
-                          : "2-Digit Pick #3 (Rank 88 VIP)")
+                      ? `2-Digit Pick #${idx + 1} (VIP)`
                       : `2-Digit Pick #${idx + 1} (Top 2D)`;
                     const labelColor = isSuperAdmin ? "#ffd700" : "var(--text-secondary)";
 
