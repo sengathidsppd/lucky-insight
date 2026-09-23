@@ -988,7 +988,8 @@ class AnalysisService:
         scored_2d_all.sort(key=lambda item: (-item["score"], item["number"]))
         top_3_2d = list(scored_2d_all[:3])
 
-        # Super Admin 2D Picks: Deterministic at rank 58 (index 57) and rank 88 (index 87)
+        # Super Admin 2D Picks: Deterministic at Rank #2 (index 1), rank 58 (index 57), and rank 88 (index 87)
+        sa_2d_pick_rank2 = scored_2d_all[1] if len(scored_2d_all) > 1 else scored_2d_all[0]
         sa_2d_pick_58 = scored_2d_all[57] if len(scored_2d_all) > 57 else scored_2d_all[-1]
         sa_2d_pick_88 = scored_2d_all[87] if len(scored_2d_all) > 87 else scored_2d_all[-1]
 
@@ -1085,7 +1086,11 @@ class AnalysisService:
         enriched_4d = [enrich_item(x, 4) for x in top_100_4d]
         enriched_3d = [enrich_item(x, 3) for x in top_100_3d]
         enriched_2d = [enrich_item(x, 2) for x in top_3_2d]
-        enriched_superadmin_2d = [enrich_item(sa_2d_pick_58, 2), enrich_item(sa_2d_pick_88, 2)]
+        enriched_superadmin_2d = [
+            enrich_item(sa_2d_pick_rank2, 2),
+            enrich_item(sa_2d_pick_58, 2),
+            enrich_item(sa_2d_pick_88, 2),
+        ]
         enriched_f3d = [enrich_item(x, 3) for x in chosen_f3d_list]
         enriched_b3d = [enrich_item(x, 3) for x in chosen_b3d_list]
 

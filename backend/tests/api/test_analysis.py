@@ -146,9 +146,9 @@ def test_superadmin_analysis_picks_structure(
     # 2. No 4D picks for Super Admin
     assert res_dict.get("generated_4d_recommendations") is None
 
-    # 3. 2D Picks: Exactly 2 sets (deterministic index 58 and 88)
+    # 3. 2D Picks: Exactly 3 sets (Rank #2, Rank 58, and Rank 88)
     assert "generated_2d_recommendations" in res_dict
-    assert len(res_dict["generated_2d_recommendations"]) == 2
+    assert len(res_dict["generated_2d_recommendations"]) == 3
 
     # 4. CSV Export
     job_id = job_data["id"]
@@ -200,6 +200,6 @@ def test_monte_carlo_rl_analysis_job(
 
     # Check picks
     assert len(res_dict["best_analyzed_6d"]) == 1
-    assert len(res_dict["generated_2d_recommendations"]) == 2
+    assert len(res_dict["generated_2d_recommendations"]) == 3
     assert "MC Sim EV" in res_dict["best_analyzed_6d"][0]["tags"][0]
 

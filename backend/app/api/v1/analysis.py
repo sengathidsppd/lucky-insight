@@ -73,10 +73,13 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
                 # Remove 4D for Super Admin
                 res_dict.pop("generated_4d_recommendations", None)
 
-                # 2D: Give Super Admin 2 sets (deterministic index 58 and 88)
-                if "superadmin_picks_2d" in res_dict and isinstance(res_dict["superadmin_picks_2d"], list) and len(res_dict["superadmin_picks_2d"]) >= 2:
-                    res_dict["generated_2d_recommendations"] = res_dict["superadmin_picks_2d"][:2]
-                    res_dict["back_2digit_picks"] = res_dict["superadmin_picks_2d"][:2]
+                # 2D: Give Super Admin 3 sets (Rank #2, Rank 58, and Rank 88)
+                if "superadmin_picks_2d" in res_dict and isinstance(res_dict["superadmin_picks_2d"], list) and len(res_dict["superadmin_picks_2d"]) >= 3:
+                    res_dict["generated_2d_recommendations"] = res_dict["superadmin_picks_2d"][:3]
+                    res_dict["back_2digit_picks"] = res_dict["superadmin_picks_2d"][:3]
+                elif "superadmin_picks_2d" in res_dict and isinstance(res_dict["superadmin_picks_2d"], list):
+                    res_dict["generated_2d_recommendations"] = res_dict["superadmin_picks_2d"]
+                    res_dict["back_2digit_picks"] = res_dict["superadmin_picks_2d"]
                 else:
                     res_dict.pop("generated_2d_recommendations", None)
                     res_dict.pop("back_2digit_picks", None)

@@ -1162,12 +1162,18 @@ function AnalysisResultVisualizer({
                   });
                 })()}
 
-                {/* 2-Digit Ending Pick (เลขท้าย 2 ตัว) - 2 Sets for Super Admin (VIP), 1 Set for others */}
+                {/* 2-Digit Ending Pick (เลขท้าย 2 ตัว) - 3 Sets for Super Admin (VIP), 1 Set for others */}
                 {(() => {
                   if (isSuperAdmin) {
-                    const list2d = (details.generated_2d_recommendations || details.back_2digit_picks || []).slice(0, 2);
+                    const list2d = (details.generated_2d_recommendations || details.back_2digit_picks || []).slice(0, 3);
                     return list2d.map((item: any, idx: number) => {
                       const numStr = typeof item === "string" ? item : item?.number || "00";
+                      const label =
+                        idx === 0
+                          ? "2-Digit Pick #1 (Rank #2 VIP)"
+                          : idx === 1
+                          ? "2-Digit Pick #2 (Rank 58 VIP)"
+                          : "2-Digit Pick #3 (Rank 88 VIP)";
                       return (
                         <div
                           key={"thai2d" + numStr + idx}
@@ -1187,7 +1193,7 @@ function AnalysisResultVisualizer({
                         >
                           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
                             <div style={{ fontSize: "0.95rem", color: "#ffd700", fontWeight: "bold", minWidth: "150px" }}>
-                              2-Digit Pick #{idx + 1} (VIP)
+                              {label}
                             </div>
                             <RecommendationMeta
                               tags={item?.tags}
@@ -1309,12 +1315,16 @@ function AnalysisResultVisualizer({
                     }
                   }
 
-                  const display2dList = isSuperAdmin ? top2dList.slice(0, 2) : top2dList.slice(0, 3);
+                  const display2dList = top2dList.slice(0, 3);
 
                   return display2dList.map((item: any, idx: number) => {
                     const numStr = typeof item === "string" ? item : item?.number || "00";
                     const cardTitle = isSuperAdmin
-                      ? `2-Digit Pick #${idx + 1} (VIP)`
+                      ? (idx === 0
+                          ? "2-Digit Pick #1 (Rank #2 VIP)"
+                          : idx === 1
+                          ? "2-Digit Pick #2 (Rank 58 VIP)"
+                          : "2-Digit Pick #3 (Rank 88 VIP)")
                       : `2-Digit Pick #${idx + 1} (Top 2D)`;
                     const labelColor = isSuperAdmin ? "#ffd700" : "var(--text-secondary)";
 
