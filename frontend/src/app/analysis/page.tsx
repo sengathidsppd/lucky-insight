@@ -127,21 +127,22 @@ export default function AnalysisPage() {
     // Trigger HUD Holographic Scanner
     setIsScanningHUD(true);
     setHudProgress(25);
-    setHudStepText("Scanning Historical Draws (100%)...");
+    const isMcRl = analysisType === "MONTE_CARLO_RL";
+    setHudStepText(isMcRl ? "Simulating 50,000 Monte Carlo Rollouts..." : "Scanning Historical Draws (100%)...");
 
     const t1 = setTimeout(() => {
       setHudProgress(60);
-      setHudStepText("Computing Markov State Flows & Matrices...");
+      setHudStepText(isMcRl ? "Training Q-Learning Agent Policy & Rewards..." : "Computing Markov State Flows & Matrices...");
     }, 380);
 
     const t2 = setTimeout(() => {
       setHudProgress(88);
-      setHudStepText("Evaluating Poisson Overdue Factors...");
+      setHudStepText(isMcRl ? "Verifying Policy Convergence & EV Boost..." : "Evaluating Poisson Overdue Factors...");
     }, 750);
 
     try {
       const selectedGame = games.find((g) => g.code === gameCode);
-      const safeType = ["HYBRID_ENSEMBLE", "COMPOSITE", "MONTE_CARLO", "MARKOV_CHAIN", "MARKOV", "FREQUENCY", "PAIR", "TRIPLE", "DISTRIBUTION", "TREND"].includes(analysisType)
+      const safeType = ["HYBRID_ENSEMBLE", "COMPOSITE", "MONTE_CARLO_RL", "RL", "MONTE_CARLO", "MARKOV_CHAIN", "MARKOV", "FREQUENCY", "PAIR", "TRIPLE", "DISTRIBUTION", "TREND"].includes(analysisType)
         ? analysisType
         : "HYBRID_ENSEMBLE";
 
@@ -297,6 +298,7 @@ export default function AnalysisPage() {
                   <label style={labelStyle}>Statistical Engine</label>
                   <select value={analysisType} onChange={(e) => setAnalysisType(e.target.value)}>
                     <option value="HYBRID_ENSEMBLE">SUSU Hybrid Ensemble Engine</option>
+                    <option value="MONTE_CARLO_RL">Monte Carlo + Reinforcement Learning Engine (AI Simulation)</option>
                   </select>
                 </div>
               </div>
@@ -944,6 +946,57 @@ function AnalysisResultVisualizer({
                 Winning Number Projections ({isThaiLottery ? "Thai National Lottery" : "Lao Development Lottery"} Picks)
               </h4>
             </div>
+
+            {/* Monte Carlo & Reinforcement Learning Metrics Banner */}
+            {details.monte_carlo_rl_metrics && (
+              <div
+                style={{
+                  marginTop: "1.1rem",
+                  marginBottom: "0.4rem",
+                  background: "linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%)",
+                  border: "1px solid rgba(56, 189, 248, 0.25)",
+                  borderRadius: "10px",
+                  padding: "0.9rem 1.4rem",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "1.2rem",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
+                  <span style={{ fontSize: "1.6rem" }}>🎲</span>
+                  <div>
+                    <div style={{ fontSize: "0.92rem", fontWeight: 700, color: "#38bdf8" }}>
+                      Monte Carlo Simulation & RL Q-Policy
+                    </div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>
+                      {details.monte_carlo_rl_metrics.simulations_run?.toLocaleString()} Rollouts • {details.monte_carlo_rl_metrics.episodes_trained?.toLocaleString()} Q-Learning Episodes
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>Policy Convergence</div>
+                    <div style={{ fontSize: "1rem", fontWeight: "bold", color: "#34d399" }}>
+                      {details.monte_carlo_rl_metrics.convergence_rate}%
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>Expected Value (EV)</div>
+                    <div style={{ fontSize: "1rem", fontWeight: "bold", color: "#fbbf24" }}>
+                      {details.monte_carlo_rl_metrics.expected_value_multiplier}x
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>Peak Q-Score</div>
+                    <div style={{ fontSize: "1rem", fontWeight: "bold", color: "#a78bfa" }}>
+                      {details.monte_carlo_rl_metrics.best_q_score}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {isThaiLottery ? (
               /* THAI NATIONAL LOTTERY SPECIALIZED PICKS: 6D (1 set for Admins), Front 3D (2 sets), Back 3D (2 sets), 2D (1 set) */

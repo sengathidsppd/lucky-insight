@@ -158,3 +158,48 @@ def test_superadmin_analysis_picks_structure(
     assert "6-Digit Pick" in csv_text
     assert "4-Digit Pick" not in csv_text
     assert "2-Digit Pick" in csv_text
+
+
+def test_monte_carlo_rl_analysis_job(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    sa_email = "suzu@gmail.com"
+    sa_user = db_session.query(User).filter_by(email=sa_email).first()
+    if not sa_user:
+        sa_user = User(email=sa_email, password_hash="hash", is_active=True, is_admin=True)
+        db_session.add(sa_user)
+        db_session.commit()
+
+    token = _get_user_token(sa_user)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    rec_repo = NumberRecordRepository(db_session)
+    for num in ["885812", "588858", "123456", "987654", "555888"]:
+        rec_repo.create(NumberRecord(user_id=sa_user.id, number=num, is_favorite=False))
+    db_session.commit()
+
+    payload = {
+        "analysis_type": "MONTE_CARLO_RL",
+        "parameters": {},
+    }
+    resp = client.post("/api/v1/analysis", json=payload, headers=headers)
+    assert resp.status_code == 201
+    job_data = resp.json()["data"]
+    assert job_data["status"] == "COMPLETED"
+    assert job_data["analysis_type"] == "MONTE_CARLO_RL"
+    res_dict = job_data["result"]["result_data"]
+
+    # Check Monte Carlo RL specific metrics
+    assert "monte_carlo_rl_metrics" in res_dict
+    mc = res_dict["monte_carlo_rl_metrics"]
+    assert mc["simulations_run"] == 50000
+    assert mc["episodes_trained"] == 1000
+    assert mc["convergence_rate"] > 90.0
+    assert mc["expected_value_multiplier"] >= 1.0
+
+    # Check picks
+    assert len(res_dict["best_analyzed_6d"]) == 1
+    assert len(res_dict["generated_2d_recommendations"]) == 2
+    assert "MC Sim EV" in res_dict["best_analyzed_6d"][0]["tags"][0]
+

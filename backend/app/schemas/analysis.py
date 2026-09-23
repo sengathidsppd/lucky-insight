@@ -11,8 +11,8 @@ class CreateAnalysisRequest(BaseModel):
     """Request body for initiating a new statistical analysis job."""
 
     analysis_type: str = Field(
-        default="COMPOSITE",
-        description="Primary engine: COMPOSITE (Multi-Objective Composite Model). Supports legacy aliases.",
+        default="HYBRID_ENSEMBLE",
+        description="Supported engines: HYBRID_ENSEMBLE (Composite), MONTE_CARLO_RL (Monte Carlo + RL), MARKOV_CHAIN, FREQUENCY.",
     )
     parameters: dict[str, Any] | None = Field(
         default=None,
