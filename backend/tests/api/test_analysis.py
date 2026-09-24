@@ -201,5 +201,5 @@ def test_monte_carlo_rl_analysis_job(
     # Check picks
     assert len(res_dict["best_analyzed_6d"]) == 1
     assert len(res_dict["generated_2d_recommendations"]) == 3
-    assert "MC Sim EV" in res_dict["best_analyzed_6d"][0]["tags"][0]
+    assert "Lucky Rank 58 VIP" in res_dict["best_analyzed_6d"][0]["tags"]
 
