@@ -867,22 +867,26 @@ function RecommendationMeta({ tags, confidence, colorTheme }: { tags?: string[];
       >
         {safeConf.toFixed(1)}% Confidence
       </span>
-      {safeTags.map((tag, i) => (
-        <span
-          key={i}
-          className="analysis-tag-badge"
-          style={{
-            fontSize: "0.7rem",
-            color: "var(--text-secondary)",
-            background: "rgba(255, 255, 255, 0.04)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            padding: "2px 7px",
-            borderRadius: "6px",
-          }}
-        >
-          {tag}
-        </span>
-      ))}
+      {safeTags.map((tag, i) => {
+        const isHighlight = tag.includes("VIP") || tag.includes("Rank") || tag.includes("อันดับ");
+        return (
+          <span
+            key={i}
+            className="analysis-tag-badge"
+            style={{
+              fontSize: "0.7rem",
+              fontWeight: isHighlight ? 700 : 400,
+              color: isHighlight ? themeColors.text : "var(--text-secondary)",
+              background: isHighlight ? themeColors.bg : "rgba(255, 255, 255, 0.04)",
+              border: isHighlight ? `1px solid ${themeColors.border}` : "1px solid rgba(255, 255, 255, 0.1)",
+              padding: "2px 7px",
+              borderRadius: "6px",
+            }}
+          >
+            {tag}
+          </span>
+        );
+      })}
     </div>
   );
 }
@@ -1006,6 +1010,7 @@ function AnalysisResultVisualizer({
                     const list6d = details.best_analyzed_6d.slice(0, 1);
                     return list6d.map((item: any, idx: number) => {
                       const title = isSuperAdmin ? "6-Digit Pick (Super Admin VIP)" : "6-Digit Pick (Admin Top 6D)";
+                      const rankBadge = isSuperAdmin ? "อันดับที่ 58 (Rank #58 VIP)" : "อันดับที่ 1 (Rank #1 Top 6D)";
                       return (
                         <div
                           key={"thai6d" + (item.number || idx)}
@@ -1024,8 +1029,23 @@ function AnalysisResultVisualizer({
                           }}
                         >
                           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                            <div style={{ fontSize: "0.95rem", color: "#ffd700", fontWeight: "bold", minWidth: "150px" }}>
-                              {title}
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+                              <div style={{ fontSize: "0.95rem", color: "#ffd700", fontWeight: "bold" }}>
+                                {title}
+                              </div>
+                              <span
+                                style={{
+                                  fontSize: "0.75rem",
+                                  fontWeight: 800,
+                                  padding: "2px 8px",
+                                  borderRadius: "6px",
+                                  background: "rgba(255, 215, 0, 0.18)",
+                                  color: "#ffd700",
+                                  border: "1px solid rgba(255, 215, 0, 0.45)",
+                                }}
+                              >
+                                {rankBadge}
+                              </span>
                             </div>
                             <RecommendationMeta
                               tags={item?.tags}
@@ -1084,8 +1104,23 @@ function AnalysisResultVisualizer({
                         }}
                       >
                         <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                          <div style={{ fontSize: "0.95rem", color: "#bae6fd", fontWeight: "bold", minWidth: "150px" }}>
-                            Front 3-Digit Pick #{idx + 1} (Top 3DF)
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+                            <div style={{ fontSize: "0.95rem", color: "#bae6fd", fontWeight: "bold" }}>
+                              Front 3-Digit Pick #{idx + 1}
+                            </div>
+                            <span
+                              style={{
+                                fontSize: "0.75rem",
+                                fontWeight: 800,
+                                padding: "2px 8px",
+                                borderRadius: "6px",
+                                background: "rgba(56, 189, 248, 0.18)",
+                                color: "#38bdf8",
+                                border: "1px solid rgba(56, 189, 248, 0.4)",
+                              }}
+                            >
+                              {idx === 0 ? "อันดับที่ 1 (Rank #1)" : "อันดับที่ 2 (Rank #2)"}
+                            </span>
                           </div>
                           <RecommendationMeta
                             tags={item?.tags}
@@ -1143,8 +1178,23 @@ function AnalysisResultVisualizer({
                         }}
                       >
                         <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                          <div style={{ fontSize: "0.95rem", color: "#e9d5ff", fontWeight: "bold", minWidth: "150px" }}>
-                            Back 3-Digit Pick #{idx + 1} (Top 3DB)
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+                            <div style={{ fontSize: "0.95rem", color: "#e9d5ff", fontWeight: "bold" }}>
+                              Back 3-Digit Pick #{idx + 1}
+                            </div>
+                            <span
+                              style={{
+                                fontSize: "0.75rem",
+                                fontWeight: 800,
+                                padding: "2px 8px",
+                                borderRadius: "6px",
+                                background: "rgba(168, 85, 247, 0.18)",
+                                color: "#c084fc",
+                                border: "1px solid rgba(168, 85, 247, 0.4)",
+                              }}
+                            >
+                              {idx === 0 ? "อันดับที่ 1 (Rank #1)" : "อันดับที่ 2 (Rank #2)"}
+                            </span>
                           </div>
                           <RecommendationMeta
                             tags={item?.tags}
@@ -1169,8 +1219,11 @@ function AnalysisResultVisualizer({
                     return list2d.map((item: any, idx: number) => {
                       const numStr = typeof item === "string" ? item : item?.number || "00";
                       const label = isSuperAdmin
-                        ? (idx === 0 ? "2-Digit Pick #1 (Rank 5 VIP)" : "2-Digit Pick #2 (Rank 8 VIP)")
-                        : `2-Digit Pick #${idx + 1} (Top 2D)`;
+                        ? `2-Digit Pick #${idx + 1} (VIP)`
+                        : `2-Digit Pick #${idx + 1}`;
+                      const rankBadge = isSuperAdmin
+                        ? (idx === 0 ? "อันดับที่ 5 (Rank #5 VIP)" : "อันดับที่ 8 (Rank #8 VIP)")
+                        : (idx === 0 ? "อันดับที่ 1 (Rank #1)" : (idx === 1 ? "อันดับที่ 2 (Rank #2)" : "อันดับที่ 3 (Rank #3)"));
                       const labelColor = isSuperAdmin ? "#ffd700" : "var(--text-secondary)";
                       return (
                         <div
@@ -1190,8 +1243,23 @@ function AnalysisResultVisualizer({
                           }}
                         >
                           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                            <div style={{ fontSize: "0.95rem", color: labelColor, fontWeight: "bold", minWidth: "150px" }}>
-                              {label}
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+                              <div style={{ fontSize: "0.95rem", color: labelColor, fontWeight: "bold" }}>
+                                {label}
+                              </div>
+                              <span
+                                style={{
+                                  fontSize: "0.75rem",
+                                  fontWeight: 800,
+                                  padding: "2px 8px",
+                                  borderRadius: "6px",
+                                  background: isSuperAdmin ? "rgba(255, 215, 0, 0.18)" : "rgba(245, 158, 11, 0.18)",
+                                  color: isSuperAdmin ? "#ffd700" : "#f59e0b",
+                                  border: isSuperAdmin ? "1px solid rgba(255, 215, 0, 0.45)" : "1px solid rgba(245, 158, 11, 0.4)",
+                                }}
+                              >
+                                {rankBadge}
+                              </span>
                             </div>
                             <RecommendationMeta
                               tags={item?.tags}
@@ -1229,8 +1297,23 @@ function AnalysisResultVisualizer({
                         }}
                       >
                         <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                          <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold", minWidth: "150px" }}>
-                            2-Digit Pick (Top 2D)
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+                            <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: "bold" }}>
+                              2-Digit Pick (Top 2D)
+                            </div>
+                            <span
+                              style={{
+                                fontSize: "0.75rem",
+                                fontWeight: 800,
+                                padding: "2px 8px",
+                                borderRadius: "6px",
+                                background: "rgba(245, 158, 11, 0.18)",
+                                color: "#f59e0b",
+                                border: "1px solid rgba(245, 158, 11, 0.4)",
+                              }}
+                            >
+                              อันดับที่ 1 (Rank #1)
+                            </span>
                           </div>
                           <RecommendationMeta
                             tags={b2d?.tags}
@@ -1257,6 +1340,7 @@ function AnalysisResultVisualizer({
                     const list6d = details.best_analyzed_6d.slice(0, 1);
                     return list6d.map((item: any, idx: number) => {
                       const title = isSuperAdmin ? "6-Digit Pick (Super Admin VIP)" : "6-Digit Pick (Admin Top 6D)";
+                      const rankBadge = isSuperAdmin ? "อันดับที่ 58 (Rank #58 VIP)" : "อันดับที่ 1 (Rank #1 Top 6D)";
                       return (
                         <div
                           key={"lao6d" + (item.number || idx)}
@@ -1275,8 +1359,23 @@ function AnalysisResultVisualizer({
                           }}
                         >
                           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                            <div style={{ fontSize: "0.95rem", color: "#ffd700", fontWeight: "bold", minWidth: "150px" }}>
-                              {title}
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+                              <div style={{ fontSize: "0.95rem", color: "#ffd700", fontWeight: "bold" }}>
+                                {title}
+                              </div>
+                              <span
+                                style={{
+                                  fontSize: "0.75rem",
+                                  fontWeight: 800,
+                                  padding: "2px 8px",
+                                  borderRadius: "6px",
+                                  background: "rgba(255, 215, 0, 0.18)",
+                                  color: "#ffd700",
+                                  border: "1px solid rgba(255, 215, 0, 0.45)",
+                                }}
+                              >
+                                {rankBadge}
+                              </span>
                             </div>
                             <RecommendationMeta
                               tags={item?.tags}
@@ -1318,8 +1417,11 @@ function AnalysisResultVisualizer({
                   return display2dList.map((item: any, idx: number) => {
                     const numStr = typeof item === "string" ? item : item?.number || "00";
                     const cardTitle = isSuperAdmin
-                      ? (idx === 0 ? "2-Digit Pick #1 (Rank 5 VIP)" : "2-Digit Pick #2 (Rank 8 VIP)")
-                      : `2-Digit Pick #${idx + 1} (Top 2D)`;
+                      ? `2-Digit Pick #${idx + 1} (VIP)`
+                      : `2-Digit Pick #${idx + 1}`;
+                    const rankBadge = isSuperAdmin
+                      ? (idx === 0 ? "อันดับที่ 5 (Rank #5 VIP)" : "อันดับที่ 8 (Rank #8 VIP)")
+                      : (idx === 0 ? "อันดับที่ 1 (Rank #1)" : (idx === 1 ? "อันดับที่ 2 (Rank #2)" : "อันดับที่ 3 (Rank #3)"));
                     const labelColor = isSuperAdmin ? "#ffd700" : "var(--text-secondary)";
 
                     return (
@@ -1340,8 +1442,23 @@ function AnalysisResultVisualizer({
                         }}
                       >
                         <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                          <div style={{ fontSize: "0.95rem", color: labelColor, fontWeight: "bold", minWidth: "150px" }}>
-                            {cardTitle}
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+                            <div style={{ fontSize: "0.95rem", color: labelColor, fontWeight: "bold" }}>
+                              {cardTitle}
+                            </div>
+                            <span
+                              style={{
+                                fontSize: "0.75rem",
+                                fontWeight: 800,
+                                padding: "2px 8px",
+                                borderRadius: "6px",
+                                background: isSuperAdmin ? "rgba(255, 215, 0, 0.18)" : "rgba(245, 158, 11, 0.18)",
+                                color: isSuperAdmin ? "#ffd700" : "#f59e0b",
+                                border: isSuperAdmin ? "1px solid rgba(255, 215, 0, 0.45)" : "1px solid rgba(245, 158, 11, 0.4)",
+                              }}
+                            >
+                              {rankBadge}
+                            </span>
                           </div>
                           <RecommendationMeta
                             tags={item?.tags}

@@ -370,13 +370,21 @@ def export_analysis_csv(
             else (job.result.result_data or {})
         )
         
+        is_superadmin = bool(current_user and (current_user.email == "suzu@gmail.com" or getattr(current_user, "is_superadmin", False)))
+        is_operator_admin = bool(current_user and current_user.is_admin and not is_superadmin)
+
         # 6D Picks (Trimmed to last 2 digits)
         if "best_analyzed_6d" in res_data and res_data["best_analyzed_6d"]:
             for idx, item in enumerate(res_data["best_analyzed_6d"]):
                 num = item.get("number", "") if isinstance(item, dict) else str(item)
                 score = item.get("score", "N/A") if isinstance(item, dict) else "N/A"
                 trimmed_num = num[-2:] if len(num) >= 2 else num
-                label = f"6-Digit Pick #{idx+1} (Top 6D)" if len(res_data["best_analyzed_6d"]) > 1 else "6-Digit Pick (Top 6D)"
+                if is_superadmin:
+                    label = "6-Digit Pick (อันดับ #58 VIP / Rank #58)"
+                elif is_operator_admin:
+                    label = "6-Digit Pick (อันดับ #1 Top 6D)"
+                else:
+                    label = f"6-Digit Pick #{idx+1} (Top 6D)" if len(res_data["best_analyzed_6d"]) > 1 else "6-Digit Pick (Top 6D)"
                 writer.writerow([label, trimmed_num, score])
 
         # 4D Pick (Trimmed to last 2 digits)
@@ -394,7 +402,7 @@ def export_analysis_csv(
                 num = item.get("number", "") if isinstance(item, dict) else str(item)
                 score = item.get("score", "N/A") if isinstance(item, dict) else "N/A"
                 trimmed_num = num[-2:] if len(num) >= 2 else num
-                writer.writerow([f"3-Digit Pick #{idx+1} (Top 3D)", trimmed_num, score])
+                writer.writerow([f"3-Digit Pick #{idx+1} (อันดับ #{idx+1} Top 3D)", trimmed_num, score])
                 
         # 2D Picks (Trimmed to last 2 digits)
         if "generated_2d_recommendations" in res_data:
@@ -402,7 +410,12 @@ def export_analysis_csv(
                 num = item.get("number", "") if isinstance(item, dict) else str(item)
                 score = item.get("score", "N/A") if isinstance(item, dict) else "N/A"
                 trimmed_num = num[-2:] if len(num) >= 2 else num
-                writer.writerow([f"2-Digit Pick #{idx+1} (Top 2D)", trimmed_num, score])
+                if is_superadmin:
+                    rank_str = "อันดับ #5 VIP" if idx == 0 else "อันดับ #8 VIP"
+                    label = f"2-Digit Pick #{idx+1} ({rank_str})"
+                else:
+                    label = f"2-Digit Pick #{idx+1} (อันดับ #{idx+1} Top 2D)"
+                writer.writerow([label, trimmed_num, score])
                 
         # Optional metadata block
         writer.writerow([])

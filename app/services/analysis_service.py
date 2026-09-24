@@ -713,16 +713,27 @@ class AnalysisService:
         # Super Admin Special Lucky 6D Pick: Rank 58 (index 57 in 0-indexed list)
         if len(rl_enriched_6d) > 57:
             sa_pick = dict(rl_enriched_6d[57])
-            sa_pick["tags"] = ["Lucky Rank 58 VIP"] + [t for t in sa_pick.get("tags", []) if "Rank" not in t][:2]
+            sa_pick["tags"] = ["Lucky Rank 58 VIP", "อันดับที่ 58"] + [t for t in sa_pick.get("tags", []) if "Rank" not in t and "อันดับ" not in t][:1]
             superadmin_6d = [sa_pick]
+        else:
+            superadmin_6d = rl_enriched_6d[:1]
+
+        # Tag Rank 1 for 6D
+        if rl_enriched_6d:
+            rl_enriched_6d[0]["tags"] = ["อันดับที่ 1 (Rank #1)"] + [t for t in rl_enriched_6d[0].get("tags", [])][:2]
+
         # Super Admin Special Lucky 2D Picks: 2 Sets at Rank 5 (index 4) and Rank 8 (index 7)
         sa_2d_p5 = dict(rl_enriched_2d[4]) if len(rl_enriched_2d) > 4 else dict(rl_enriched_2d[0])
-        sa_2d_p5["tags"] = ["Lucky Rank 5 VIP"] + [t for t in sa_2d_p5.get("tags", []) if "Rank" not in t][:2]
+        sa_2d_p5["tags"] = ["Lucky Rank 5 VIP", "อันดับที่ 5"] + [t for t in sa_2d_p5.get("tags", []) if "Rank" not in t and "อันดับ" not in t][:1]
 
         sa_2d_p8 = dict(rl_enriched_2d[7]) if len(rl_enriched_2d) > 7 else dict(rl_enriched_2d[-1])
-        sa_2d_p8["tags"] = ["Lucky Rank 8 VIP"] + [t for t in sa_2d_p8.get("tags", []) if "Rank" not in t][:2]
+        sa_2d_p8["tags"] = ["Lucky Rank 8 VIP", "อันดับที่ 8"] + [t for t in sa_2d_p8.get("tags", []) if "Rank" not in t and "อันดับ" not in t][:1]
 
         superadmin_2d = [sa_2d_p5, sa_2d_p8]
+
+        # Tag ranks for regular 2D picks
+        for idx, item in enumerate(rl_enriched_2d[:3]):
+            item["tags"] = [f"อันดับที่ {idx + 1} (Rank #{idx + 1})"] + [t for t in item.get("tags", [])][:2]
 
         mc_metrics = {
             "simulations_run": n_simulations,
@@ -1086,24 +1097,35 @@ class AnalysisService:
             return item_copy
 
         enriched_6d = [enrich_item(x, 6) for x in best_100_6d]
+        if enriched_6d:
+            enriched_6d[0]["tags"] = ["อันดับที่ 1 (Rank #1)"] + [t for t in enriched_6d[0].get("tags", [])][:2]
+
         sa_6d_enriched = enrich_item(cand_6d_pick, 6)
-        sa_6d_enriched["tags"] = ["Lucky Rank 58 VIP"] + [t for t in sa_6d_enriched.get("tags", []) if "Lucky" not in t][:2]
+        sa_6d_enriched["tags"] = ["Lucky Rank 58 VIP", "อันดับที่ 58"] + [t for t in sa_6d_enriched.get("tags", []) if "Lucky" not in t and "อันดับ" not in t][:1]
         enriched_superadmin_6d = [sa_6d_enriched]
         enriched_4d = [enrich_item(x, 4) for x in top_100_4d]
         enriched_3d = [enrich_item(x, 3) for x in top_100_3d]
         enriched_2d = [enrich_item(x, 2) for x in top_3_2d]
+        for idx, item in enumerate(enriched_2d[:3]):
+            item["tags"] = [f"อันดับที่ {idx + 1} (Rank #{idx + 1})"] + [t for t in item.get("tags", [])][:2]
+
         sa_2d_p5 = scored_2d_all[4] if len(scored_2d_all) > 4 else scored_2d_all[0]
         sa_2d_p8 = scored_2d_all[7] if len(scored_2d_all) > 7 else scored_2d_all[-1]
 
         sa_2d_p5_enriched = enrich_item(sa_2d_p5, 2)
-        sa_2d_p5_enriched["tags"] = ["Lucky Rank 5 VIP"] + [t for t in sa_2d_p5_enriched.get("tags", []) if "Lucky" not in t][:2]
+        sa_2d_p5_enriched["tags"] = ["Lucky Rank 5 VIP", "อันดับที่ 5"] + [t for t in sa_2d_p5_enriched.get("tags", []) if "Lucky" not in t and "อันดับ" not in t][:1]
 
         sa_2d_p8_enriched = enrich_item(sa_2d_p8, 2)
-        sa_2d_p8_enriched["tags"] = ["Lucky Rank 8 VIP"] + [t for t in sa_2d_p8_enriched.get("tags", []) if "Lucky" not in t][:2]
+        sa_2d_p8_enriched["tags"] = ["Lucky Rank 8 VIP", "อันดับที่ 8"] + [t for t in sa_2d_p8_enriched.get("tags", []) if "Lucky" not in t and "อันดับ" not in t][:1]
 
         enriched_superadmin_2d = [sa_2d_p5_enriched, sa_2d_p8_enriched]
         enriched_f3d = [enrich_item(x, 3) for x in chosen_f3d_list]
+        for idx, item in enumerate(enriched_f3d[:2]):
+            item["tags"] = [f"อันดับที่ {idx + 1} (Rank #{idx + 1})"] + [t for t in item.get("tags", [])][:2]
+
         enriched_b3d = [enrich_item(x, 3) for x in chosen_b3d_list]
+        for idx, item in enumerate(enriched_b3d[:2]):
+            item["tags"] = [f"อันดับที่ {idx + 1} (Rank #{idx + 1})"] + [t for t in item.get("tags", [])][:2]
 
         result_data = {
             "total_records_analyzed": total_records,
