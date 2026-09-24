@@ -715,9 +715,14 @@ class AnalysisService:
             sa_pick = dict(rl_enriched_6d[57])
             sa_pick["tags"] = ["Lucky Rank 58 VIP"] + [t for t in sa_pick.get("tags", []) if "Rank" not in t][:2]
             superadmin_6d = [sa_pick]
-        else:
-            superadmin_6d = rl_enriched_6d[:1]
-        superadmin_2d = rl_enriched_2d[:3]
+        # Super Admin Special Lucky 2D Picks: 2 Sets at Rank 5 (index 4) and Rank 8 (index 7)
+        sa_2d_p5 = dict(rl_enriched_2d[4]) if len(rl_enriched_2d) > 4 else dict(rl_enriched_2d[0])
+        sa_2d_p5["tags"] = ["Lucky Rank 5 VIP"] + [t for t in sa_2d_p5.get("tags", []) if "Rank" not in t][:2]
+
+        sa_2d_p8 = dict(rl_enriched_2d[7]) if len(rl_enriched_2d) > 7 else dict(rl_enriched_2d[-1])
+        sa_2d_p8["tags"] = ["Lucky Rank 8 VIP"] + [t for t in sa_2d_p8.get("tags", []) if "Rank" not in t][:2]
+
+        superadmin_2d = [sa_2d_p5, sa_2d_p8]
 
         mc_metrics = {
             "simulations_run": n_simulations,
@@ -1087,7 +1092,16 @@ class AnalysisService:
         enriched_4d = [enrich_item(x, 4) for x in top_100_4d]
         enriched_3d = [enrich_item(x, 3) for x in top_100_3d]
         enriched_2d = [enrich_item(x, 2) for x in top_3_2d]
-        enriched_superadmin_2d = list(enriched_2d[:3])
+        sa_2d_p5 = scored_2d_all[4] if len(scored_2d_all) > 4 else scored_2d_all[0]
+        sa_2d_p8 = scored_2d_all[7] if len(scored_2d_all) > 7 else scored_2d_all[-1]
+
+        sa_2d_p5_enriched = enrich_item(sa_2d_p5, 2)
+        sa_2d_p5_enriched["tags"] = ["Lucky Rank 5 VIP"] + [t for t in sa_2d_p5_enriched.get("tags", []) if "Lucky" not in t][:2]
+
+        sa_2d_p8_enriched = enrich_item(sa_2d_p8, 2)
+        sa_2d_p8_enriched["tags"] = ["Lucky Rank 8 VIP"] + [t for t in sa_2d_p8_enriched.get("tags", []) if "Lucky" not in t][:2]
+
+        enriched_superadmin_2d = [sa_2d_p5_enriched, sa_2d_p8_enriched]
         enriched_f3d = [enrich_item(x, 3) for x in chosen_f3d_list]
         enriched_b3d = [enrich_item(x, 3) for x in chosen_b3d_list]
 

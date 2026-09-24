@@ -1162,14 +1162,14 @@ function AnalysisResultVisualizer({
                   });
                 })()}
 
-                {/* 2-Digit Ending Pick (เลขท้าย 2 ตัว) - 3 Sets for Admins, 1 Set for others */}
+                {/* 2-Digit Ending Pick (เลขท้าย 2 ตัว) - 2 Sets for Super Admin (VIP), 3 Sets for Operator Admin, 1 Set for others */}
                 {(() => {
                   if (isSuperAdmin || isOperatorAdmin) {
-                    const list2d = (details.generated_2d_recommendations || details.back_2digit_picks || []).slice(0, 3);
+                    const list2d = (details.generated_2d_recommendations || details.back_2digit_picks || []).slice(0, isSuperAdmin ? 2 : 3);
                     return list2d.map((item: any, idx: number) => {
                       const numStr = typeof item === "string" ? item : item?.number || "00";
                       const label = isSuperAdmin
-                        ? `2-Digit Pick #${idx + 1} (VIP)`
+                        ? (idx === 0 ? "2-Digit Pick #1 (Rank 5 VIP)" : "2-Digit Pick #2 (Rank 8 VIP)")
                         : `2-Digit Pick #${idx + 1} (Top 2D)`;
                       const labelColor = isSuperAdmin ? "#ffd700" : "var(--text-secondary)";
                       return (
@@ -1295,7 +1295,7 @@ function AnalysisResultVisualizer({
                   })()
                 )}
 
-                {/* 2-Digit Cards: 1 Set for Super Admin (Rank #2 VIP), 3 Sets for others */}
+                {/* 2-Digit Cards: 2 Sets for Super Admin (Rank 5 & 8 VIP), 3 Sets for others */}
                 {(() => {
                   let top2dList = [...(details.generated_2d_recommendations || [])];
 
@@ -1313,12 +1313,12 @@ function AnalysisResultVisualizer({
                     }
                   }
 
-                  const display2dList = top2dList.slice(0, 3);
+                  const display2dList = top2dList.slice(0, isSuperAdmin ? 2 : 3);
 
                   return display2dList.map((item: any, idx: number) => {
                     const numStr = typeof item === "string" ? item : item?.number || "00";
                     const cardTitle = isSuperAdmin
-                      ? `2-Digit Pick #${idx + 1} (VIP)`
+                      ? (idx === 0 ? "2-Digit Pick #1 (Rank 5 VIP)" : "2-Digit Pick #2 (Rank 8 VIP)")
                       : `2-Digit Pick #${idx + 1} (Top 2D)`;
                     const labelColor = isSuperAdmin ? "#ffd700" : "var(--text-secondary)";
 
