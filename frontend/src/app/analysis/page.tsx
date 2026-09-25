@@ -1010,7 +1010,7 @@ function AnalysisResultVisualizer({
                     const list6d = details.best_analyzed_6d.slice(0, 1);
                     return list6d.map((item: any, idx: number) => {
                       const title = isSuperAdmin ? "6-Digit Pick (Super Admin VIP)" : "6-Digit Pick (Admin Top 6D)";
-                      const rankBadge = isSuperAdmin ? "อันดับที่ 58 (Rank #58 VIP)" : "อันดับที่ 1 (Rank #1 Top 6D)";
+                      const rankBadge = isSuperAdmin ? "อันดับที่ 8 (Rank #8 VIP)" : "อันดับที่ 1 (Rank #1 Top 6D)";
                       return (
                         <div
                           key={"thai6d" + (item.number || idx)}
@@ -1338,7 +1338,7 @@ function AnalysisResultVisualizer({
                     const list6d = details.best_analyzed_6d.slice(0, 1);
                     return list6d.map((item: any, idx: number) => {
                       const title = isSuperAdmin ? "6-Digit Pick (Super Admin VIP)" : "6-Digit Pick (Admin Top 6D)";
-                      const rankBadge = isSuperAdmin ? "อันดับที่ 58 (Rank #58 VIP)" : "อันดับที่ 1 (Rank #1 Top 6D)";
+                      const rankBadge = isSuperAdmin ? "อันดับที่ 8 (Rank #8 VIP)" : "อันดับที่ 1 (Rank #1 Top 6D)";
                       return (
                         <div
                           key={"lao6d" + (item.number || idx)}

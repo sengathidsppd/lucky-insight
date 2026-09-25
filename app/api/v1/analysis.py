@@ -64,11 +64,11 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
             res_dict.pop("generated_3d_recommendations", None)
 
             if is_superadmin:
-                # Super Admin: 1x 6D (Rank 58 VIP), 3x 2D (Rank #1, #2, #3)
+                # Super Admin: 1x 6D (Rank 8 VIP), 3x 2D (Rank #1, #2, #3)
                 if "superadmin_picks_6d" in res_dict and isinstance(res_dict["superadmin_picks_6d"], list) and len(res_dict["superadmin_picks_6d"]) >= 1:
                     res_dict["best_analyzed_6d"] = res_dict["superadmin_picks_6d"][:1]
-                elif "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list) and len(res_dict["best_analyzed_6d"]) > 57:
-                    res_dict["best_analyzed_6d"] = [res_dict["best_analyzed_6d"][57]]
+                elif "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list) and len(res_dict["best_analyzed_6d"]) > 7:
+                    res_dict["best_analyzed_6d"] = [res_dict["best_analyzed_6d"][7]]
                 elif "best_analyzed_6d" in res_dict and isinstance(res_dict["best_analyzed_6d"], list):
                     res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:1]
 
@@ -380,7 +380,7 @@ def export_analysis_csv(
                 score = item.get("score", "N/A") if isinstance(item, dict) else "N/A"
                 trimmed_num = num[-2:] if len(num) >= 2 else num
                 if is_superadmin:
-                    label = "6-Digit Pick (อันดับ #58 VIP / Rank #58)"
+                    label = "6-Digit Pick (อันดับ #8 VIP / Rank #8)"
                 elif is_operator_admin:
                     label = "6-Digit Pick (อันดับ #1 Top 6D)"
                 else:

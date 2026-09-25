@@ -139,9 +139,10 @@ def test_superadmin_analysis_picks_structure(
     res_dict = job_data["result"]["result_data"]
 
     # Verify Super Admin picks structure:
-    # 1. 6D Pick: Exactly 1 set (deterministic Top 58)
+    # 1. 6D Pick: Exactly 1 set (deterministic Top 8)
     assert "best_analyzed_6d" in res_dict
     assert len(res_dict["best_analyzed_6d"]) == 1
+    assert "Lucky Rank 8 VIP" in res_dict["best_analyzed_6d"][0]["tags"]
 
     # 2. No 4D picks for Super Admin
     assert res_dict.get("generated_4d_recommendations") is None
@@ -204,7 +205,7 @@ def test_monte_carlo_rl_analysis_job(
     # Check picks
     assert len(res_dict["best_analyzed_6d"]) == 1
     assert len(res_dict["generated_2d_recommendations"]) == 3
-    assert "Lucky Rank 58 VIP" in res_dict["best_analyzed_6d"][0]["tags"]
+    assert "Lucky Rank 8 VIP" in res_dict["best_analyzed_6d"][0]["tags"]
     assert "Rank #1" in res_dict["generated_2d_recommendations"][0]["tags"][0]
     assert "Rank #2" in res_dict["generated_2d_recommendations"][1]["tags"][0]
     assert "Rank #3" in res_dict["generated_2d_recommendations"][2]["tags"][0]

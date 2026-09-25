@@ -710,10 +710,10 @@ class AnalysisService:
 
         rl_best_6d_num = rl_enriched_6d[0]["number"] if rl_enriched_6d else "000000"
 
-        # Super Admin Special Lucky 6D Pick: Rank 58 (index 57 in 0-indexed list)
-        if len(rl_enriched_6d) > 57:
-            sa_pick = dict(rl_enriched_6d[57])
-            sa_pick["tags"] = ["Lucky Rank 58 VIP", "อันดับที่ 58"] + [t for t in sa_pick.get("tags", []) if "Rank" not in t and "อันดับ" not in t][:1]
+        # Super Admin Special Lucky 6D Pick: Rank 8 (index 7 in 0-indexed list)
+        if len(rl_enriched_6d) > 7:
+            sa_pick = dict(rl_enriched_6d[7])
+            sa_pick["tags"] = ["Lucky Rank 8 VIP", "อันดับที่ 8"] + [t for t in sa_pick.get("tags", []) if "Rank" not in t and "อันดับ" not in t][:1]
             superadmin_6d = [sa_pick]
         else:
             superadmin_6d = rl_enriched_6d[:1]
@@ -929,8 +929,8 @@ class AnalysisService:
         best_100_6d = list(scored_6d[:100])
         pick_1_str = best_100_6d[0]["number"] if best_100_6d else "000000"
 
-        # Super Admin Special Lucky 6D Pick: Rank 58 (index 57 in 0-indexed list)
-        cand_6d_pick = best_100_6d[57] if len(best_100_6d) > 57 else (best_100_6d[0] if best_100_6d else {"number": "000000", "score": 0.0})
+        # Super Admin Special Lucky 6D Pick: Rank 8 (index 7 in 0-indexed list)
+        cand_6d_pick = best_100_6d[7] if len(best_100_6d) > 7 else (best_100_6d[0] if best_100_6d else {"number": "000000", "score": 0.0})
 
         # Score 3-digit combinations (positions 3, 4, 5 of a 6-digit draw)
         def score_3d(num_str: str) -> float:
@@ -1095,7 +1095,7 @@ class AnalysisService:
             enriched_6d[0]["tags"] = ["อันดับที่ 1 (Rank #1)"] + [t for t in enriched_6d[0].get("tags", [])][:2]
 
         sa_6d_enriched = enrich_item(cand_6d_pick, 6)
-        sa_6d_enriched["tags"] = ["Lucky Rank 58 VIP", "อันดับที่ 58"] + [t for t in sa_6d_enriched.get("tags", []) if "Lucky" not in t and "อันดับ" not in t][:1]
+        sa_6d_enriched["tags"] = ["Lucky Rank 8 VIP", "อันดับที่ 8"] + [t for t in sa_6d_enriched.get("tags", []) if "Lucky" not in t and "อันดับ" not in t][:1]
         enriched_superadmin_6d = [sa_6d_enriched]
         enriched_4d = [enrich_item(x, 4) for x in top_100_4d]
         enriched_3d = [enrich_item(x, 3) for x in top_100_3d]
