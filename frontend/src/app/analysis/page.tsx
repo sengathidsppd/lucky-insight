@@ -1212,18 +1212,16 @@ function AnalysisResultVisualizer({
                   });
                 })()}
 
-                {/* 2-Digit Ending Pick (เลขท้าย 2 ตัว) - 2 Sets for Super Admin (VIP), 3 Sets for Operator Admin, 1 Set for others */}
+                {/* 2-Digit Ending Pick (เลขท้าย 2 ตัว) - 3 Sets for Admins, 1 Set for others */}
                 {(() => {
                   if (isSuperAdmin || isOperatorAdmin) {
-                    const list2d = (details.generated_2d_recommendations || details.back_2digit_picks || []).slice(0, isSuperAdmin ? 2 : 3);
+                    const list2d = (details.generated_2d_recommendations || details.back_2digit_picks || []).slice(0, 3);
                     return list2d.map((item: any, idx: number) => {
                       const numStr = typeof item === "string" ? item : item?.number || "00";
                       const label = isSuperAdmin
                         ? `2-Digit Pick #${idx + 1} (VIP)`
                         : `2-Digit Pick #${idx + 1}`;
-                      const rankBadge = isSuperAdmin
-                        ? (idx === 0 ? "อันดับที่ 5 (Rank #5 VIP)" : "อันดับที่ 8 (Rank #8 VIP)")
-                        : (idx === 0 ? "อันดับที่ 1 (Rank #1)" : (idx === 1 ? "อันดับที่ 2 (Rank #2)" : "อันดับที่ 3 (Rank #3)"));
+                      const rankBadge = `อันดับที่ ${idx + 1} (Rank #${idx + 1}${isSuperAdmin ? " VIP" : ""})`;
                       const labelColor = isSuperAdmin ? "#ffd700" : "var(--text-secondary)";
                       return (
                         <div
@@ -1394,7 +1392,7 @@ function AnalysisResultVisualizer({
                   })()
                 )}
 
-                {/* 2-Digit Cards: 2 Sets for Super Admin (Rank 5 & 8 VIP), 3 Sets for others */}
+                {/* 2-Digit Cards: 3 Sets for All */}
                 {(() => {
                   let top2dList = [...(details.generated_2d_recommendations || [])];
 
@@ -1412,16 +1410,14 @@ function AnalysisResultVisualizer({
                     }
                   }
 
-                  const display2dList = top2dList.slice(0, isSuperAdmin ? 2 : 3);
+                  const display2dList = top2dList.slice(0, 3);
 
                   return display2dList.map((item: any, idx: number) => {
                     const numStr = typeof item === "string" ? item : item?.number || "00";
                     const cardTitle = isSuperAdmin
                       ? `2-Digit Pick #${idx + 1} (VIP)`
                       : `2-Digit Pick #${idx + 1}`;
-                    const rankBadge = isSuperAdmin
-                      ? (idx === 0 ? "อันดับที่ 5 (Rank #5 VIP)" : "อันดับที่ 8 (Rank #8 VIP)")
-                      : (idx === 0 ? "อันดับที่ 1 (Rank #1)" : (idx === 1 ? "อันดับที่ 2 (Rank #2)" : "อันดับที่ 3 (Rank #3)"));
+                    const rankBadge = `อันดับที่ ${idx + 1} (Rank #${idx + 1}${isSuperAdmin ? " VIP" : ""})`;
                     const labelColor = isSuperAdmin ? "#ffd700" : "var(--text-secondary)";
 
                     return (

@@ -146,11 +146,12 @@ def test_superadmin_analysis_picks_structure(
     # 2. No 4D picks for Super Admin
     assert res_dict.get("generated_4d_recommendations") is None
 
-    # 3. 2D Picks: Exactly 2 sets (Rank 5 VIP and Rank 8 VIP)
+    # 3. 2D Picks: Exactly 3 sets (Rank #1, #2, #3)
     assert "generated_2d_recommendations" in res_dict
-    assert len(res_dict["generated_2d_recommendations"]) == 2
-    assert "Lucky Rank 5 VIP" in res_dict["generated_2d_recommendations"][0]["tags"]
-    assert "Lucky Rank 8 VIP" in res_dict["generated_2d_recommendations"][1]["tags"]
+    assert len(res_dict["generated_2d_recommendations"]) == 3
+    assert "Rank #1" in res_dict["generated_2d_recommendations"][0]["tags"][0]
+    assert "Rank #2" in res_dict["generated_2d_recommendations"][1]["tags"][0]
+    assert "Rank #3" in res_dict["generated_2d_recommendations"][2]["tags"][0]
 
     # 4. CSV Export
     job_id = job_data["id"]
@@ -202,8 +203,9 @@ def test_monte_carlo_rl_analysis_job(
 
     # Check picks
     assert len(res_dict["best_analyzed_6d"]) == 1
-    assert len(res_dict["generated_2d_recommendations"]) == 2
+    assert len(res_dict["generated_2d_recommendations"]) == 3
     assert "Lucky Rank 58 VIP" in res_dict["best_analyzed_6d"][0]["tags"]
-    assert "Lucky Rank 5 VIP" in res_dict["generated_2d_recommendations"][0]["tags"]
-    assert "Lucky Rank 8 VIP" in res_dict["generated_2d_recommendations"][1]["tags"]
+    assert "Rank #1" in res_dict["generated_2d_recommendations"][0]["tags"][0]
+    assert "Rank #2" in res_dict["generated_2d_recommendations"][1]["tags"][0]
+    assert "Rank #3" in res_dict["generated_2d_recommendations"][2]["tags"][0]
 

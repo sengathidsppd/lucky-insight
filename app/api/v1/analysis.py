@@ -73,13 +73,13 @@ def map_job_to_response(job: AnalysisJob, db: Session, user: Optional[User] = No
                     res_dict["best_analyzed_6d"] = res_dict["best_analyzed_6d"][:1]
 
                 res_dict.pop("generated_4d_recommendations", None)
-                # 2D: Exactly 2 sets for Super Admin (Rank 5 and Rank 8)
+                # 2D: Exactly 3 sets for Super Admin (Rank #1, #2, #3)
                 if "superadmin_picks_2d" in res_dict and isinstance(res_dict["superadmin_picks_2d"], list):
-                    res_dict["generated_2d_recommendations"] = res_dict["superadmin_picks_2d"][:2]
-                    res_dict["back_2digit_picks"] = res_dict["superadmin_picks_2d"][:2]
+                    res_dict["generated_2d_recommendations"] = res_dict["superadmin_picks_2d"][:3]
+                    res_dict["back_2digit_picks"] = res_dict["superadmin_picks_2d"][:3]
                 elif "generated_2d_recommendations" in res_dict and isinstance(res_dict["generated_2d_recommendations"], list):
-                    res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:2]
-                    res_dict["back_2digit_picks"] = res_dict["generated_2d_recommendations"][:2]
+                    res_dict["generated_2d_recommendations"] = res_dict["generated_2d_recommendations"][:3]
+                    res_dict["back_2digit_picks"] = res_dict["generated_2d_recommendations"][:3]
 
             elif is_operator_admin:
                 # Operator Admin: 1x 6D (Rank #1) for both Thai and Lao, 3x 2D (Rank #1, #2, #3)
@@ -410,11 +410,7 @@ def export_analysis_csv(
                 num = item.get("number", "") if isinstance(item, dict) else str(item)
                 score = item.get("score", "N/A") if isinstance(item, dict) else "N/A"
                 trimmed_num = num[-2:] if len(num) >= 2 else num
-                if is_superadmin:
-                    rank_str = "อันดับ #5 VIP" if idx == 0 else "อันดับ #8 VIP"
-                    label = f"2-Digit Pick #{idx+1} ({rank_str})"
-                else:
-                    label = f"2-Digit Pick #{idx+1} (อันดับ #{idx+1} Top 2D)"
+                label = f"2-Digit Pick #{idx+1} (อันดับ #{idx+1} Top 2D)"
                 writer.writerow([label, trimmed_num, score])
                 
         # Optional metadata block

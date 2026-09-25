@@ -722,18 +722,12 @@ class AnalysisService:
         if rl_enriched_6d:
             rl_enriched_6d[0]["tags"] = ["อันดับที่ 1 (Rank #1)"] + [t for t in rl_enriched_6d[0].get("tags", [])][:2]
 
-        # Super Admin Special Lucky 2D Picks: 2 Sets at Rank 5 (index 4) and Rank 8 (index 7)
-        sa_2d_p5 = dict(rl_enriched_2d[4]) if len(rl_enriched_2d) > 4 else dict(rl_enriched_2d[0])
-        sa_2d_p5["tags"] = ["Lucky Rank 5 VIP", "อันดับที่ 5"] + [t for t in sa_2d_p5.get("tags", []) if "Rank" not in t and "อันดับ" not in t][:1]
-
-        sa_2d_p8 = dict(rl_enriched_2d[7]) if len(rl_enriched_2d) > 7 else dict(rl_enriched_2d[-1])
-        sa_2d_p8["tags"] = ["Lucky Rank 8 VIP", "อันดับที่ 8"] + [t for t in sa_2d_p8.get("tags", []) if "Rank" not in t and "อันดับ" not in t][:1]
-
-        superadmin_2d = [sa_2d_p5, sa_2d_p8]
-
-        # Tag ranks for regular 2D picks
+        # Tag ranks for 2D picks
         for idx, item in enumerate(rl_enriched_2d[:3]):
             item["tags"] = [f"อันดับที่ {idx + 1} (Rank #{idx + 1})"] + [t for t in item.get("tags", [])][:2]
+
+        # Super Admin 2D Picks: 3 Sets at Rank #1, #2, #3
+        superadmin_2d = list(rl_enriched_2d[:3])
 
         mc_metrics = {
             "simulations_run": n_simulations,
@@ -1109,16 +1103,7 @@ class AnalysisService:
         for idx, item in enumerate(enriched_2d[:3]):
             item["tags"] = [f"อันดับที่ {idx + 1} (Rank #{idx + 1})"] + [t for t in item.get("tags", [])][:2]
 
-        sa_2d_p5 = scored_2d_all[4] if len(scored_2d_all) > 4 else scored_2d_all[0]
-        sa_2d_p8 = scored_2d_all[7] if len(scored_2d_all) > 7 else scored_2d_all[-1]
-
-        sa_2d_p5_enriched = enrich_item(sa_2d_p5, 2)
-        sa_2d_p5_enriched["tags"] = ["Lucky Rank 5 VIP", "อันดับที่ 5"] + [t for t in sa_2d_p5_enriched.get("tags", []) if "Lucky" not in t and "อันดับ" not in t][:1]
-
-        sa_2d_p8_enriched = enrich_item(sa_2d_p8, 2)
-        sa_2d_p8_enriched["tags"] = ["Lucky Rank 8 VIP", "อันดับที่ 8"] + [t for t in sa_2d_p8_enriched.get("tags", []) if "Lucky" not in t and "อันดับ" not in t][:1]
-
-        enriched_superadmin_2d = [sa_2d_p5_enriched, sa_2d_p8_enriched]
+        enriched_superadmin_2d = list(enriched_2d[:3])
         enriched_f3d = [enrich_item(x, 3) for x in chosen_f3d_list]
         for idx, item in enumerate(enriched_f3d[:2]):
             item["tags"] = [f"อันดับที่ {idx + 1} (Rank #{idx + 1})"] + [t for t in item.get("tags", [])][:2]
